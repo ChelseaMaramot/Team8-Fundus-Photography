@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		DCDCA9E82CD85FFC00750F2C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DCDCA9CF2CD85FFB00750F2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DCDCA9D62CD85FFB00750F2C;
+			remoteInfo = "Team8-Fundus-Photography";
+		};
+		DCDCA9F22CD85FFC00750F2C /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DCDCA9CF2CD85FFB00750F2C /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DCDCA9D62CD85FFB00750F2C;
+			remoteInfo = "Team8-Fundus-Photography";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DCDCA9D72CD85FFB00750F2C /* Team8-Fundus-Photography.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Team8-Fundus-Photography.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DCDCA9E72CD85FFC00750F2C /* Team8-Fundus-PhotographyTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Team8-Fundus-PhotographyTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		DCDCA9F12CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Team8-Fundus-PhotographyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DCDCA9D92CD85FFB00750F2C /* Team8-Fundus-Photography */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Team8-Fundus-Photography";
+			sourceTree = "<group>";
+		};
+		DCDCA9EA2CD85FFC00750F2C /* Team8-Fundus-PhotographyTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Team8-Fundus-PhotographyTests";
+			sourceTree = "<group>";
+		};
+		DCDCA9F42CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = "Team8-Fundus-PhotographyUITests";
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DCDCA9D42CD85FFB00750F2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9E42CD85FFC00750F2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9EE2CD85FFC00750F2C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DCDCA9CE2CD85FFB00750F2C = {
+			isa = PBXGroup;
+			children = (
+				DCDCA9D92CD85FFB00750F2C /* Team8-Fundus-Photography */,
+				DCDCA9EA2CD85FFC00750F2C /* Team8-Fundus-PhotographyTests */,
+				DCDCA9F42CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests */,
+				DCDCA9D82CD85FFB00750F2C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		DCDCA9D82CD85FFB00750F2C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DCDCA9D72CD85FFB00750F2C /* Team8-Fundus-Photography.app */,
+				DCDCA9E72CD85FFC00750F2C /* Team8-Fundus-PhotographyTests.xctest */,
+				DCDCA9F12CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DCDCA9D62CD85FFB00750F2C /* Team8-Fundus-Photography */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DCDCA9FB2CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-Photography" */;
+			buildPhases = (
+				DCDCA9D32CD85FFB00750F2C /* Sources */,
+				DCDCA9D42CD85FFB00750F2C /* Frameworks */,
+				DCDCA9D52CD85FFB00750F2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DCDCA9D92CD85FFB00750F2C /* Team8-Fundus-Photography */,
+			);
+			name = "Team8-Fundus-Photography";
+			packageProductDependencies = (
+			);
+			productName = "Team8-Fundus-Photography";
+			productReference = DCDCA9D72CD85FFB00750F2C /* Team8-Fundus-Photography.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DCDCA9E62CD85FFC00750F2C /* Team8-Fundus-PhotographyTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DCDCA9FE2CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-PhotographyTests" */;
+			buildPhases = (
+				DCDCA9E32CD85FFC00750F2C /* Sources */,
+				DCDCA9E42CD85FFC00750F2C /* Frameworks */,
+				DCDCA9E52CD85FFC00750F2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DCDCA9E92CD85FFC00750F2C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DCDCA9EA2CD85FFC00750F2C /* Team8-Fundus-PhotographyTests */,
+			);
+			name = "Team8-Fundus-PhotographyTests";
+			packageProductDependencies = (
+			);
+			productName = "Team8-Fundus-PhotographyTests";
+			productReference = DCDCA9E72CD85FFC00750F2C /* Team8-Fundus-PhotographyTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DCDCA9F02CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DCDCAA012CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-PhotographyUITests" */;
+			buildPhases = (
+				DCDCA9ED2CD85FFC00750F2C /* Sources */,
+				DCDCA9EE2CD85FFC00750F2C /* Frameworks */,
+				DCDCA9EF2CD85FFC00750F2C /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DCDCA9F32CD85FFC00750F2C /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DCDCA9F42CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests */,
+			);
+			name = "Team8-Fundus-PhotographyUITests";
+			packageProductDependencies = (
+			);
+			productName = "Team8-Fundus-PhotographyUITests";
+			productReference = DCDCA9F12CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DCDCA9CF2CD85FFB00750F2C /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1610;
+				LastUpgradeCheck = 1610;
+				TargetAttributes = {
+					DCDCA9D62CD85FFB00750F2C = {
+						CreatedOnToolsVersion = 16.1;
+					};
+					DCDCA9E62CD85FFC00750F2C = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = DCDCA9D62CD85FFB00750F2C;
+					};
+					DCDCA9F02CD85FFC00750F2C = {
+						CreatedOnToolsVersion = 16.1;
+						TestTargetID = DCDCA9D62CD85FFB00750F2C;
+					};
+				};
+			};
+			buildConfigurationList = DCDCA9D22CD85FFB00750F2C /* Build configuration list for PBXProject "Team8-Fundus-Photography" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DCDCA9CE2CD85FFB00750F2C;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DCDCA9D82CD85FFB00750F2C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DCDCA9D62CD85FFB00750F2C /* Team8-Fundus-Photography */,
+				DCDCA9E62CD85FFC00750F2C /* Team8-Fundus-PhotographyTests */,
+				DCDCA9F02CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DCDCA9D52CD85FFB00750F2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9E52CD85FFC00750F2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9EF2CD85FFC00750F2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DCDCA9D32CD85FFB00750F2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9E32CD85FFC00750F2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DCDCA9ED2CD85FFC00750F2C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DCDCA9E92CD85FFC00750F2C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DCDCA9D62CD85FFB00750F2C /* Team8-Fundus-Photography */;
+			targetProxy = DCDCA9E82CD85FFC00750F2C /* PBXContainerItemProxy */;
+		};
+		DCDCA9F32CD85FFC00750F2C /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DCDCA9D62CD85FFB00750F2C /* Team8-Fundus-Photography */;
+			targetProxy = DCDCA9F22CD85FFC00750F2C /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DCDCA9F92CD85FFC00750F2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DCDCA9FA2CD85FFC00750F2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		DCDCA9FC2CD85FFC00750F2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Team8-Fundus-Photography/Preview Content\"";
+				DEVELOPMENT_TEAM = T44S569Z79;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-Photography";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		DCDCA9FD2CD85FFC00750F2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Team8-Fundus-Photography/Preview Content\"";
+				DEVELOPMENT_TEAM = T44S569Z79;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-Photography";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		DCDCA9FF2CD85FFC00750F2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44S569Z79;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-PhotographyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Team8-Fundus-Photography.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Team8-Fundus-Photography";
+			};
+			name = Debug;
+		};
+		DCDCAA002CD85FFC00750F2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44S569Z79;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-PhotographyTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Team8-Fundus-Photography.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Team8-Fundus-Photography";
+			};
+			name = Release;
+		};
+		DCDCAA022CD85FFC00750F2C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44S569Z79;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-PhotographyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Team8-Fundus-Photography";
+			};
+			name = Debug;
+		};
+		DCDCAA032CD85FFC00750F2C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = T44S569Z79;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "team8.Team8-Fundus-PhotographyUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = "Team8-Fundus-Photography";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DCDCA9D22CD85FFB00750F2C /* Build configuration list for PBXProject "Team8-Fundus-Photography" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCDCA9F92CD85FFC00750F2C /* Debug */,
+				DCDCA9FA2CD85FFC00750F2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DCDCA9FB2CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-Photography" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCDCA9FC2CD85FFC00750F2C /* Debug */,
+				DCDCA9FD2CD85FFC00750F2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DCDCA9FE2CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-PhotographyTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCDCA9FF2CD85FFC00750F2C /* Debug */,
+				DCDCAA002CD85FFC00750F2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DCDCAA012CD85FFC00750F2C /* Build configuration list for PBXNativeTarget "Team8-Fundus-PhotographyUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DCDCAA022CD85FFC00750F2C /* Debug */,
+				DCDCAA032CD85FFC00750F2C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DCDCA9CF2CD85FFB00750F2C /* Project object */;
+}

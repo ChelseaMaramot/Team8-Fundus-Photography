@@ -10,7 +10,8 @@ import AVFoundation
 
 
 /*
- @description: layer provides a preview of the content of camera captures
+ @description: layer provides a preview of the content of camera captures.
+    Exposes session property to set AVCaptureSession.
  Documentation: https://developer.apple.com/documentation/avfoundation/avcapturevideopreviewlayer
  */
 

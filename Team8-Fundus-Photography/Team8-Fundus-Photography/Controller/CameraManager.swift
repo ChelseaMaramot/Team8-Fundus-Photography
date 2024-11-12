@@ -41,19 +41,67 @@ class CameraManager: NSObject, ObservableObject {
     var videoDeviceInput: AVCaptureDeviceInput?
     var photoOutput: AVCapturePhotoOutput?
     
-    override init() {
-            super.init()
-            configureSession()
+    private var permissionGranted = true
+    
+    
+    override init(){
+        super.init()
+        self.checkPermission()
+        self.configureSession()
+    }
+    
+    var isAuthorized: Bool {
+        get async {
+            let status = AVCaptureDevice.authorizationStatus(for: .video)
+            
+            // Determine if the user previously authorized camera access.
+            var isAuthorized = status == .authorized
+            
+            // If the system hasn't determined the user's authorization status,
+            // explicitly prompt them for approval.
+            if status == .notDetermined {
+                isAuthorized = await AVCaptureDevice.requestAccess(for: .video)
+            }
+            
+            return isAuthorized
         }
+    }
+    
+    func checkPermission() {
+         switch AVCaptureDevice.authorizationStatus(for: .video) {
+             case .authorized: // The user has previously granted access to the camera.
+                 self.permissionGranted = true
+                 
+             case .notDetermined: // The user has not yet been asked for camera access.
+                 self.requestPermission()
+                 
+         // Combine the two other cases into the default case
+         default:
+             self.permissionGranted = false
+         }
+     }
+    
+    func requestPermission() {
+        // Strong reference not a problem here but might become one in the future.
+        AVCaptureDevice.requestAccess(for: .video) { [unowned self] granted in
+            self.permissionGranted = granted
+        }
+    }
+    
     
     func configureSession(){
     
+        guard permissionGranted else { return }
+        
         captureSession.beginConfiguration()
-        let videoDevice = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back)
+        
+        guard let videoDevice = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) else {
+            print("Unable to access back camera")
+            return
+        }
         
         // initializing input to session
-        guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!),
-               captureSession.canAddInput(videoDeviceInput)
+        guard let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice), captureSession.canAddInput(videoDeviceInput)
         else {
             print("Unable to add device input to capture session")
             return
@@ -70,11 +118,18 @@ class CameraManager: NSObject, ObservableObject {
         // adding input/output to session
         captureSession.addInput(videoDeviceInput)
         captureSession.addOutput(photoOutput)
+        
+        // Commit the configuration changes before starting the session
+        captureSession.commitConfiguration()
+        
     }
     
     func startSession(){
         // start camera capture session
-        captureSession.startRunning()
+        if !captureSession.isRunning {
+            captureSession.startRunning()
+        }
+
     }
     
     func stopSession() {
@@ -90,5 +145,8 @@ class CameraManager: NSObject, ObservableObject {
         // Use optional chaining
         photoOutput?.capturePhoto(with: photoSettings, delegate: PhotoCaptureDelegate(completion: completion))
     }
+    
+    
+    
 
 }

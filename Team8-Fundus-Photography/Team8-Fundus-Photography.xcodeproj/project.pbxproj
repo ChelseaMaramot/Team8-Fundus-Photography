@@ -413,8 +413,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Team8Camera;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Allow access to the camera to take photos and videos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app accesses and saves images to your camera roll";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -446,8 +446,8 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Team8Camera;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Allow access to the camera to take photos and videos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app accesses and saves images to your camera roll";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;

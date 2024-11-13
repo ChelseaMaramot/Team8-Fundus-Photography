@@ -18,17 +18,24 @@ import UIKit
 
 class CameraManager: NSObject, ObservableObject {
     
-    let captureSession = AVCaptureSession()
-    let photoSettings: AVCapturePhotoSettings?
+    let captureSession: AVCaptureSession
+    var photoSettings: AVCapturePhotoSettings?
     var videoDevice: AVCaptureDevice?
     var videoDeviceInput: AVCaptureDeviceInput?
     var photoOutput: AVCapturePhotoOutput?
-      
-    private var permissionGranted = true
     
+
+    private var permissionGranted: Bool
+    private var photoCaptureDelegate: PhotoCaptureDelegate?
+
     
     override init(){
+        
+        self.captureSession = AVCaptureSession()
+        self.permissionGranted = true
+        
         super.init()
+
         self.checkPermission()
         self.configureSession()
     }
@@ -98,11 +105,14 @@ class CameraManager: NSObject, ObservableObject {
             return
         }
         
+
+        self.photoOutput = photoOutput
+
         // adding input/output to session
         captureSession.addInput(videoDeviceInput)
         captureSession.addOutput(photoOutput)
-        
-        // Commit the configuration changes before starting the session
+
+                
         captureSession.commitConfiguration()
         
     }
@@ -110,6 +120,7 @@ class CameraManager: NSObject, ObservableObject {
     func startSession(){
         // start camera capture session
         if !captureSession.isRunning {
+            print("Capture session has started running")
             captureSession.startRunning()
         }
 
@@ -118,17 +129,29 @@ class CameraManager: NSObject, ObservableObject {
     func stopSession() {
         if captureSession.isRunning {
             captureSession.stopRunning()
+            print("Capture session has stopped running")
         }
     }
     
     // called when user taps photo capture button
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
+        
         let photoSettings = AVCapturePhotoSettings()
-        
-        let _ = print("taking a picture")
-        
-        photoOutput?.capturePhoto(with: photoSettings, delegate: PhotoCaptureDelegate(completion: completion))
+        let photoCaptureDelegate = PhotoCaptureDelegate(completion: completion)
+        self.photoCaptureDelegate = photoCaptureDelegate
 
+        
+        guard let photoOutput = self.photoOutput else {
+                   print("No photo output available")
+                   completion(nil)
+                   return
+               }
+
+        print("taking a picture")
+        
+        photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureDelegate)
+
+        print("done taking a picture")
     }
     
 

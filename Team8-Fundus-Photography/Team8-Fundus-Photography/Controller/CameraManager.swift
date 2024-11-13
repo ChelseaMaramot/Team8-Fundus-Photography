@@ -16,31 +16,14 @@ import UIKit
  */
 
 
-
-class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
-    private let completion: (UIImage?) -> Void
-    
-    init(completion: @escaping (UIImage?) -> Void) {
-        self.completion = completion
-    }
-    
-    func photoOutput(_ output: AVCapturePhotoOutput, didFinishProcessingPhoto photo: AVCapturePhoto, error: Error?) {
-        guard let data = photo.fileDataRepresentation(), let image = UIImage(data: data) else {
-            completion(nil)
-            return
-        }
-        completion(image)
-    }
-}
-
-
 class CameraManager: NSObject, ObservableObject {
     
     let captureSession = AVCaptureSession()
+    let photoSettings: AVCapturePhotoSettings?
     var videoDevice: AVCaptureDevice?
     var videoDeviceInput: AVCaptureDeviceInput?
     var photoOutput: AVCapturePhotoOutput?
-    
+      
     private var permissionGranted = true
     
     
@@ -142,10 +125,13 @@ class CameraManager: NSObject, ObservableObject {
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
         let photoSettings = AVCapturePhotoSettings()
         
-        // Use optional chaining
+        let _ = print("taking a picture")
+        
         photoOutput?.capturePhoto(with: photoSettings, delegate: PhotoCaptureDelegate(completion: completion))
+
     }
     
+
     
     
 

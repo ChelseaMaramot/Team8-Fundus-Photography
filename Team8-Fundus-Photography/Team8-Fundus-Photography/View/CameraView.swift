@@ -26,6 +26,7 @@ struct CameraView: View {
                     }.onDisappear() {
                         cameraManager.stopSession()
                     }
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: geometry.size.width, height: geometry.size.height * 0.7)
                     .background(.white)
                     .clipped()

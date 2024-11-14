@@ -10,13 +10,13 @@ import UIKit
 
 struct CameraView: View {
     
-    @StateObject private var cameraManager = CameraManager()
+    @State private var cameraManager = CameraManager()
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
 
     var body: some View {
         ZStack{
-            CameraPreviewRepresentable(session: cameraManager.captureSession).onAppear() {
+            CameraPreviewRepresentable(session: cameraManager.getSession()).onAppear() {
                 cameraManager.startSession()
             }.onDisappear() {
                 cameraManager.stopSession()

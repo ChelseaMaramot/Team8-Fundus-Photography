@@ -13,6 +13,7 @@ struct CameraView: View {
     @ObservedObject private var cameraManager = CameraManager()
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
+    @State private var isFlashing = false
 
     //@State private var celsius: Double = 0
     
@@ -38,12 +39,17 @@ struct CameraView: View {
                     //Slider(value: $celsius, in: -100...100)
                     
                     CameraButton(action: {
+                        isFlashing = true
+                        
                         cameraManager.capturePhoto {image in
                             capturedImage = image
                             showCapturedPhoto = image != nil}
                     })
                     .padding(.bottom, 30)
                 }
+                
+                
+                if isFlashing {FlashView(isFlashing: $isFlashing).zIndex(1)}
             }
         }
     }

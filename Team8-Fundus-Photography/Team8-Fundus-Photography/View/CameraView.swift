@@ -25,17 +25,12 @@ struct CameraView: View {
             VStack
             {
                 Spacer()
-                Button(action: {
+                CameraButton(action: {
                     cameraManager.capturePhoto {image in
                         capturedImage = image
                         showCapturedPhoto = image != nil}
-                }) {
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: 70, height: 70)
-                        .overlay(Circle().stroke(Color.gray, lineWidth: 2))
-                        .padding(.bottom, 30)
-                }
+                })
+                .padding(.bottom, 30)
             }
         }
         

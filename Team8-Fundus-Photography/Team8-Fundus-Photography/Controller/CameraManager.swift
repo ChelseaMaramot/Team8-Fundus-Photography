@@ -141,7 +141,6 @@ class CameraManager: NSObject, ObservableObject {
         let photoCaptureDelegate = PhotoCaptureDelegate(completion: completion)
         self.photoCaptureDelegate = photoCaptureDelegate
 
-        
         guard let photoOutput = self.photoOutput else {
                    print("No photo output available")
                    completion(nil)

@@ -32,6 +32,11 @@ struct CameraView: View {
                     .background(.white)
                     .clipped()
                     .ignoresSafeArea()
+                    .overlay(
+                        Group{
+                            if isFlashing {FlashView(isFlashing: $isFlashing).zIndex(1)}
+                        }
+                    )
                     
                     Spacer()
                     
@@ -49,7 +54,7 @@ struct CameraView: View {
                 }
                 
                 
-                if isFlashing {FlashView(isFlashing: $isFlashing).zIndex(1)}
+                
             }
         }
     }

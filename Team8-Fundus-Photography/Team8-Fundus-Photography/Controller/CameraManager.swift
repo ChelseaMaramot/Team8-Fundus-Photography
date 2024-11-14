@@ -57,7 +57,7 @@ class CameraManager: NSObject, ObservableObject {
     
     
     func setVideoInput(){
-        guard let videoDevice = AVCaptureDevice.default(.builtInTripleCamera, for: .video, position: .back) else {
+        guard let videoDevice = AVCaptureDevice.default(.builtInTelephotoCamera, for: .video, position: .back) else {
                 print("Unable to access back camera")
             return
         }

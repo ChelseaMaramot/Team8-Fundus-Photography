@@ -22,7 +22,7 @@ struct CameraView: View {
             ZStack{
                 Color.black.edgesIgnoringSafeArea(.all)
                 VStack{
-                    CameraPreviewRepresentable(session: cameraManager.getSession()).onAppear() {
+                    CameraPreview(session: cameraManager.getSession()).onAppear() {
                         cameraManager.startSession()
                     }.onDisappear() {
                         cameraManager.stopSession()
@@ -52,9 +52,6 @@ struct CameraView: View {
                     })
                     .padding(.bottom, 30)
                 }
-                
-                
-                
             }
         }
     }

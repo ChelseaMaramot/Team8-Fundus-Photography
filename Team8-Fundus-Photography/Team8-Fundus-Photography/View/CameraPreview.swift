@@ -12,19 +12,26 @@ import AVFoundation
 /*
  * Allows us to use CameraPreviewView and binds a session to it
  */
-struct CameraPreviewRepresentable: UIViewRepresentable {
+struct CameraPreview: UIViewRepresentable {
+    
+    class CameraPreviewView: UIView {
+        override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
+        
+        var videoPreviewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
+    }
+
     let session: AVCaptureSession
     
     //  Initialize and return a CameraPreviewView
     //  creates view controller obkect and configures init state
     func makeUIView(context: Context) -> CameraPreviewView {
         let cameraPreviewView = CameraPreviewView()
-        cameraPreviewView.session = session
+        cameraPreviewView.videoPreviewLayer.session = session
         cameraPreviewView.videoPreviewLayer.videoGravity = .resizeAspectFill
         return cameraPreviewView
     }
 
     //  called when there is an update from SwiftUI
     func updateUIView(_ uiView: CameraPreviewView, context: Context) {
-        uiView.session = session
+        
     }}

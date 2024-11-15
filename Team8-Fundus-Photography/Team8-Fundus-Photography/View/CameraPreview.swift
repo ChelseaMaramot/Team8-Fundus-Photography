@@ -14,7 +14,7 @@ import AVFoundation
  */
 struct CameraPreview: UIViewRepresentable {
     
-    class CameraPreviewView: UIView {
+    class VideoPreviewView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         
         var videoPreviewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
@@ -24,14 +24,16 @@ struct CameraPreview: UIViewRepresentable {
     
     //  Initialize and return a CameraPreviewView
     //  creates view controller obkect and configures init state
-    func makeUIView(context: Context) -> CameraPreviewView {
-        let cameraPreviewView = CameraPreviewView()
-        cameraPreviewView.videoPreviewLayer.session = session
-        cameraPreviewView.videoPreviewLayer.videoGravity = .resizeAspectFill
-        return cameraPreviewView
+    func makeUIView(context: Context) -> VideoPreviewView{
+        let videoPreview = VideoPreviewView()
+        videoPreview.videoPreviewLayer.session = session
+        videoPreview.videoPreviewLayer.videoGravity = .resizeAspectFill
+        videoPreview.backgroundColor = .black
+       
+        return videoPreview
     }
 
     //  called when there is an update from SwiftUI
-    func updateUIView(_ uiView: CameraPreviewView, context: Context) {
+    func updateUIView(_ uiView: VideoPreviewView, context: Context) {
         
     }}

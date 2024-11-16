@@ -25,6 +25,7 @@ class CameraManager: NSObject, ObservableObject {
     private var photoCaptureDelegate: PhotoCaptureDelegate?
     private var photoOutput: AVCapturePhotoOutput?
     private var photoSettings: AVCapturePhotoSettings?
+//    @Published private var flashMode: AVCaptureDevice.FlashMode = .off
 
 
     override init(){
@@ -57,8 +58,13 @@ class CameraManager: NSObject, ObservableObject {
     
     
     func setVideoInput(){
-        guard let videoDevice = AVCaptureDevice.default(.builtInTelephotoCamera, for: .video, position: .back) else {
-                print("Unable to access back camera")
+//        guard let videoDevice = AVCaptureDevice.default(.builtInTelephotoCamera, for: .video, position: .back) else {
+//                print("Unable to access back camera")
+//            return
+//        }
+        
+        guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
+            print("Unable to access back camera")
             return
         }
         

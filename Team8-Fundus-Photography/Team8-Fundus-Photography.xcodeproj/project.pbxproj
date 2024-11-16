@@ -29,9 +29,22 @@
 		DCDCA9F12CD85FFC00750F2C /* Team8-Fundus-PhotographyUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Team8-Fundus-PhotographyUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DCC9CDF32CE27A96003F7389 /* Exceptions for "Team8-Fundus-Photography" folder in "Team8-Fundus-Photography" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DCDCA9D62CD85FFB00750F2C /* Team8-Fundus-Photography */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		DCDCA9D92CD85FFB00750F2C /* Team8-Fundus-Photography */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DCC9CDF32CE27A96003F7389 /* Exceptions for "Team8-Fundus-Photography" folder in "Team8-Fundus-Photography" target */,
+			);
 			path = "Team8-Fundus-Photography";
 			sourceTree = "<group>";
 		};
@@ -399,11 +412,15 @@
 				DEVELOPMENT_TEAM = T44S569Z79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow access to the camera to take photos and videos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app accesses and saves images to your camera roll";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -428,11 +445,15 @@
 				DEVELOPMENT_TEAM = T44S569Z79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";
+				INFOPLIST_KEY_NSCameraUsageDescription = "Allow access to the camera to take photos and videos.";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "This app accesses and saves images to your camera roll";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

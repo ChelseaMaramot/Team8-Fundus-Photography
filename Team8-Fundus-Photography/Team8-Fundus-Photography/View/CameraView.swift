@@ -11,16 +11,19 @@ import UIKit
 struct CameraView: View {
     
     @ObservedObject private var cameraManager = CameraManager()
+    @ObservedObject private var lightManager = LightManager()
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
-
-    //@State private var celsius: Double = 0
+//    @State private var lightIntensity = 2.0
+    @State private var isEditing = false
+    @State private var sliderValue: Double = 0.0
+    
     
     var body: some View {
         GeometryReader {geometry in
             ZStack{
-                Color.black.edgesIgnoringSafeArea(.all)
+                Color.white.edgesIgnoringSafeArea(.all)
                 VStack{
                     CameraPreview(session: cameraManager.getSession()).onAppear() {
                         cameraManager.startSession()
@@ -28,7 +31,7 @@ struct CameraView: View {
                         cameraManager.stopSession()
                     }
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: geometry.size.width, height: geometry.size.height * 0.8)
+                    .frame(width: geometry.size.width, height: geometry.size.height * 0.6)
                     .ignoresSafeArea()
                     .overlay(
                         Group{
@@ -36,10 +39,33 @@ struct CameraView: View {
                         }
                     )
                     
-                    Spacer()
-                    
-                    // Anjola can add slider in here
-                    //Slider(value: $celsius, in: -100...100)
+                   Spacer()
+                    VStack(spacing: 10) {
+                        Slider(
+                            value: $sliderValue,
+                            in: lightManager.minIntensity...lightManager.maxIntensity,
+                            step: 1
+                        ) {
+                            Text("Light Intensity")
+                        } minimumValueLabel: {
+                            Text("\(lightManager.minIntensity, specifier: "%.0f")")
+                        } maximumValueLabel: {
+                            Text("\(lightManager.maxIntensity, specifier: "%.0f")")
+                        } onEditingChanged: { editing in
+                            if editing {
+                                lightManager.startAdjusting()
+                            } else {
+                                lightManager.setLightIntensity(intensity: sliderValue)
+                                lightManager.stopAdjusting()
+                                
+                            }
+                        }
+                        
+                        Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
+                            .foregroundColor(lightManager.isAdjusting ? .red : .blue)
+                    }
+                    .padding(.bottom, 20)
+                   
                     
                     CameraButton(action: {
                         isFlashing = true
@@ -49,6 +75,7 @@ struct CameraView: View {
                             showCapturedPhoto = image != nil}
                     })
                     .padding(.bottom, 30)
+                    
                 }
             }
         }

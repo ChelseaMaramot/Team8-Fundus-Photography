@@ -13,7 +13,7 @@ struct CameraButton: View {
     var body: some View {
         Button(action: action, label: {
             Circle()
-                .foregroundColor(.white)
+                .foregroundColor(.blue)
                 .frame(width:80, height: 80, alignment: .center)
                 .overlay(
                     Circle()

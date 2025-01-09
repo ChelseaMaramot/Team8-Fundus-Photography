@@ -30,12 +30,19 @@ let scans: [Scan] = [
 
 struct ScanListView: View {
     var body: some View {
-        NavigationView{
-            NavigationLink(destination: ImageView()) {
-                List(scans, id: \.self) { scan in
+        VStack{
+            List(scans, id: \.self) { scan in
+                NavigationLink(destination: ImageView()) {
                     Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
                 }
+                
             }
+            Button {
+            } label: {
+                Text("Add New Scan")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
     }
 }

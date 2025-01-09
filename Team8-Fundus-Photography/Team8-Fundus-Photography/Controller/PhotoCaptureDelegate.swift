@@ -9,6 +9,8 @@ import Foundation
 import UIKit
 import Photos
 import AVFoundation
+import FirebaseStorage
+
 
 /*
 Saving images doc:
@@ -44,10 +46,50 @@ class PhotoCaptureDelegate: NSObject, AVCapturePhotoCaptureDelegate {
                   print("No access granted for photo library.")
               }
         }
+        
+//        let patientID = "testPatient1"
+//        let scanID = "scan1"
+//        let viewType = "superior" // "inferior", "central", "nasal"
+//        
+//        uploadPhotoToFirebase(patientID: patientID, scanID: scanID, viewType: viewType, photoData: data) { url in
+//            if let url = url {
+//                print("Uploaded photo to Firebase storage with URL: \(url)")
+//            
+//            } else {
+//                print("Failed to upload photo to Firebase storage.")
+//            }}
     
         completion(image)
     }
     
+    
+//    func uploadPhotoToFirebase(patientID: String, scanID: String, viewType: String, photoData: Data, completion: @escaping (String?) -> Void) {
+//        // Create a reference to the path in Firebase Storage
+//        let storageRef = Storage.storage().reference()
+//        //The file name is a randomly generated UUID to ensure uniqueness
+//            .child("patients/\(patientID)/scans/\(scanID)/views/\(viewType)/\(UUID().uuidString).jpg")
+//        
+//        // Upload photo to Firebase
+//        storageRef.putData(photoData, metadata: nil) { metadata, error in
+//            if let error = error {
+//                print("Error uploading photo: \(error)")
+//                completion(nil)
+//                return
+//            }
+//            
+//            // Retrieve the download URL
+//            storageRef.downloadURL { url, error in
+//                if let url = url {
+//                    completion(url.absoluteString)
+//                } else {
+//                    print("Failed to get download URL.")
+//                    completion(nil)
+//                }
+//            }
+//        }
+//    }
+
+
     func save(photo: AVCapturePhoto){
         // Create a data representation of the photo and its attachments.
         if let photoData = photo.fileDataRepresentation() {

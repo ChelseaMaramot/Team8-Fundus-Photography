@@ -24,8 +24,7 @@ struct Card: View {
     }
     
     var body: some View {
-        GeometryReader {geometry in
-            VStack(alignment: .leading, spacing: 10){
+            VStack(alignment: .leading, spacing: 8){
                 Text(name)
                     .padding(.vertical, 8)
                     .padding(.horizontal)
@@ -69,18 +68,14 @@ struct Card: View {
                     
                    
                 }
-                .frame(maxWidth: .infinity)
             }
             .padding()
             .background(colors.cardBackground)
-            .frame(width: geometry.size.width * 0.88)
-            .frame(height: geometry.size.height * 0.15)
             .cornerRadius(spacing.cardOuterCornerRadius)
+            .frame(maxWidth: .infinity, minHeight: 120) 
         }
-     
-    }
 }
 
 #Preview {
-    Card(name: "Chelsea Grace", date: Date(), isStitched: true, scanNumber: 1)
+    Card(name: "Chelsea Grace", date: Date(), scanNumber: 1)
 }

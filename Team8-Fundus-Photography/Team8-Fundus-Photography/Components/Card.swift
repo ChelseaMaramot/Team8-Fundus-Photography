@@ -11,8 +11,8 @@ struct Card: View {
     
     var name: String
     var date: Date
-    var isStitched: Bool
-    var scanNumber: Int
+    var isStitched: Bool?
+    var scanNumber: Int?
     
     var colors = cardColors()
     var spacing = cardSpacing()
@@ -38,15 +38,27 @@ struct Card: View {
                 
                    
                 HStack{
-                    Text("\(scanNumber) scans")
-                        .padding(.vertical, 4)
-                        .padding(.horizontal)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .background(colors.white)
-                        .cornerRadius(spacing.cardInnerCornerRadius)
-                        .font(.system(size:14))
+                    if let scanNumber = scanNumber {
+                        Text("\(scanNumber) scans")
+                            .padding(.vertical, 4)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .background(colors.white)
+                            .cornerRadius(spacing.cardInnerCornerRadius)
+                            .font(.system(size:14))
+                    }
                     
+                    if isStitched == true {
+                        Text("Image Stitched")
+                            .padding(.vertical, 4)
+                            .padding(.horizontal)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .background(colors.white)
+                            .cornerRadius(spacing.cardInnerCornerRadius)
+                            .font(.system(size: 14))
+                    }
                     
+                 
                     Text(formattedDate)
                         .padding(.vertical, 4)
                         .padding(.horizontal)
@@ -70,5 +82,5 @@ struct Card: View {
 }
 
 #Preview {
-    Card(name: "Chelsea Grace", date: Date(), isStitched: false, scanNumber: 1)
+    Card(name: "Chelsea Grace", date: Date(), isStitched: true, scanNumber: 1)
 }

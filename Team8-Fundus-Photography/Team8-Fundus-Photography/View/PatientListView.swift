@@ -17,7 +17,6 @@ struct Patient: Hashable {
 
 struct PatientListView: View {
     
-    
     // Sample fake data
     let patients: [Patient] = [
         Patient(name: "John Doe", date: Date(), scanNumber: 3),

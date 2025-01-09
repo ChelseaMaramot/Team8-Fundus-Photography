@@ -31,14 +31,27 @@ struct PatientListView: View {
     ]
     
     var body: some View {
+        
+    
         NavigationView {
-            List(patients, id: \.self) {patient in
-                NavigationLink(destination: ScanListView()) {
-                    Card(name: patient.name, date: patient.date, scanNumber: patient.scanNumber)}
+            VStack {
+                List(patients, id: \.self) {patient in
+                    NavigationLink(destination: ScanListView()) {
+                        Card(name: patient.name, date: patient.date, scanNumber: patient.scanNumber)}
                 }
+                
+                
+                Button {
+                } label: {
+                    Text("Add New Patient")
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                
             }
         }
+    }
+}
 
 #Preview {
     PatientListView()

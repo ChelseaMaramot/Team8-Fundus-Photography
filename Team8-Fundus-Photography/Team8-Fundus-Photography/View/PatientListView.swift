@@ -32,19 +32,14 @@ struct PatientListView: View {
     ]
     
     var body: some View {
-        GeometryReader {geometry in
-            ScrollView{
-                VStack {
-                    ForEach(patients, id: \.self) {patient in
-                        Card(name: patient.name, date: patient.date, scanNumber: patient.scanNumber)
-                            .frame(maxWidth: geometry.size.width * 0.88, alignment: .center)
-                    }
+        NavigationView {
+            List(patients, id: \.self) {patient in
+                NavigationLink(destination: ScanListView()) {
+                    Card(name: patient.name, date: patient.date, scanNumber: patient.scanNumber)}
                 }
-                .frame(maxWidth: .infinity, alignment: .center)
+                }
             }
         }
-    }
-}
 
 #Preview {
     PatientListView()

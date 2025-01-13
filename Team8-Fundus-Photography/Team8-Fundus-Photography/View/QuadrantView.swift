@@ -10,40 +10,56 @@ import SwiftUI
 struct QuadrantView: View {
     @State private var selectedQuadrant: String = "Central"
     @State private var showQuadrantSelector = false
-    
+    @State private var previousSelectedQuadrant: String = "Central"
+
     var body: some View {
-        ZStack{
+        ZStack {
             VStack {
                 HStack {
                     Spacer()
+                    // Mini version when not showing the selector
+                    if !showQuadrantSelector {
                         QuadrantSelectorView(
                             selectedQuadrant: $selectedQuadrant,
                             isInteractive: false,
                             size: 20
                         )
                         .frame(width: 120, height: 120)
-                        .offset(x: -20, y:10)
+                        .offset(x: -10, y: 10)
                         .overlay(
-                                Rectangle()
-                                    .stroke(Color.clear)
-                                    .frame(width: 120, height: 120)
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        withAnimation(.spring()) {
-                                            showQuadrantSelector.toggle()
-                                        }
+                            Rectangle()
+                                .stroke(Color.clear)
+                                .frame(width: 120, height: 120)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    withAnimation(.spring()) {
+                                        showQuadrantSelector.toggle()
                                     }
-                                )
+                                }
+                        )
+                    }
                 }
                 Spacer()
             }
-            
             if showQuadrantSelector {
-                QuadrantSelectorView(selectedQuadrant: $selectedQuadrant, isInteractive: true, size: 90)
+                QuadrantSelectorView(
+                    selectedQuadrant: $selectedQuadrant,
+                    isInteractive: true,
+                    size: 90
+                )
+                .onChange(of: selectedQuadrant) { newQuadrant in
+                    if newQuadrant != previousSelectedQuadrant {
+                        previousSelectedQuadrant = newQuadrant
+                        withAnimation(.spring()) {
+                            showQuadrantSelector = false
+                        }
+                    }
+                }
             }
         }
     }
 }
+
 #Preview {
     QuadrantView()
 }

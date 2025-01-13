@@ -42,6 +42,15 @@ struct QuadrantView: View {
                 Spacer()
             }
             if showQuadrantSelector {
+                
+                Color.black.opacity(0.5)
+                                   .edgesIgnoringSafeArea(.all)
+                                   .blur(radius: 10)
+                                   .transition(.opacity)
+                                   .animation(.easeInOut, value: showQuadrantSelector)
+
+                
+                
                 QuadrantSelectorView(
                     selectedQuadrant: $selectedQuadrant,
                     isInteractive: true,

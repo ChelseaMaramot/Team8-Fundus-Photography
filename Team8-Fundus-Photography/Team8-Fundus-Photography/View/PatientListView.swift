@@ -8,6 +8,7 @@
 import SwiftUI
 
 
+
 // to change to firebase later
 struct Patient: Hashable {
     var name: String
@@ -16,29 +17,19 @@ struct Patient: Hashable {
 }
 
 struct PatientListView: View {
+        
+    //Observed objects marked with the @StateObject property wrapper don’t get destroyed and re-instantiated at times their containing view struct redraws.
+    @StateObject private var storageManager = FirebaseManager()
     
-    // Sample fake data
-    let patients: [Patient] = [
-        Patient(name: "John Doe", date: Date(), scanNumber: 3),
-        Patient(name: "Jane Smith", date: Date(), scanNumber: 5),
-        Patient(name: "Alex Brown", date: Date(), scanNumber: 2),
-        Patient(name: "John Doe", date: Date(), scanNumber: 3),
-        Patient(name: "Jane Smith", date: Date(), scanNumber: 5),
-        Patient(name: "Alex Brown", date: Date(), scanNumber: 2),
-        Patient(name: "John Doe", date: Date(), scanNumber: 3),
-        Patient(name: "Jane Smith", date: Date(), scanNumber: 5),
-        Patient(name: "Alex Brown", date: Date(), scanNumber: 2)
-    ]
     
     var body: some View {
-        
-    
         NavigationView {
             VStack {
-                List(patients, id: \.self) {patient in
+                
+                List(storageManager.patients, id: \.self) {patient in
                     NavigationLink(destination: ScanListView()) {
-                        Card(name: patient.name, date: patient.date, scanNumber: patient.scanNumber)}
-                }
+                        Card(name: patient, date: Date(), scanNumber: 3)}
+                }.onAppear(perform: storageManager.fetchPatientList)
                 
                 
                 Button {
@@ -52,6 +43,7 @@ struct PatientListView: View {
         }
     }
 }
+
 
 #Preview {
     PatientListView()

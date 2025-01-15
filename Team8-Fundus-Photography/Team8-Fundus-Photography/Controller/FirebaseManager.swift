@@ -16,9 +16,16 @@ import UIKit
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     
+    
+    // add images here
+    struct Scan: Hashable {
+        var scanName: String
+    }
+
     struct Patient: Hashable {
         var name: String
         var scanCount: Int
+        var scanList: [Scan]
     }
     
     
@@ -86,10 +93,12 @@ class FirebaseManager: ObservableObject {
                     dispatchGroup.enter()
                     
                     let patientId = patient.name
-                    self.fetchScansForPatient(patientID: patientId) { scanCount in
-                        let newPatient = Patient(name: patientId, scanCount: scanCount)
-                        patientList.append(newPatient)
+                    self.fetchScansForPatient(patientID: patientId) { scanDetails in
                         
+                        let newPatient = Patient(name: patientId, scanCount: scanDetails.count, scanList: scanDetails)
+                        
+                        patientList.append(newPatient)
+                    
                         dispatchGroup.leave()
                         
                     }
@@ -103,23 +112,31 @@ class FirebaseManager: ObservableObject {
         }
     }
 
-    
-    func fetchScansForPatient(patientID: String, completion: @escaping (Int) -> Void) {
-        let storage = Storage.storage();
+
+    func fetchScansForPatient(patientID: String, completion: @escaping ([Scan]) -> Void) {
+        let storage = Storage.storage()
         let storageRef = storage.reference().child("patients/\(patientID)/scans")
         
-        storageRef.listAll{(result, error) in
-            if let error = error {
-                print("Error while fetching scans: ", error)
-                completion(0)
-                return
+        storageRef.listAll { result in
+            switch result {
+            case .failure(let error):
+                print("Error while fetching scans for patient \(patientID): ", error)
+                completion([])
+                
+                
+            case .success(let storageListResult):
+                var scanDetails: [Scan] = []
+                
+                for prefix in storageListResult.prefixes {
+                    let scan = Scan(scanName: prefix.name)
+                    scanDetails.append(scan)
+                }
+                completion(scanDetails)
             }
-        
-            let numberOfScans = result?.prefixes.count ?? 0
-            completion(numberOfScans)
         }
     }
-    
+        
+
     func fetchImagesForScan(scanID: String) {
         
     }

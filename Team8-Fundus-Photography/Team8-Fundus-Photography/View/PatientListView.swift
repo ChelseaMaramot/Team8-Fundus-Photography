@@ -17,8 +17,8 @@ struct PatientListView: View {
         NavigationView {
             VStack {
                 List(storageManager.patients, id: \.self) {patient in
-                    NavigationLink(destination: ScanListView()) {
-                        Card(name: patient.name, date: Date(), scanNumber: 3)}
+                    NavigationLink(destination: ScanListView(patientId: patient.name)) {
+                        Card(name: patient.name, date: Date(), scanNumber: patient.scanCount)}
                 }.onAppear(perform: storageManager.fetchPatientList)
     
                 Button {

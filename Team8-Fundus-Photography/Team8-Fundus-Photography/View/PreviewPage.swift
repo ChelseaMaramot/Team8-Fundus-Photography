@@ -11,6 +11,8 @@ struct PreviewPage: View {
     let image: UIImage
     let onSave: () -> Void
     
+    @StateObject var storageManager = FirebaseManager()
+    
     var body: some View {
         NavigationStack{
             VStack {
@@ -21,7 +23,7 @@ struct PreviewPage: View {
                 
                 HStack {
                     Button("Save") {
-                        saveToFirebase(image: image)
+                        storageManager.saveToFirebase(image: image)
                     }
                     .padding()
                     .background(Color.blue)

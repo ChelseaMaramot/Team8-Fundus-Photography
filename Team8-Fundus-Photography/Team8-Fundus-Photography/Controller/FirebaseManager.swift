@@ -14,7 +14,12 @@ import UIKit
 
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
-    @Published var patients: [String] = []
+    @Published var patients: [Patient] = []
+    
+    struct Patient: Hashable {
+        var name: String
+        var scanCount: Int
+    }
     
     
     func saveToFirebase(image: UIImage) {
@@ -58,26 +63,61 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    
+    // we are using dispatch group to make async calls
+    // without it, patient list will be empty as it doesnt wait for it to finish getting data
     func fetchPatientList() {
-        let storage = Storage.storage();
+        let storage = Storage.storage()
         let storageRef = storage.reference().child("patients")
+        let dispatchGroup = DispatchGroup()
+        
+        storageRef.listAll { result in
+            if case .failure(let error) = result {
+                print("Error while listing all patients: \(error)")
+                return
+            }
+            
+
+            if case .success(let storageListResult) = result {
+                var patientList: [Patient] = []
+                
+           
+                for patient in storageListResult.prefixes {
+                    
+                    dispatchGroup.enter()
+                    
+                    let patientId = patient.name
+                    self.fetchScansForPatient(patientID: patientId) { scanCount in
+                        let newPatient = Patient(name: patientId, scanCount: scanCount)
+                        patientList.append(newPatient)
+                        
+                        dispatchGroup.leave()
+                        
+                    }
+                }
+                
+                dispatchGroup.notify(queue: .main) {
+                             self.patients = patientList
+                            
+                         }
+            }
+        }
+    }
+
+    
+    func fetchScansForPatient(patientID: String, completion: @escaping (Int) -> Void) {
+        let storage = Storage.storage();
+        let storageRef = storage.reference().child("patients/\(patientID)/scans")
         
         storageRef.listAll{(result, error) in
             if let error = error {
-                print("Error while listing all files: ", error)
+                print("Error while fetching scans: ", error)
+                completion(0)
+                return
             }
-            DispatchQueue.main.async {
-                          self.patients = result?.prefixes.map { $0.name } ?? []
-                          print("Fetched Patient Names: \(self.patients)")
-                      }
-        }
-    }
-    
-    
-    
-    func fetchScansForPatient(patientID: String) {
         
+            let numberOfScans = result?.prefixes.count ?? 0
+            completion(numberOfScans)
+        }
     }
     
     func fetchImagesForScan(scanID: String) {

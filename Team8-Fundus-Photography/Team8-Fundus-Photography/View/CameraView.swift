@@ -16,6 +16,7 @@ struct CameraView: View {
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
     @State private var sliderValue: Double = 0.0
+    @State private var lastZoomFactor: CGFloat = 1.0
     
     var body: some View {
         NavigationStack{ // Add NavigationView here
@@ -27,16 +28,29 @@ struct CameraView: View {
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width, height: geometry.size.height * 0.6)
+                            .frame(width: geometry.size.width * 1, height: geometry.size.width * 1)
+//                            .padding(.top, 5)
                             .ignoresSafeArea()
+                            .clipShape(Circle())
+                            .gesture(
+                                MagnificationGesture()
+                                    .onChanged { value in
+                                        let zoomFactor = lastZoomFactor * value
+                                        cameraManager.setZoom(factor: zoomFactor)
+                                    }
+                                    .onEnded { value in
+                                        lastZoomFactor = max(1.0, min(lastZoomFactor * value, 3.0)) // Limit zoom factor
+                                    }
+                            )
                             .overlay(
                                 Group {
                                     if isFlashing { FlashView(isFlashing: $isFlashing).zIndex(1) }
                                 }
                             )
                         
-                        Spacer()
+                        Spacer().frame(height: 40)
                         
+//                        VStack(spacing: 10) {
                         VStack(spacing: 10) {
                             Slider(
                                 value: $sliderValue,
@@ -61,6 +75,7 @@ struct CameraView: View {
                                 .foregroundColor(lightManager.isAdjusting ? .red : .blue)
                         }
                         .padding(.bottom, 20)
+                        .padding(.horizontal, 20)
                         
                         CameraButton(action: {
                             isFlashing = true
@@ -69,7 +84,7 @@ struct CameraView: View {
                                 showCapturedPhoto = image != nil
                             }
                         })
-                        .padding(.bottom, 30)
+                        .padding(.bottom, 20)
                     }
                 }
             }

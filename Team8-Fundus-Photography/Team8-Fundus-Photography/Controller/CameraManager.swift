@@ -140,7 +140,17 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
     
-    
+    func setZoom (factor: CGFloat) {
+        guard let device = videoDeviceInput?.device else { return }
+            do {
+                try device.lockForConfiguration()
+                let zoomFactor = max(1.0, min(factor, device.activeFormat.videoMaxZoomFactor))
+                device.videoZoomFactor = zoomFactor
+                device.unlockForConfiguration()
+            } catch {
+                print("Error setting zoom: \(error)")
+            }
+    }
     
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
         let photoSettings = AVCapturePhotoSettings()

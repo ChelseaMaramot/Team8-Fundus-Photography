@@ -12,6 +12,7 @@ struct PreviewPage: View {
     let onSave: () -> Void
     @State private var currentZoom = 0.0
     @State private var totalZoom = 1.0
+    @State private var navigateToSummary = false
     
     var body: some View {
         NavigationStack{
@@ -37,14 +38,21 @@ struct PreviewPage: View {
                 
                 
                 HStack {
+                    
                     Button("Save") {
                         saveToFirebase(image: image)
+                        navigateToSummary = true
                     }
                     .padding()
                     .background(Color.blue)
                     .foregroundColor(.white)
                     .cornerRadius(10)
                     
+                    NavigationLink(
+                        destination: ScanSummary(),
+                        isActive: $navigateToSummary,  // Bind the state to trigger navigation
+                        label: { EmptyView() } // Invisible link, only used for navigation
+                    )
                     NavigationLink(destination: CameraView()){
                         Text("Retake")
                             .padding()

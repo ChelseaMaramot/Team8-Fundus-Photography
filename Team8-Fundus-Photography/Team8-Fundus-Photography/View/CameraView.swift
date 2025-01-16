@@ -28,7 +28,7 @@ struct CameraView: View {
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .aspectRatio(contentMode: .fill)
-                            .frame(width: geometry.size.width * 1, height: geometry.size.width * 1)
+                            .frame(width: geometry.size.width * 0.9, height: geometry.size.width * 1)
 //                            .padding(.top, 5)
                             .ignoresSafeArea()
                             .clipShape(Circle())

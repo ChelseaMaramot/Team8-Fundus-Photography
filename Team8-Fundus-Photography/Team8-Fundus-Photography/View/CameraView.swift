@@ -16,7 +16,9 @@ struct CameraView: View {
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
     @State private var sliderValue: Double = 0.0
+    @State private var currentZoomFactor: CGFloat = 1.0
     @State private var lastZoomFactor: CGFloat = 1.0
+    
     
     var body: some View {
         NavigationStack{ // Add NavigationView here
@@ -34,12 +36,11 @@ struct CameraView: View {
                             .clipShape(Circle())
                             .gesture(
                                 MagnificationGesture()
-                                    .onChanged { value in
-                                        let zoomFactor = lastZoomFactor * value
-                                        cameraManager.setZoom(factor: zoomFactor)
-                                    }
-                                    .onEnded { value in
-                                        lastZoomFactor = max(1.0, min(lastZoomFactor * value, 3.0)) // Limit zoom factor
+                                    .onChanged{ value in
+                                        currentZoomFactor += value - 1.0
+                                        currentZoomFactor = min(max(self.currentZoomFactor, 0.5), 10)
+                                        cameraManager.setZoomScale(factor: currentZoomFactor)
+                                        print(currentZoomFactor)
                                     }
                             )
                             .overlay(
@@ -49,8 +50,7 @@ struct CameraView: View {
                             )
                         
                         Spacer().frame(height: 40)
-                        
-//                        VStack(spacing: 10) {
+                  
                         VStack(spacing: 10) {
                             Slider(
                                 value: $sliderValue,

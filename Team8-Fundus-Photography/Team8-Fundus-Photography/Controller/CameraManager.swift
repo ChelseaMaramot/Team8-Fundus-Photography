@@ -118,6 +118,10 @@ class CameraManager: NSObject, ObservableObject {
         self.setPhotoOutput()
         
         self.captureSession.commitConfiguration()
+        
+        // automatically have the camera set to 3 by default
+        // at the beginning of each session
+        self.setZoomScale(factor: 3.0)
     }
     
     

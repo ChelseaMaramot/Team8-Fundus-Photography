@@ -41,6 +41,8 @@ struct CameraView: View {
                                         currentZoomFactor = min(max(self.currentZoomFactor, 0.5), 10)
                                         cameraManager.setZoomScale(factor: currentZoomFactor)
                                         print(currentZoomFactor)
+                                    }.onEnded{ value in
+                                        lastZoomFactor = currentZoomFactor
                                     }
                             )
                             .overlay(

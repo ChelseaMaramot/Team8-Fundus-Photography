@@ -15,8 +15,11 @@ struct CameraView: View {
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
+    @State private var isAdjustingZoom: Bool = false
     @State private var sliderValue: Double = 0.0
-    @State private var lastZoomFactor: CGFloat = 1.0
+    @State private var currentZoomFactor: CGFloat = 3.0
+    @State private var lastZoomFactor: CGFloat = 3.0
+    
     
     var body: some View {
         NavigationStack{ // Add NavigationView here
@@ -24,6 +27,11 @@ struct CameraView: View {
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     VStack {
+                        
+                        Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
+                                      .padding()
+                                      .foregroundColor(isAdjustingZoom ? .red : .blue)
+                        
                         CameraPreview(session: cameraManager.getSession())
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
@@ -34,13 +42,17 @@ struct CameraView: View {
                             .clipShape(Circle())
                             .gesture(
                                 MagnificationGesture()
-                                    .onChanged { value in
-                                        let zoomFactor = lastZoomFactor * value
-                                        cameraManager.setZoom(factor: zoomFactor)
+                                    .onChanged{ value in
+                                        isAdjustingZoom = true
+                                        currentZoomFactor += value - 1.0
+                                        currentZoomFactor = min(max(self.currentZoomFactor, 0.5), 10)
+                                        cameraManager.setZoomScale(factor: currentZoomFactor)
+                                        print(currentZoomFactor)
+                                    }.onEnded{ value in
+                                        lastZoomFactor = currentZoomFactor
+                                        isAdjustingZoom = false
                                     }
-                                    .onEnded { value in
-                                        lastZoomFactor = max(1.0, min(lastZoomFactor * value, 3.0)) // Limit zoom factor
-                                    }
+                                
                             )
                             .overlay(
                                 Group {
@@ -49,8 +61,7 @@ struct CameraView: View {
                             )
                         
                         Spacer().frame(height: 40)
-                        
-//                        VStack(spacing: 10) {
+                  
                         VStack(spacing: 10) {
                             Slider(
                                 value: $sliderValue,

@@ -58,11 +58,6 @@ class CameraManager: NSObject, ObservableObject {
     
     
     func setVideoInput(){
-//        guard let videoDevice = AVCaptureDevice.default(.builtInTelephotoCamera, for: .video, position: .back) else {
-//                print("Unable to access back camera")
-//            return
-//        }
-        
         guard let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back) else {
             print("Unable to access back camera")
             return
@@ -74,6 +69,7 @@ class CameraManager: NSObject, ObservableObject {
             return
         }
         captureSession.addInput(videoDeviceInput)
+        self.videoDeviceInput = videoDeviceInput
     }
     
     
@@ -122,6 +118,10 @@ class CameraManager: NSObject, ObservableObject {
         self.setPhotoOutput()
         
         self.captureSession.commitConfiguration()
+        
+        // automatically have the camera set to 3 by default
+        // at the beginning of each session
+        self.setZoomScale(factor: 3.0)
     }
     
     
@@ -140,16 +140,23 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
     
-    func setZoom (factor: CGFloat) {
-        guard let device = videoDeviceInput?.device else { return }
-            do {
-                try device.lockForConfiguration()
-                let zoomFactor = max(1.0, min(factor, device.activeFormat.videoMaxZoomFactor))
-                device.videoZoomFactor = zoomFactor
-                device.unlockForConfiguration()
-            } catch {
-                print("Error setting zoom: \(error)")
-            }
+    
+    func setZoomScale(factor: CGFloat){
+        
+        print("setting up zoom scale")
+        guard let device = self.videoDeviceInput?.device else { return }
+        
+        print("We are here")
+        
+        do{
+            try device.lockForConfiguration()
+            
+            device.videoZoomFactor = max(device.minAvailableVideoZoomFactor, max(factor, device.minAvailableVideoZoomFactor))
+            device.unlockForConfiguration()
+            
+        }catch {
+            print(error.localizedDescription)
+        }
     }
     
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {

@@ -19,7 +19,9 @@ class FirebaseManager: ObservableObject {
     
     // add images here
     struct Scan: Hashable {
-        var scanName: String
+        var name: String
+        var createdDate: Date
+        var isStitched: Bool
     }
 
     struct Patient: Hashable {
@@ -72,70 +74,77 @@ class FirebaseManager: ObservableObject {
     
     // we are using dispatch group to make async calls
     // without it, patient list will be empty as it doesnt wait for it to finish getting data
-    func fetchPatientList() {
+    func fetchPatientList(completion: @escaping ([Patient]) -> Void) {
         let storage = Storage.storage()
         let storageRef = storage.reference().child("patients")
         let dispatchGroup = DispatchGroup()
         
         storageRef.listAll { result in
-            if case .failure(let error) = result {
+            switch result {
+            case .failure(let error):
                 print("Error while listing all patients: \(error)")
+                completion([]) 
                 return
-            }
-            
-
-            if case .success(let storageListResult) = result {
+            case .success(let storageListResult):
                 var patientList: [Patient] = []
                 
-           
                 for patient in storageListResult.prefixes {
-                    
                     dispatchGroup.enter()
                     
                     let patientId = patient.name
-                    self.fetchScansForPatient(patientID: patientId) { scanDetails in
-                        
-                        let newPatient = Patient(name: patientId, scanCount: scanDetails.count, scanList: scanDetails)
-                        
-                        patientList.append(newPatient)
+                    let patientScanRef = storageRef.child("\(patientId)/scans")
                     
-                        dispatchGroup.leave()
-                        
+                    patientScanRef.listAll { result in
+                        switch result {
+                        case .failure(let error):
+                            print("Error while listing scans for patient \(patientId): \(error)")
+                            dispatchGroup.leave()
+                        case .success(let scanListResult):
+                            let scanCount = scanListResult.prefixes.count
+                            let newPatient = Patient(name: patientId, scanCount: scanCount, scanList: [])
+                            patientList.append(newPatient)
+                            dispatchGroup.leave()
+                        }
                     }
                 }
                 
                 dispatchGroup.notify(queue: .main) {
-                             self.patients = patientList
-                            
-                         }
+                    completion(patientList)
+                }
             }
         }
     }
 
 
-    func fetchScansForPatient(patientID: String, completion: @escaping ([Scan]) -> Void) {
+    func fetchScanListForPatient(patientID: String, completion: @escaping ([Scan]) -> Void) {
         let storage = Storage.storage()
         let storageRef = storage.reference().child("patients/\(patientID)/scans")
+        let dispatchGroup = DispatchGroup()
         
         storageRef.listAll { result in
             switch result {
             case .failure(let error):
                 print("Error while fetching scans for patient \(patientID): ", error)
                 completion([])
-                
-                
             case .success(let storageListResult):
-                var scanDetails: [Scan] = []
+                var scanList: [Scan] = []
                 
                 for prefix in storageListResult.prefixes {
-                    let scan = Scan(scanName: prefix.name)
-                    scanDetails.append(scan)
+                    dispatchGroup.enter()
+                    
+                    let scan = Scan(name: prefix.name, createdDate: Date(), isStitched: false)
+                    scanList.append(scan)
+                    
+                    dispatchGroup.leave()
                 }
-                completion(scanDetails)
+                
+                dispatchGroup.notify(queue: .main) {
+                    completion(scanList)
+                }
             }
         }
     }
-        
+
 
     func fetchImagesForScan(scanID: String) {
         

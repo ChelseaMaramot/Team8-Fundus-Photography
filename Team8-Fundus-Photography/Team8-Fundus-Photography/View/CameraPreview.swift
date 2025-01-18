@@ -14,6 +14,7 @@ import AVFoundation
  */
 struct CameraPreview: UIViewRepresentable {
     
+    
     class VideoPreviewView: UIView {
         override class var layerClass: AnyClass { AVCaptureVideoPreviewLayer.self }
         
@@ -21,6 +22,11 @@ struct CameraPreview: UIViewRepresentable {
     }
 
     let session: AVCaptureSession
+    var onTap: (CGPoint) -> Void
+    
+    func makeCoordinator() -> TapToFocusCoordinator {
+          TapToFocusCoordinator(self)
+      }
     
     //  Initialize and return a CameraPreviewView
     //  creates view controller obkect and configures init state
@@ -29,6 +35,9 @@ struct CameraPreview: UIViewRepresentable {
         videoPreview.videoPreviewLayer.session = session
         videoPreview.videoPreviewLayer.videoGravity = .resizeAspectFill
         videoPreview.backgroundColor = .black
+        
+        let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTapGesture(_:)))
+        videoPreview.addGestureRecognizer(tapGesture)
        
         return videoPreview
     }

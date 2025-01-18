@@ -19,10 +19,13 @@ struct CameraView: View {
     @State private var sliderValue: Double = 0.0
     @State private var currentZoomFactor: CGFloat = 3.0
     @State private var lastZoomFactor: CGFloat = 3.0
+    @State private var isFocused = false
+    @State private var focusLocation: CGPoint = .zero
+    @State private var isScaled = false
     
     
     var body: some View {
-        NavigationStack{ // Add NavigationView here
+        NavigationStack{ 
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
@@ -31,8 +34,33 @@ struct CameraView: View {
                         Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
                                       .padding()
                                       .foregroundColor(isAdjustingZoom ? .red : .blue)
-                        
-                        CameraPreview(session: cameraManager.getSession())
+                        ZStack{
+                        CameraPreview(session: cameraManager.getSession()){ tapPoint in
+                            isFocused = true
+                            focusLocation = tapPoint
+                            cameraManager.setFocusOnTap(devicePoint: focusLocation)
+
+                            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                        } .edgesIgnoringSafeArea(.all)
+                    
+                            if isFocused {
+                                FocusView(position: $focusLocation)
+                                    .scaleEffect(isScaled ? 0.8 : 1)
+                                    .onAppear {
+                                        // springy animation effect for visual appeal.
+                                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
+                                            self.isScaled = true
+                                            // Return to the default state after 0.6 seconds for an elegant user experience.
+                                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                                self.isFocused = false
+                                                self.isScaled = false
+                                            }
+                                        }
+                                    }
+                            }
+                            
+                            
+                        }
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .aspectRatio(contentMode: .fill)

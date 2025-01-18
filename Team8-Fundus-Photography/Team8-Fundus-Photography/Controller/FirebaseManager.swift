@@ -27,7 +27,6 @@ class FirebaseManager: ObservableObject {
     struct Patient: Hashable {
         var name: String
         var scanCount: Int
-        var scanList: [Scan]
     }
     
     
@@ -101,7 +100,7 @@ class FirebaseManager: ObservableObject {
                             dispatchGroup.leave()
                         case .success(let scanListResult):
                             let scanCount = scanListResult.prefixes.count
-                            let newPatient = Patient(name: patientId, scanCount: scanCount, scanList: [])
+                            let newPatient = Patient(name: patientId, scanCount: scanCount)
                             patientList.append(newPatient)
                             dispatchGroup.leave()
                         }

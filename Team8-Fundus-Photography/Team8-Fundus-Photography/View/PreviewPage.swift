@@ -56,7 +56,7 @@ struct PreviewPage: View {
                     )
                 HStack(spacing: 10) {  // Adjust spacing between buttons
                     Button(action: {
-                        saveToFirebase(image: image)
+                        storageManager.saveToFirebase(image: image)
                         navigateToSummary = true
                     }) {
                         Text("Save")

@@ -16,6 +16,8 @@ struct PreviewPage: View {
     @State var lastOffset: CGSize = .zero
     @State private var navigateToSummary = false
     
+    @StateObject var storageManager = FirebaseManager()
+    
     var body: some View {
         NavigationStack{
             VStack {

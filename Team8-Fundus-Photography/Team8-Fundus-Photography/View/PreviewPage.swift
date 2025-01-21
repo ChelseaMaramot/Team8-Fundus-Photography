@@ -74,33 +74,12 @@ struct PreviewPage: View {
                 }
                 .padding(.bottom, 50)
 
-//                HStack {
-//                    
-//                    Button("Save") {
-//                        saveToFirebase(image: image)
-//                        navigateToSummary = true
-//                    }
-//                    .padding(.horizontal, 20)
-//                    .background(Color.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(10)
-//                    
-//                    NavigationLink(
-//                        destination: ScanSummary(),
-//                        isActive: $navigateToSummary,  // Bind the state to trigger navigation
-//                        label: { EmptyView() } // Invisible link, only used for navigation
-//                    )
-//                    
-//                    NavigationLink(destination: CameraView()){
-//                        Text("Retake")
-//                            .padding()
-//                            .background(Color.blue)
-//                            .foregroundColor(.white)
-//                            .cornerRadius(10)
-//                        
-//                    }
-//                }
-//                .padding()
+                    NavigationLink(
+                        destination: ScanSummary(),
+                        isActive: $navigateToSummary,  // Bind the state to trigger navigation
+                        label: { EmptyView() } // Invisible link, only used for navigation
+                    )
+                    
             }
             .background(Color.white)
             .navigationTitle("Preview (manually cropped) Image")

@@ -143,11 +143,8 @@ class CameraManager: NSObject, ObservableObject {
     
     func setZoomScale(factor: CGFloat){
         
-        print("setting up zoom scale")
         guard let device = self.videoDeviceInput?.device else { return }
-        
-        print("We are here")
-        
+    
         do{
             try device.lockForConfiguration()
             
@@ -157,6 +154,33 @@ class CameraManager: NSObject, ObservableObject {
         }catch {
             print(error.localizedDescription)
         }
+    }
+    
+    func setFocusOnTap(devicePoint: CGPoint){
+        guard let device = self.videoDeviceInput?.device else {return}
+        
+        print("Focusing")
+        
+        do {
+            try device.lockForConfiguration()
+
+            // check if device supports auto focus
+            if device.isFocusModeSupported(.autoFocus){
+                device.focusMode = .autoFocus
+                device.focusPointOfInterest = devicePoint
+            }
+            
+            // set exposure point
+            device.exposurePointOfInterest = devicePoint
+            device.exposureMode = .autoExpose
+            
+            device.isSubjectAreaChangeMonitoringEnabled = true
+            device.unlockForConfiguration()
+            
+        }catch {
+            print("Failed to configure focus: \(error)")
+        }
+        
     }
     
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {

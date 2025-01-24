@@ -143,7 +143,27 @@ class FirebaseManager: ObservableObject {
             }
         }
     }
+    
+    
+    func addPatientToFirebase(name: String, completion: @escaping (Bool) -> Void) {
+        
+        print("Attempting to add patient: \(name)")
+        
+        let storage = Storage.storage()
+        let storageRef = storage.reference().child("patients/\(name)/dummyImage.jpg")
 
+        let dummyImageData = Data()
+    
+        storageRef.putData(dummyImageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Error adding patient: \(error)")
+                completion(false)
+            } else {
+                print("Patient added successfully")
+                completion(true)
+            }
+        }
+    }
 
     func fetchImagesForScan(scanID: String) {
         

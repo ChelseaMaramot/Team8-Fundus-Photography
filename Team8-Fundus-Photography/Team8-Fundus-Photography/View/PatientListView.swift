@@ -12,6 +12,7 @@ struct PatientListView: View {
     //Observed objects marked with the @StateObject property wrapper don’t get destroyed and re-instantiated at times their containing view struct redraws.
     @StateObject private var storageManager = FirebaseManager()
     @State private var patientList: [FirebaseManager.Patient] = []
+    @State private var isShowingAddScanSheet = false
     
     
     var body: some View {
@@ -28,6 +29,7 @@ struct PatientListView: View {
                 }
                 
                 Button {
+                    isShowingAddScanSheet = true
                 } label: {
                     Text("Add New Patient")
                 }
@@ -40,6 +42,22 @@ struct PatientListView: View {
                     fetchedPatients in
                     patientList = fetchedPatients
                 }
+            }
+            .sheet(isPresented: $isShowingAddScanSheet) {
+                BottomSheet(
+                    title: "Add New Patient",
+                                    placeholder: "Enter Patient Name"
+                ) { newPatientName in
+                    storageManager.addPatientToFirebase(name: newPatientName) { success in
+                        if success {
+                            // update the list
+                            storageManager.fetchPatientList { fetchedPatients in
+                                patientList = fetchedPatients
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.fraction(0.50)])
             }
         }
     }

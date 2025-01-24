@@ -50,15 +50,17 @@ struct CameraView: View {
                     }
                 }
             }
+            
             .navigationDestination(isPresented: $showCapturedPhoto) {
                 if let image = capturedImage {
-                    PreviewPage(image: image) {
-                        print("Saving image to cloud")
-                    }
-                    .onAppear {
-                        print("Navigating to preview page")
-                    }
-                    
+                    PreviewPage(
+                        image: image,
+                        onSave: { print("Saving image to cloud") },
+                        onRetake: {
+                            capturedImage = nil
+                            showCapturedPhoto = false
+                        } // Reset capturedImage on retake
+                    )
                 }
             }
         }

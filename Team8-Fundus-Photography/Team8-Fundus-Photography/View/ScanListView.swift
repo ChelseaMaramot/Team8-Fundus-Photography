@@ -12,6 +12,7 @@ struct ScanListView: View {
     var patientId: String
     @StateObject private var storageManager = FirebaseManager()
     @State private var scans: [FirebaseManager.Scan] = []
+    @State private var isShowingAddScanSheet = false
     
     var body: some View {
         VStack {
@@ -26,6 +27,7 @@ struct ScanListView: View {
                 Text("No Scan found.")
             }
             Button {
+                isShowingAddScanSheet = true
             } label: {
                 Text("Add New Scan")
             }
@@ -37,9 +39,25 @@ struct ScanListView: View {
                 scans = fetchedScans
             }
         }
+        .sheet(isPresented: $isShowingAddScanSheet) {
+            BottomSheet(
+                title: "Add New Scan",
+                placeholder: "Enter Scan Name"
+            ) {newScanName in
+                storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
+                    if success {
+                        // update the list
+                        storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
+                            scans = fetchedScans
+                        }
+                    }
+                }
+                
+            }
+        }
     }
 }
 
 #Preview {
-    ScanListView(patientId: "testPatient1")
+    ScanListView(patientId: "Chelsea")
 }

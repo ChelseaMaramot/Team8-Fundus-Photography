@@ -128,16 +128,19 @@ class FirebaseManager: ObservableObject {
             case .success(let storageListResult):
                 var scanList: [Scan] = []
                 
+                print("getting scans...")
+                
                 for prefix in storageListResult.prefixes {
                     dispatchGroup.enter()
                     
                     let scan = Scan(name: prefix.name, createdDate: Date(), isStitched: false)
                     scanList.append(scan)
-                    
+                    print(scanList)
                     dispatchGroup.leave()
                 }
                 
                 dispatchGroup.notify(queue: .main) {
+               
                     completion(scanList)
                 }
             }
@@ -150,7 +153,7 @@ class FirebaseManager: ObservableObject {
         print("Attempting to add patient: \(name)")
         
         let storage = Storage.storage()
-        let storageRef = storage.reference().child("patients/\(name)/dummyImage.jpg")
+        let storageRef = storage.reference().child("patients/\(name)/ignore.txt")
 
         let dummyImageData = Data()
     
@@ -160,6 +163,26 @@ class FirebaseManager: ObservableObject {
                 completion(false)
             } else {
                 print("Patient added successfully")
+                completion(true)
+            }
+        }
+    }
+    
+    func addScanToFirebase(patientId: String, scanName: String, completion: @escaping (Bool) -> Void) {
+        
+        print("Attempting to add scan: \(scanName)")
+        
+        let storage = Storage.storage()
+        let storageRef = storage.reference().child("patients/\(patientId)/scans/\(scanName)/ignore.txt")
+
+        let dummyImageData = Data()
+    
+        storageRef.putData(dummyImageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Error adding scan: \(error)")
+                completion(false)
+            } else {
+                print("Scan added successfully")
                 completion(true)
             }
         }

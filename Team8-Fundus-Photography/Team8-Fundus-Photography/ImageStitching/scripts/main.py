@@ -21,12 +21,11 @@ def main():
 
         green_channel = extract_green_channel(image)
 
-        # preprocess retinal image
         preprocessed_image = preprocess_retinal_image(green_channel)
-        # #save preprocessed image
-        # cv2.bzwrite(os.path.join(output_path, img), preprocessed_image)
+
+        #save preprocessed image
+        cv2.imwrite(os.path.join(output_path, img), preprocessed_image)
     
-    
-    
+
 if __name__ == "__main__":
     main()

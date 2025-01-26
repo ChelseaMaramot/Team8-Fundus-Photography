@@ -8,7 +8,9 @@
 import cv2
 import os
 
+
 from preprocess import extract_green_channel, preprocess_retinal_image
+from registration import incremental_search
 
 def main():
     input_path= './data/input'
@@ -25,7 +27,13 @@ def main():
 
         #save preprocessed image
         cv2.imwrite(os.path.join(output_path, img), preprocessed_image)
+
     
+    image1 = cv2.imread(os.path.join(output_path, input_images[0]))
+    image2 = cv2.imread(os.path.join(output_path, input_images[1]))
+
+
+    incremental_search(image1, image2, initial_orientation=2, feature_search_length=0.2, threshold=0.6)
 
 if __name__ == "__main__":
     main()

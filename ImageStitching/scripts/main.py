@@ -32,8 +32,10 @@ def main():
     image1 = cv2.imread(os.path.join(output_path, input_images[0]))
     image2 = cv2.imread(os.path.join(output_path, input_images[1]))
 
+    offset = incremental_search(image1, image2, initial_orientation=2, feature_search_length=0.2, threshold=0.6)
+    print("Offset: ", offset)
 
-    incremental_search(image1, image2, initial_orientation=2, feature_search_length=0.2, threshold=0.6)
+    
 
 if __name__ == "__main__":
     main()

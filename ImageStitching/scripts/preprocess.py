@@ -31,7 +31,7 @@ def extract_green_channel(image):
 # CLAHE improves the contrast of images. Histogram equalization is applied to small regions of the image, as opposed to the entire image.
 # clipLimit: Threshold for contrast limiting. Default of 40
 # tileGridSize: Size of grid for histogram equalization.  Sets # of tiles in row and column. Default of 8x8.
-def CLAHE(image, clipLimit=2.0, tileGridSize=(8,8)):
+def CLAHE(image, clipLimit=10, tileGridSize=(8,8)):
     clahe = cv2.createCLAHE(clipLimit, tileGridSize)
     final_image = clahe.apply(image)
 

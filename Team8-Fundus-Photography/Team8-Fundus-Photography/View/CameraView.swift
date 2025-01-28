@@ -29,10 +29,14 @@ struct CameraView: View {
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
+                    
+                    QuadrantView().zIndex(2)
+                    
                     VStack {
                         
                         ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
-                        
+                       
+                    
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }

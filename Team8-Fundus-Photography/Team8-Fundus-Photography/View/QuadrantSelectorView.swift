@@ -9,7 +9,7 @@ struct CircleButton: View {
     var body: some View {
         Button(action: action) {
             Circle()
-                .fill(isSelected ? Color.blue : Color.gray.opacity(1))
+                .fill(isSelected ? Color.blue : Color.gray.opacity(5))
                 .frame(width: size, height: size)
                 .overlay(
                     

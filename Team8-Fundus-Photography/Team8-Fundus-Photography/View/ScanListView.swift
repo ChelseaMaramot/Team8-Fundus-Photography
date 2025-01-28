@@ -15,47 +15,57 @@ struct ScanListView: View {
     @State private var isShowingAddScanSheet = false
     
     var body: some View {
-        VStack {
-            
-            if !scans.isEmpty{
-                List(scans, id: \.self) { scan in
-                    NavigationLink(destination: ImageView()) {
-                        Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
-                    }
-                }
-            } else {
-                Text("No Scan found.")
-            }
-            Button {
-                isShowingAddScanSheet = true
-            } label: {
-                Text("Add New Scan")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-        }
-        .onAppear {
-            storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                scans = fetchedScans
-            }
-        }
-        .sheet(isPresented: $isShowingAddScanSheet) {
-            BottomSheet(
-                title: "Add New Scan",
-                placeholder: "Enter Scan Name"
-            ) {newScanName in
-                storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
-                    if success {
-                        // update the list
-                        storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                            scans = fetchedScans
+        
+
+            VStack {
+                
+                if !scans.isEmpty{
+                    List(scans, id: \.self) { scan in
+                        NavigationLink(destination: ImageView()) {
+                            Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
                         }
                     }
+                } else {
+                    Text("No Scan found.")
                 }
+                //            Button {
+                //                isShowingAddScanSheet = true
+                //            } label: {
+                //                Text("Add New Scan")
+                //            }
+                //            .buttonStyle(.borderedProminent)
+                //            .controlSize(.large)
                 
+                NavigationLink{
+                    CameraView()
+                } label: {
+                    Text("Add New Scan")
+                }  .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+            }
+            .onAppear {
+                storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
+                    scans = fetchedScans
+                }
+            }
+            .sheet(isPresented: $isShowingAddScanSheet) {
+                BottomSheet(
+                    title: "Add New Scan",
+                    placeholder: "Enter Scan Name"
+                ) {newScanName in
+                    storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
+                        if success {
+                            // update the list
+                            storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
+                                scans = fetchedScans
+                            }
+                        }
+                    }
+                    
+                }
             }
         }
-    }
+    
 }
 
 #Preview {

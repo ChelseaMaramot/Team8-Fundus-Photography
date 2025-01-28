@@ -27,10 +27,14 @@ struct PatientListView: View {
                 }else {
                     Text("No Patients found.")
                 }
-        
-                NavigationLink(destination: CameraView()){
+                
+                Button {
+                    isShowingAddPatientSheet = true
+                } label: {
                     Text("Add New Patient")
                 }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
                 
             }
             .onAppear{
@@ -38,6 +42,22 @@ struct PatientListView: View {
                     fetchedPatients in
                     patientList = fetchedPatients
                 }
+            }
+            .sheet(isPresented: $isShowingAddPatientSheet) {
+                BottomSheet(
+                    title: "Add New Patient",
+                                    placeholder: "Enter Patient Name"
+                ) { newPatientName in
+                    storageManager.addPatientToFirebase(name: newPatientName) { success in
+                        if success {
+                            // update the list
+                            storageManager.fetchPatientList { fetchedPatients in
+                                patientList = fetchedPatients
+                            }
+                        }
+                    }
+                }
+                .presentationDetents([.fraction(0.50)])
             }
         }
     }

@@ -54,11 +54,18 @@ struct CameraView: View {
             .navigationDestination(isPresented: $showCapturedPhoto) {
                 if let image = capturedImage {
                     PreviewPage(
-                        image: image,
+                        image: $capturedImage,
                         onSave: { print("Saving image to cloud") },
                         onRetake: {
                             capturedImage = nil
+//                            image = nil
                             showCapturedPhoto = false
+                            
+                            // Restart the camera session
+                            cameraManager.stopSession()
+                            DispatchQueue.main.async {
+                                cameraManager.startSession()
+                            }
                         } // Reset capturedImage on retake
                     )
                 }
@@ -196,6 +203,7 @@ extension CameraView {
     private func capturePhoto() {
             isFlashing = true
             cameraManager.capturePhoto { image in
+                print("new image is captured")
                 capturedImage = image
                 showCapturedPhoto = image != nil
             }

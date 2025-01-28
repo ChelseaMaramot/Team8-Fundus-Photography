@@ -25,7 +25,6 @@ struct CameraView: View {
     
     
     var body: some View {
-        NavigationStack{
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
@@ -67,7 +66,6 @@ struct CameraView: View {
             }
         }
     }
-}
 
 #Preview {
     CameraView()

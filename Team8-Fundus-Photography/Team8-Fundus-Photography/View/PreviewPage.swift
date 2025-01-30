@@ -16,6 +16,8 @@ struct PreviewPage: View {
     @State var lastOffset: CGSize = .zero
     @State private var navigateToSummary = false
     
+
+    
     @StateObject var storageManager = FirebaseManager()
     
     var body: some View {
@@ -56,7 +58,7 @@ struct PreviewPage: View {
                     )
                 HStack(spacing: 10) {  // Adjust spacing between buttons
                     Button(action: {
-                        storageManager.saveToFirebase(image: image)
+                        storageManager.saveToFirebase(image: image, viewType: "Superior")
                         navigateToSummary = true
                     }) {
                         Text("Save")

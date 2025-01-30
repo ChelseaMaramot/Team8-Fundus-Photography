@@ -7,6 +7,7 @@
 
 import Foundation
 import FirebaseStorage
+import FirebaseFirestore
 import Foundation
 import AVFoundation
 import UIKit
@@ -16,26 +17,54 @@ import UIKit
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
         
-    func saveToFirebase(image: UIImage) {
+    func saveToFirebase(image: UIImage, viewType: String) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Failed to convert image to JPEG data.")
             return
         }
         
-        let patientID = "testPatient1" // Replace with real patient ID
-        let scanID = "testScan1" // Replace with real scan ID
-        let viewType = "superior" // Replace with real view type
+        let newPatientID = UUID()
+        let newScanID = UUID()
         
-        uploadPhotoToFirebase(patientID: patientID, scanID: scanID, viewType: viewType, photoData: imageData) { url in
+        uploadPhotoToFirebaseStorage(patientID: newPatientID, scanID: newScanID, viewType: viewType, photoData: imageData) { url in
             if let url = url {
                 print("Uploaded photo URL: \(url)")
+                
+                self.saveImageMetadatatoFirestore(patientID: newPatientID, scanID: newScanID, viewType: viewType, imageURL: url) {success in
+                    if success {
+                        print("Successfully saved image metadata to Firestore.")
+                    } else {
+                        print("Failed to save image metadata to Firestore.")
+                        
+                    }
+                }
             } else {
                 print("Failed to upload photo.")
             }
         }
     }
     
-    func uploadPhotoToFirebase(patientID: String, scanID: String, viewType: String, photoData: Data, completion: @escaping (String?) -> Void) {
+    
+    func saveImageMetadatatoFirestore(patientID: UUID, scanID: UUID, viewType: String, imageURL: String, completion: @escaping (Bool) -> Void){
+        
+        let db = Firestore.firestore()
+        let imageRef = db.collection("patients").document(patientID.uuidString).collection("scans").document(scanID.uuidString).collection("regions").document(viewType).collection("images")
+        
+        imageRef.addDocument(data:  [
+            "imageURL": imageURL,
+            "uploadedAt": Timestamp(date: Date()),
+        ]){ error in
+            if let error = error {
+                print("Error saving image metadata: \(error)")
+                completion(false)
+            } else {
+                print("Successfully saved image metadata to Firestore.")
+                completion(true)
+            }
+        }
+    }
+    
+    func uploadPhotoToFirebaseStorage(patientID: UUID, scanID: UUID, viewType: String, photoData: Data, completion: @escaping (String?) -> Void) {
         let storageRef = Storage.storage().reference()
             .child("patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg")
         
@@ -101,7 +130,7 @@ class FirebaseManager: ObservableObject {
     }
 
 
-    func fetchScanListForPatient(patientID: String, completion: @escaping ([Scan]) -> Void) {
+    func fetchScanListForPatient(patientID: UUID, completion: @escaping ([Scan]) -> Void) {
         let storage = Storage.storage()
         let storageRef = storage.reference().child("patients/\(patientID)/scans")
         let dispatchGroup = DispatchGroup()
@@ -157,7 +186,7 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    func addScanToFirebase(patientId: String, scanName: String, completion: @escaping (Bool) -> Void) {
+    func addScanToFirebase(patientId: UUID, scanName: String, completion: @escaping (Bool) -> Void) {
         
         print("Attempting to add scan: \(scanName)")
         

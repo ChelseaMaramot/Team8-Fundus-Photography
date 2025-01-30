@@ -9,19 +9,22 @@ import SwiftUI
 
 struct PatientListView: View {
     
-    //Observed objects marked with the @StateObject property wrapper don’t get destroyed and re-instantiated at times their containing view struct redraws.
     @StateObject private var storageManager = FirebaseManager()
     @State private var patientList: [Patient] = []
     @State private var isShowingAddPatientSheet = false
     
-    
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+        
     var body: some View {
         NavigationView {
             VStack {
                 if !patientList.isEmpty{
                     List(patientList) {patient in
-                        NavigationLink(destination: ScanListView(patientId: patient.name)) {
-                            Card(name: patient.name, date: Date(), scanNumber: patient.scanCount)
+                        NavigationLink(destination: ScanListView()) {
+                            Card(name: patient.name, scanNumber: patient.scanCount)
+                                .onTapGesture {
+                                    selectedDataManager.selectPatientID(patient.id)
+                                }
                         }
                     }
                 }else {

@@ -9,10 +9,11 @@ import SwiftUI
 
 struct ScanListView: View {
     
-    var patientId: String
     @StateObject private var storageManager = FirebaseManager()
     @State private var scans: [Scan] = []
     @State private var isShowingAddScanSheet = false
+    
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
     
     var body: some View {
         
@@ -22,7 +23,7 @@ struct ScanListView: View {
                 if !scans.isEmpty{
                     List(scans) { scan in
                         NavigationLink(destination: ImageView()) {
-                            Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
+                            Card(name: scan.name, isStitched: scan.isStitched)
                         }
                     }
                 } else {
@@ -37,8 +38,10 @@ struct ScanListView: View {
                     .controlSize(.large)
             }
             .onAppear {
-                storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                    scans = fetchedScans
+                if let patientID = selectedDataManager.selectedPatientID {
+                    storageManager.fetchScanListForPatient(patientID: patientID) { fetchedScans in
+                        scans = fetchedScans
+                    }
                 }
             }
             .sheet(isPresented: $isShowingAddScanSheet) {
@@ -46,11 +49,13 @@ struct ScanListView: View {
                     title: "Add New Scan",
                     placeholder: "Enter Scan Name"
                 ) {newScanName in
-                    storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
-                        if success {
-                            // update the list
-                            storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                                scans = fetchedScans
+                    if let patientId = selectedDataManager.selectedPatientID {
+                        storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
+                            if success {
+                                // update the list
+                                storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
+                                    scans = fetchedScans
+                                }
                             }
                         }
                     }
@@ -62,5 +67,5 @@ struct ScanListView: View {
 }
 
 #Preview {
-    ScanListView(patientId: "Chelsea")
+    ScanListView()
 }

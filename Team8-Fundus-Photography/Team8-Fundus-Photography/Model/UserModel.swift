@@ -9,12 +9,17 @@ import Foundation
 
 class User: ObservableObject{
     let id: UUID
-    let name: String
+    let firstName: String
+    let lastName: String
+    let email: String
     @Published var patients: [Patient]
     
-    init(id: UUID=UUID(), name:String, patients: [Patient] = []) {
+    init(id: UUID=UUID(), firstName:String, lastName: String, email
+         :String, patients: [Patient] = []) {
         self.id = id
-        self.name = name
+        self.firstName = firstName
+        self.lastName = lastName
+        self.email = email
         self.patients = patients
     }
 }

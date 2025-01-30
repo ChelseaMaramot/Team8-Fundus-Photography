@@ -12,6 +12,11 @@ struct Patient: Identifiable{
     let name: String
     let scans: [Scan]
     
+    var scanCount: Int {
+        return scans.count
+    }
+    
+    
     init(id: UUID=UUID(), name: String, scans:[Scan]=[]){
         self.id = id
         self.scans = scans

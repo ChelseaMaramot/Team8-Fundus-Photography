@@ -11,7 +11,7 @@ struct ScanListView: View {
     
     var patientId: String
     @StateObject private var storageManager = FirebaseManager()
-    @State private var scans: [FirebaseManager.Scan] = []
+    @State private var scans: [Scan] = []
     @State private var isShowingAddScanSheet = false
     
     var body: some View {
@@ -20,7 +20,7 @@ struct ScanListView: View {
             VStack {
                 
                 if !scans.isEmpty{
-                    List(scans, id: \.self) { scan in
+                    List(scans) { scan in
                         NavigationLink(destination: ImageView()) {
                             Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
                         }
@@ -28,13 +28,6 @@ struct ScanListView: View {
                 } else {
                     Text("No Scan found.")
                 }
-                //            Button {
-                //                isShowingAddScanSheet = true
-                //            } label: {
-                //                Text("Add New Scan")
-                //            }
-                //            .buttonStyle(.borderedProminent)
-                //            .controlSize(.large)
                 
                 NavigationLink{
                     CameraView()

@@ -15,21 +15,7 @@ import UIKit
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
-    
-    
-    // add images here
-    struct Scan: Hashable {
-        var name: String
-        var createdDate: Date
-        var isStitched: Bool
-    }
-
-    struct Patient: Hashable {
-        var name: String
-        var scanCount: Int
-    }
-    
-    
+        
     func saveToFirebase(image: UIImage) {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Failed to convert image to JPEG data.")
@@ -100,7 +86,7 @@ class FirebaseManager: ObservableObject {
                             dispatchGroup.leave()
                         case .success(let scanListResult):
                             let scanCount = scanListResult.prefixes.count
-                            let newPatient = Patient(name: patientId, scanCount: scanCount)
+                            let newPatient = Patient(id: UUID(), name: patientId)
                             patientList.append(newPatient)
                             dispatchGroup.leave()
                         }
@@ -133,9 +119,12 @@ class FirebaseManager: ObservableObject {
                 for prefix in storageListResult.prefixes {
                     dispatchGroup.enter()
                     
-                    let scan = Scan(name: prefix.name, createdDate: Date(), isStitched: false)
-                    scanList.append(scan)
-                    print(scanList)
+                    prefix.getMetadata() {
+                        metadata, error in let createdDate = metadata?.timeCreated ?? Date()
+                        let scan = Scan(id: UUID(), createdDate: createdDate, name: prefix.name, regions: ScanRegions(), isStitched: false)
+                        scanList.append(scan)
+                        print(scanList)
+                    }
                     dispatchGroup.leave()
                 }
                 

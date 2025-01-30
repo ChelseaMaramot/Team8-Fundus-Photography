@@ -11,7 +11,7 @@ struct PatientListView: View {
     
     //Observed objects marked with the @StateObject property wrapper don’t get destroyed and re-instantiated at times their containing view struct redraws.
     @StateObject private var storageManager = FirebaseManager()
-    @State private var patientList: [FirebaseManager.Patient] = []
+    @State private var patientList: [Patient] = []
     @State private var isShowingAddPatientSheet = false
     
     
@@ -19,7 +19,7 @@ struct PatientListView: View {
         NavigationView {
             VStack {
                 if !patientList.isEmpty{
-                    List(patientList, id: \.self) {patient in
+                    List(patientList) {patient in
                         NavigationLink(destination: ScanListView(patientId: patient.name)) {
                             Card(name: patient.name, date: Date(), scanNumber: patient.scanCount)
                         }

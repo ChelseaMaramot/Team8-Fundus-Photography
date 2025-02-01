@@ -10,6 +10,7 @@ import FirebaseStorage
 import Foundation
 import AVFoundation
 import UIKit
+import FirebaseFirestore
 
 
 // Change to an observable object class
@@ -31,6 +32,8 @@ class FirebaseManager: ObservableObject {
     
     
     func saveToFirebase(image: UIImage) {
+        
+        let storageRef = Storage.storage().reference()
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Failed to convert image to JPEG data.")
             return
@@ -38,18 +41,31 @@ class FirebaseManager: ObservableObject {
         
         let patientID = "testPatient1" // Replace with real patient ID
         let scanID = "testScan1" // Replace with real scan ID
-        let viewType = "superior" // Replace with real view type
+        let viewType = "inferior" // Replace with real view type
+        let path = "patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg"
+        let fileRef = storageRef.child(path)
         
-        uploadPhotoToFirebase(patientID: patientID, scanID: scanID, viewType: viewType, photoData: imageData) { url in
-            if let url = url {
-                print("Uploaded photo URL: \(url)")
-            } else {
-                print("Failed to upload photo.")
+        let uploadTask = fileRef.putData(imageData, metadata: nil) { metadata, error in
+            if error == nil && metadata != nil {
+                let db = Firestore.firestore()
+                db.collection("images").document().setData(["url": path, "position": viewType, "isPrimary": true])
+
             }
         }
+        
+//        uploadPhotoToFirebase(patientID: patientID, scanID: scanID, viewType: viewType, photoData: imageData, path: path) { url in
+//            if let url = url {
+//                print("Uploaded photo URL: \(url)")
+//            } else {
+//                print("Failed to upload photo.")
+//            }
+//        }
+        
+        // save a reference to the file in Firestore DB
+        
     }
     
-    func uploadPhotoToFirebase(patientID: String, scanID: String, viewType: String, photoData: Data, completion: @escaping (String?) -> Void) {
+    func uploadPhotoToFirebase(patientID: String, scanID: String, viewType: String, photoData: Data, path: String, completion: @escaping (String?) -> Void) {
         let storageRef = Storage.storage().reference()
             .child("patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg")
         

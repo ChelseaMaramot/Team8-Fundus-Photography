@@ -114,7 +114,7 @@ struct PreviewPage: View {
                 .padding(.bottom, 10)
 
                 NavigationLink(
-                    destination: ScanSummary(),
+                    destination: ScanSummary(firebaseManager: FirebaseManager()),
                     isActive: $navigateToSummary,
                     label: { EmptyView() }
                 )

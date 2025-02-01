@@ -16,6 +16,7 @@ import FirebaseFirestore
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
+    @Published var imagesByPosition: [String: [UIImage]] = [:] // Store images by position
     
     
     // add images here
@@ -41,7 +42,7 @@ class FirebaseManager: ObservableObject {
         
         let patientID = "testPatient1" // Replace with real patient ID
         let scanID = "testScan1" // Replace with real scan ID
-        let viewType = "inferior" // Replace with real view type
+        let viewType = "superior" // Replace with real view type
         let path = "patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg"
         let fileRef = storageRef.child(path)
         
@@ -53,15 +54,53 @@ class FirebaseManager: ObservableObject {
             }
         }
         
-//        uploadPhotoToFirebase(patientID: patientID, scanID: scanID, viewType: viewType, photoData: imageData, path: path) { url in
-//            if let url = url {
-//                print("Uploaded photo URL: \(url)")
-//            } else {
-//                print("Failed to upload photo.")
-//            }
-//        }
+    }
+    
+    func retrievePhotos(){
+//        let photosRef = db.collection("patients").document(patientID).collection("scans").document(scanID).collection("images") // future code?
+        let db = Firestore.firestore()
+        let storageRef = Storage.storage().reference()
         
-        // save a reference to the file in Firestore DB
+        db.collection("images").getDocuments() { snapshot, error in
+            if error == nil && snapshot != nil {
+                var paths = [String]()
+                
+                for doc in snapshot!.documents {
+                    let path = doc["url"] as! String
+                    let fileRef = storageRef.child(path)
+//                    paths.append(doc["url"] as! String)
+                    let position = doc["position"] as! String
+                    if self.imagesByPosition[position] == nil {
+                        self.imagesByPosition[position] = []
+                    }
+                    fileRef.getData(maxSize: 5 * 1024 * 1024) { data, error in
+                        if error == nil && data != nil{
+                            let image = UIImage(data: data!)!
+                            
+                            DispatchQueue.main.async {
+                                self.imagesByPosition[position]?.append(image)
+                            }
+                        }
+                    }
+                    
+                }
+                
+//                for path in paths{
+//                    let storageRef = Storage.storage().reference()
+//                    let fileRef = storageRef.child(path)
+//                    fileRef.getData(maxSize: 5 * 1024 * 1024) { data, error in
+//                        if error == nil && data != nil{
+//                            let image = UIImage(data: data!)!
+//                            
+//                            DispatchQueue.main.async {
+//                                imagesByPosition[position]?.append(image)
+//                            }
+//                        }
+//                    }
+//                }
+                
+            }
+        }
         
     }
     

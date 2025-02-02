@@ -9,43 +9,69 @@ import cv2
 import os
 
 
-from preprocess import extract_green_channel, preprocess_retinal_image
-from registration import incremental_search, stitch_image
+from FeatureDetector import FeatureDetector
+from FeatureMatcher import FeatureMatcher
+from Registration import Registration
+from Preprocess import Preprocessing
+from Image import Image
+from ImageWarper import ImageWarper
 
-def main():
-    input_path= './data/input'
-    output_path = './data/output'
-     
-    input_images = [f for f in os.listdir(input_path)]
+
+def load_image(image_path):
+    if not os.path.exists(image_path):
+        raise FileNotFoundErrors(f"Image not found at path: {image_path}")
+    return cv2.imread(image_path)  
+
+def register_images(image1, image2):
+    feature_detector = FeatureDetector(detector_type="SIFT") 
+    feature_matcher = FeatureMatcher(matcher_type='BF', ratio=0.8)
+    registration = Registration([image1, image2],feature_detector, feature_matcher, ratio=0.7, threshold=300)
+    return registration.register_two_images(image1, image2)
+
+
+def warp_with_homography(original_image1, original_image2, H):
+    warper = ImageWarper(original_image1, original_image2, H)
+    warped_image = warper.warp_image()
+    warper.save_warped_image(warped_image)
+    return warped_image
+
+
+def preprocess_image(img_obj):
+    img_data = img_obj.get_data()
+    processed_img_data = Preprocessing.process_retinal_image(img_data)
+    processed_img_obj = Image(image_data=processed_img_data)
+    return processed_img_obj
+
+
+def main(input_folder_path, output_folder_path):
+    input_images = [f for f in os.listdir(input_folder_path)]
+    input_images_read = []
     
     for img in input_images:
-        image = cv2.imread(os.path.join(input_path, img))
+        input_image_path = os.path.join(input_folder_path, img)
+        input_images_read.append(cv2.imread(input_image_path))
+        output_image_path = os.path.join(output_folder_path, img)
+   
+        # image preprocessing
+        img_obj = Image(image_path = input_image_path)
+        processed_img_obj = preprocess_image(img_obj)
 
-        green_channel = extract_green_channel(image)
+        if processed_img_obj:
+            processed_img_obj.save(output_image_path)
+            print(f"Processed and saved image: {output_image_path}")
 
-        preprocessed_image = preprocess_retinal_image(green_channel)
+    # registration
+    output_images_name = [f for f in os.listdir(input_folder_path)]
+    output_images_read = []
+    for img in output_images_name:
+        output_image_path = os.path.join(output_folder_path, img)
+        output_images_read.append(cv2.imread(output_image_path))
 
-        #save preprocessed image
-        cv2.imwrite(os.path.join(output_path, img), preprocessed_image)
-
-    
-    output_image1 = cv2.imread(os.path.join(output_path, input_images[0]))
-    output_image2 = cv2.imread(os.path.join(output_path, input_images[1]))
-    
-    input_image1 = cv2.imread(os.path.join(input_path, input_images[0])) 
-    input_image2 = cv2.imread(os.path.join(input_path, input_images[1]))
-
-
-
-    offset = incremental_search(output_image1, output_image2, initial_orientation=2, feature_search_length=0.2, threshold=0.6)
-    print("Offset: ", offset)
-
-    if offset:
-        stitch_image(input_image1, input_image2, offset)
-    else:
-        print("Cannot stitch images together")
-
+    H, mask = register_images(output_images_read[0], output_images_read[1])
+    warped_image = warp_with_homography(input_images_read[0], input_images_read[1], H)
     
 
 if __name__ == "__main__":
-    main()
+    input_path= './data/input'
+    output_path = './data/output'
+    main(input_path, output_path)

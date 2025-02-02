@@ -9,3 +9,5 @@
 # Maximum value algorithm will be used to fuse two overlapping areas in order to remove suture line.
 
 
+class Fusion:
+    pass

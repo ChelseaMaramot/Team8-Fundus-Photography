@@ -14,43 +14,56 @@ Based on a study with FIRE dataset, the green channel will be used as the initia
 CLAHE (Contrast Limited Adaptive Histogram Equalization) and median filtering will be used to enhance the detail of extracted retinal images, improving contrast of blood vessels and tissues.
 '''
 
-
 import cv2
 
-def extract_green_channel(image):
-    cv2.imshow('Original_Image', image)
-    b,g,r = cv2.split(image)
+class Preprocessing:
 
-    # cv2.imshow('Green_Channel', g)
-    # cv2.waitKey(0)
+    @staticmethod
+    def resize(image_data, width, height):
+        return cv2.resize(image_data, (width, height))
 
-    return g 
+    @staticmethod
+    def extract_channel(image_data, channel='R'):
+
+        if len(image_data.shape) == 3:
+            if channel == 'R':
+                return image_data[:,:,2]
+            elif channel == 'G':
+                return image_data[:,:,1]
+            elif channel == 'B':
+                return image_data[:,:,0]
+            else:
+                print("Invalid channel. Choose from 'R', 'G', 'B'.")
+        else:
+            print("Image does not have multiple channels.")
+        return None
+
+    @staticmethod
+    def remove_black_bg():
+        pass
+
+    @staticmethod
+    def convert_to_gray(image_data):
+        return cv2.cvtColor(image_data, cv2.COLOR_BGR2GRAY)
+        
+
+    @staticmethod
+    def CLAHE(image_data, clipLimit=10, tileGridSize=(8,8)):
+        clahe = cv2.createCLAHE(clipLimit, tileGridSize)
+        return clahe.apply(image_data)
     
 
-# https://pyimagesearch.com/2021/02/01/opencv-histogram-equalization-and-adaptive-histogram-equalization-clahe/
-# CLAHE improves the contrast of images. Histogram equalization is applied to small regions of the image, as opposed to the entire image.
-# clipLimit: Threshold for contrast limiting. Default of 40
-# tileGridSize: Size of grid for histogram equalization.  Sets # of tiles in row and column. Default of 8x8.
-def CLAHE(image, clipLimit=10, tileGridSize=(8,8)):
-    clahe = cv2.createCLAHE(clipLimit, tileGridSize)
-    final_image = clahe.apply(image)
+    @staticmethod
+    def median_filter(image, kernel_size=5):
+        return cv2.medianBlur(image, kernel_size)
+    
 
-    # cv2.imshow('CLAHE', final_image)
-    # cv2.waitKey(0)
+    @staticmethod
+    def process_retinal_image(image_data):
+        #image_data = Preprocessing.extract_channel(image_data, channel='G')  
+        image_data = Preprocessing.convert_to_gray(image_data)
+        image_data = Preprocessing.CLAHE(image_data)  
+        image_data = Preprocessing.median_filter(image_data)  
+        return image_data
+    
 
-    return final_image
-
-# preserves edges while removing noise
-def median_filter(image, kernel_size=5):
-    filtered_image = cv2.medianBlur(image, kernel_size)
-
-    # cv2.imshow('Median_Filter', filtered_image)
-    # cv2.waitKey(0)
-
-    return filtered_image
-
-def preprocess_retinal_image(image):
-    median_filtered_image = median_filter(image)
-    clahe_image = CLAHE(median_filtered_image)
-
-    return clahe_image

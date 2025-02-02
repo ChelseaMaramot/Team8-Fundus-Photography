@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 class Image:
 
@@ -7,17 +8,24 @@ class Image:
 
         self.image_path = image_path 
         self.image_data = image_data
-        
+        self.name = None
+
         if image_path:
             self.load(image_path)
         elif image_data is not None:
             self.image_data = image_data
         else:
             raise ValueError("Either 'image_path' or 'image_data' must be provided.")
+        
     
     def load(self, image_path):
         self.image_path = image_path
+        self.name = os.path.basename(self.image_path)
         self.image_data = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+
+
+    def get_name(self):
+        return self.name
 
     def save(self, output_path):
         cv2.imwrite(output_path, self.image_data)

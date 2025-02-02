@@ -28,7 +28,7 @@ from ImageWarper import ImageWarper
 
 
 class Registration:
-    def __init__(self, images, detector: FeatureDetector, matcher: FeatureMatcher, ratio=0.7, threshold=300):
+    def __init__(self, images,folder, detector: FeatureDetector, matcher: FeatureMatcher, ratio=0.7, threshold=300):
 
         if not isinstance(images, list):
             raise ValueError("Images must be a list of images")
@@ -39,20 +39,62 @@ class Registration:
         self.detector = detector
         self.matcher = matcher
         self.matches = []
+        self.folder = folder
 
 
+    # def create_connectivity_matrix(images):
+    #     N = len(images)
+    #     connectivity_matrix = np.zeros((N, N))
+
+    #     for i in range(N):
+    #         for j in range(i + 1, N):  # Avoid redundant pairs (i,j) and (j,i)
+    #             num_matches = match_keypoints(images[i], images[j])
+    #             connectivity_matrix[i, j] = num_matches
+    #             connectivity_matrix[j, i] = num_matches  # Symmetric matrix
+
+    #     return connectivity_matrix
+
+
+    # find image with highest sum of total key point matches wrt all other images
+    def select_anchor_image(connectivity_matrix):
+        N = len(connectivity_matrix)
+        min_connections = float('inf')
+        anchor_image_index = -1
+
+        for i in range(N):
+            num_connections = np.sum(connectivity_matrix[i, :] > 0)  # Count non-zero connections
+            if num_connections < min_connections:
+                min_connections = num_connections
+                anchor_image_index = i
+    
+        return anchor_image_index
+    
+
+    def register_images(self):
+        homographies = []
+
+        for i in range(1, len(self.images)):
+            image1 = self.images[i-1]
+            image2 = self.images[i]
+
+            H, mask = self.register_two_images(image1, image2)
+            homographies.append(H)
+
+        return homographies
 
     def register_two_images(self, image1, image2):
 
-        # find keypoints
-        kp1, desc1 = self.detector.detect_and_compute(image1)
-        kp2, desc2 = self.detector.detect_and_compute(image2)
+        img1_data = image1.get_data() 
+        img2_data = image2.get_data() 
+
+        kp1, desc1 = self.detector.detect_and_compute(img1_data)
+        kp2, desc2 = self.detector.detect_and_compute(img2_data)
 
         # match image features
         self.matches = self.matcher.match_features(desc1, desc2, k=2)
         good_matches = self.matcher.filter_matches_by_ratio(self.matches)
         
-        self.matcher.draw_matches_and_save(image1, image2, kp1, kp2, good_matches)
+        self.matcher.draw_matches_and_save(image1, image2, kp1, kp2, good_matches, self.folder)
 
         H, mask = self.matcher.apply_ransac(kp1,kp2, good_matches)
 

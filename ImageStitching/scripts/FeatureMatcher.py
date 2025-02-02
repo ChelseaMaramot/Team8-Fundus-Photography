@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import os
 
 class FeatureMatcher:
     def __init__(self, matcher_type="BF", ratio=0.8):
@@ -50,15 +51,29 @@ class FeatureMatcher:
     
 
     def apply_ransac(self, kp1, kp2, matches):
-        points1 = np.float32([kp1[m.queryIdx].pt for m in matches])
-        points2 = np.float32([kp2[m.queryIdx].pt for m in matches])
+        # points1 = np.float32([kp1[m.queryIdx].pt for m in matches])
+        # points2 = np.float32([kp2[m.queryIdx].pt for m in matches])
 
-        H, mask = cv2.findHomography(points1, points2, cv2.RANSAC, 5.0)
+
+        points1 = []
+        points2 = []
+        for m in matches:
+            if m.queryIdx < len(kp1) and m.trainIdx < len(kp2):
+                points1.append(kp1[m.queryIdx].pt)
+                points2.append(kp2[m.trainIdx].pt)
+
+        H, mask = cv2.findHomography(np.float32(points1), np.float32(points2), cv2.RANSAC, 5.0)
         return H, mask
 
 
-    def draw_matches_and_save(self, image1, image2, kp1, kp2, matches, save_path="./data/matched_image.jpg"):
-            match_image = cv2.drawMatches(image1, kp1, image2, kp2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+    def draw_matches_and_save(self, image1, image2, kp1, kp2, matches, folder_name, save_dir="./data/matched/"):
+            
+            img1_data = image1.get_data()
+            img2_data = image2.get_data()
+            match_filename = f"{folder_name}/{os.path.splitext(image1.get_name())[0]}_{os.path.splitext(image2.get_name())[0]}.jpg"
+            save_path = os.path.join(save_dir, match_filename)
+
+            match_image = cv2.drawMatches(img1_data, kp1, img2_data, kp2, matches, None, flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
         
             cv2.imwrite(save_path, match_image)
             print(f"Image with matches saved to {save_path}")

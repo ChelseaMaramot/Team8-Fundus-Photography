@@ -1,38 +1,25 @@
-//
-//  PatientListView.swift
-//  Team8-Fundus-Photography
-//
-//  Created by chelsea maramot on 2025-01-09.
-//
-
 import SwiftUI
 
 struct PatientListView: View {
     
-    @StateObject private var storageManager = FirebaseManager()
-    @State private var patientList: [Patient] = []
-    @State private var isShowingAddPatientSheet = false
-    
+    @StateObject private var viewModel = PatientListViewModel()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-        
+    
     var body: some View {
         NavigationView {
             VStack {
-                if !patientList.isEmpty{
-                    List(patientList) {patient in
-                        NavigationLink(destination: ScanListView()) {
+                if !viewModel.patientList.isEmpty {
+                    List(viewModel.patientList) { patient in
+                        NavigationLink(destination: ScanListView(patientID: patient.id)) {
                             Card(name: patient.name, scanNumber: patient.scanCount)
-                                .onTapGesture {
-                                    selectedDataManager.selectPatientID(patient.id)
-                                }
                         }
                     }
-                }else {
+                } else {
                     Text("No Patients found.")
                 }
                 
                 Button {
-                    isShowingAddPatientSheet = true
+                    viewModel.isShowingAddPatientSheet = true
                 } label: {
                     Text("Add New Patient")
                 }
@@ -40,25 +27,15 @@ struct PatientListView: View {
                 .controlSize(.large)
                 
             }
-            .onAppear{
-                storageManager.fetchPatientList {
-                    fetchedPatients in
-                    patientList = fetchedPatients
-                }
+            .onAppear {
+                viewModel.fetchPatients()
             }
-            .sheet(isPresented: $isShowingAddPatientSheet) {
+            .sheet(isPresented: $viewModel.isShowingAddPatientSheet) {
                 BottomSheet(
                     title: "Add New Patient",
-                                    placeholder: "Enter Patient Name"
+                    placeholder: "Enter Patient Name"
                 ) { newPatientName in
-                    storageManager.addPatientToFirebase(name: newPatientName) { success in
-                        if success {
-                            // update the list
-                            storageManager.fetchPatientList { fetchedPatients in
-                                patientList = fetchedPatients
-                            }
-                        }
-                    }
+                    viewModel.addPatient(name: newPatientName)
                 }
                 .presentationDetents([.fraction(0.50)])
             }
@@ -66,7 +43,7 @@ struct PatientListView: View {
     }
 }
 
-
 #Preview {
     PatientListView()
+        .environmentObject(SelectedDataManager())
 }

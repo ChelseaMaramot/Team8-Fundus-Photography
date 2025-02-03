@@ -86,48 +86,48 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    // we are using dispatch group to make async calls
-    // without it, patient list will be empty as it doesnt wait for it to finish getting data
-    func fetchPatientList(completion: @escaping ([Patient]) -> Void) {
-        let storage = Storage.storage()
-        let storageRef = storage.reference().child("patients")
-        let dispatchGroup = DispatchGroup()
-        
-        storageRef.listAll { result in
-            switch result {
-            case .failure(let error):
-                print("Error while listing all patients: \(error)")
-                completion([]) 
-                return
-            case .success(let storageListResult):
-                var patientList: [Patient] = []
-                
-                for patient in storageListResult.prefixes {
-                    dispatchGroup.enter()
-                    
-                    let patientId = patient.name
-                    let patientScanRef = storageRef.child("\(patientId)/scans")
-                    
-                    patientScanRef.listAll { result in
-                        switch result {
-                        case .failure(let error):
-                            print("Error while listing scans for patient \(patientId): \(error)")
-                            dispatchGroup.leave()
-                        case .success(let scanListResult):
-                            let scanCount = scanListResult.prefixes.count
-                            let newPatient = Patient(id: UUID(), name: patientId)
-                            patientList.append(newPatient)
-                            dispatchGroup.leave()
-                        }
-                    }
-                }
-                
-                dispatchGroup.notify(queue: .main) {
-                    completion(patientList)
-                }
-            }
-        }
-    }
+//    // we are using dispatch group to make async calls
+//    // without it, patient list will be empty as it doesnt wait for it to finish getting data
+//    func fetchPatientList(completion: @escaping ([Patient]) -> Void) {
+//        let storage = Storage.storage()
+//        let storageRef = storage.reference().child("patients")
+//        let dispatchGroup = DispatchGroup()
+//        
+//        storageRef.listAll { result in
+//            switch result {
+//            case .failure(let error):
+//                print("Error while listing all patients: \(error)")
+//                completion([]) 
+//                return
+//            case .success(let storageListResult):
+//                var patientList: [Patient] = []
+//                
+//                for patient in storageListResult.prefixes {
+//                    dispatchGroup.enter()
+//                    
+//                    let patientId = patient.name
+//                    let patientScanRef = storageRef.child("\(patientId)/scans")
+//                    
+//                    patientScanRef.listAll { result in
+//                        switch result {
+//                        case .failure(let error):
+//                            print("Error while listing scans for patient \(patientId): \(error)")
+//                            dispatchGroup.leave()
+//                        case .success(let scanListResult):
+//                            let scanCount = scanListResult.prefixes.count
+//                            let newPatient = Patient(id: UUID(), name: patientId)
+//                            patientList.append(newPatient)
+//                            dispatchGroup.leave()
+//                        }
+//                    }
+//                }
+//                
+//                dispatchGroup.notify(queue: .main) {
+//                    completion(patientList)
+//                }
+//            }
+//        }
+//    }
 
 
     func fetchScanListForPatient(patientID: UUID, completion: @escaping ([Scan]) -> Void) {

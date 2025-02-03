@@ -42,7 +42,7 @@ class FirebaseManager: ObservableObject {
         
         let patientID = "testPatient1" // Replace with real patient ID
         let scanID = "testScan1" // Replace with real scan ID
-        let viewType = "superior" // Replace with real view type
+        let viewType = "Superior" // Replace with real view type
         let path = "patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg"
         let fileRef = storageRef.child(path)
         
@@ -60,7 +60,11 @@ class FirebaseManager: ObservableObject {
 //        let photosRef = db.collection("patients").document(patientID).collection("scans").document(scanID).collection("images") // future code?
         let db = Firestore.firestore()
         let storageRef = Storage.storage().reference()
-        
+        self.imagesByPosition["Nasal"] = []
+        self.imagesByPosition["Superior"] = []
+        self.imagesByPosition["Central"] = []
+        self.imagesByPosition["Inferior"] = []
+
         db.collection("images").getDocuments() { snapshot, error in
             if error == nil && snapshot != nil {
                 var paths = [String]()

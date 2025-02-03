@@ -8,18 +8,15 @@
 import Foundation
 
 struct Patient: Identifiable{
-    let id: UUID
-    let name: String
-    let scans: [Scan]
+    let id: String
+    let firstName: String
+    let lastName: String
+    let scanCount: Int
     
-    var scanCount: Int {
-        return scans.count
-    }
-    
-    
-    init(id: UUID=UUID(), name: String, scans:[Scan]=[]){
+    init(id: String, firstName: String, lastName: String, scanCount: Int) {
         self.id = id
-        self.scans = scans
-        self.name = name
+        self.firstName = firstName
+        self.lastName = lastName
+        self.scanCount = scanCount
     }
 }

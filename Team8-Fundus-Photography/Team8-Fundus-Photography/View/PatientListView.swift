@@ -36,7 +36,11 @@ struct PatientListView: View {
                     title: "Add New Patient",
                     placeholder: "Enter Patient Name"
                 ) { newPatientName in
-                    let newPatient = Patient(firstName: newPatientName, lastName: "")
+                    let newPatient = Patient(
+                        id: UUID().uuidString,
+                        firstName: newPatientName,
+                        lastName: "",
+                        scanCount: 0)
                     
                     viewModel.addPatient(patient: newPatient)
                 }

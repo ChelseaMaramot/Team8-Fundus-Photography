@@ -19,6 +19,7 @@ class PatientListViewModel: ObservableObject {
     private var storageManager = FirebaseManager()
     
     func fetchPatients() {
+        print("fetching patients ...")
         var fetchedPatients: [Patient] = []
         let db = Firestore.firestore()
         let patientRef = db.collection("patients").whereField("userIDs", arrayContains: userID)
@@ -36,7 +37,7 @@ class PatientListViewModel: ObservableObject {
                 let lastName = data["lastName"] as? String ?? ""
                 let scanCount = data["scanCount"] as? Int ?? 0
                 
-                let patient = Patient(id: UUID(uuidString: patientID) ?? UUID(),
+                let patient = Patient(id: patientID,
                                       firstName: firstName,
                                       lastName: lastName,
                                       scanCount: scanCount)
@@ -45,6 +46,7 @@ class PatientListViewModel: ObservableObject {
             
     
             self.patientList = fetchedPatients
+            print(self.patientList)
             
         }
     }

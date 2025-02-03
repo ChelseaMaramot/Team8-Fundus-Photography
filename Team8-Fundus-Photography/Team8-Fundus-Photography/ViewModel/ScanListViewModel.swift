@@ -6,26 +6,62 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 class ScanListViewModel: ObservableObject {
-    @Published var scans: [Scan] = []
+    @Published var scanList: [Scan] = []
     @Published var isShowingAddScanSheet = false
     
+ 
+    private var patientID: String
     private var storageManager = FirebaseManager()
     
-    // Function to fetch the scan list for a patient
-    func fetchScans(for patientID: UUID) {
-        storageManager.fetchScanListForPatient(patientID: patientID) { [weak self] fetchedScans in
-            self?.scans = fetchedScans
+    init(patientID: String) {
+        self.patientID = patientID
+        fetchScans()
+    }
+    
+    func fetchScans() {
+       
+        var fetchedScans: [Scan] = []
+        let db = Firestore.firestore()
+        let selectedPatientID = self.patientID
+        
+        print("fetching scans for", selectedPatientID)
+        
+        let scanRef = db.collection("patients").document(selectedPatientID)
+            .collection("scans")
+        
+        scanRef.getDocuments{ querySnapshot, error in
+            if let error = error {
+                print("Error fetching scans: \(error.localizedDescription)")
+                return
+            }
+            
+            for document in querySnapshot?.documents ?? [] {
+                let data = document.data()
+                let id = document.documentID
+                let name = data["name"]
+                let isStitched = data["isStitched"]
+                
+                let scan = Scan(name: name as! String,
+                                regions: ScanRegions(),
+                                isStitched: (isStitched != nil))
+                
+                fetchedScans.append(scan)
+                
+            }
+            self.scanList = fetchedScans
+            print(self.scanList)
         }
     }
     
     // Function to add a new scan to the patient
-    func addScan(patientID: UUID, scanName: String) {
-        storageManager.addScanToFirebase(patientId: patientID, scanName: scanName) { [weak self] success in
-            if success {
-                self?.fetchScans(for: patientID) // Reload scans after adding a new one
-            }
-        }
+    func addScan(patientID: String, scanName: String) {
+//        storageManager.addScanToFirebase(patientId: patientID, scanName: scanName) { [weak self] success in
+//            if success {
+//                self?.fetchScans() // Reload scans after adding a new one
+//            }
+//        }
     }
 }

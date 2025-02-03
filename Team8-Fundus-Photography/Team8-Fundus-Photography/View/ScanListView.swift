@@ -1,17 +1,20 @@
 import SwiftUI
 
 struct ScanListView: View {
-    
-    @StateObject private var viewModel = ScanListViewModel()
-    
-    var patientID: UUID
-    
+    var patientID: String
+    @StateObject private var viewModel: ScanListViewModel
     @EnvironmentObject var selectedDataManager: SelectedDataManager
 
+    init(patientID: String) {
+        print(patientID)
+        _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+        self.patientID = patientID
+    }
+  
     var body: some View {
         VStack {
-            if !viewModel.scans.isEmpty {
-                List(viewModel.scans) { scan in
+            if !viewModel.scanList.isEmpty {
+                List(viewModel.scanList) { scan in
                     NavigationLink(destination: ImageView()) {
                         Card(name: scan.name, isStitched: scan.isStitched)
                     }
@@ -29,20 +32,22 @@ struct ScanListView: View {
             .controlSize(.large)
         }
         .onAppear {
-            viewModel.fetchScans(for: patientID)
+            selectedDataManager.setPatientID(patientID)
+            viewModel.fetchScans()
         }
         .sheet(isPresented: $viewModel.isShowingAddScanSheet) {
             BottomSheet(
                 title: "Add New Scan",
                 placeholder: "Enter Scan Name"
             ) { newScanName in
-                viewModel.addScan(patientID: patientID, scanName: newScanName)
+                viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: newScanName)
             }
         }
     }
 }
 
 #Preview {
-    ScanListView(patientID: UUID(uuidString: "E20F0761-41EE-45AB-998A-456308F97E55")!)
+    ScanListView(patientID: UUID().uuidString)
         .environmentObject(SelectedDataManager())
+        
 }

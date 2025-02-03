@@ -11,8 +11,8 @@ import Combine
 
 class SelectedDataManager: ObservableObject {
     
-    @Published var selectedPatientID: UUID?
-    @Published var selectedScanID: UUID?
+    @Published private var selectedPatientID: String = ""
+    @Published private var selectedScanID: String = ""
     
     private var storageManager: FirebaseManager
     
@@ -20,13 +20,20 @@ class SelectedDataManager: ObservableObject {
         self.storageManager = storageManager
     }
     
-    func selectPatientID(_ ID: UUID) {
+    func setPatientID(_ ID: String) {
         self.selectedPatientID = ID
-        self.selectedScanID = nil
     }
     
-    func selectScanID(_ ID: UUID) {
+    func setScanID(_ ID: String) {
         self.selectedScanID = ID
+    }
+    
+    func getPatientID() -> String{
+        return self.selectedPatientID
+    }
+    
+    func getScanID() -> String{
+        return self.selectedScanID
     }
         
     

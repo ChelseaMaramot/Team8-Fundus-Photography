@@ -25,14 +25,17 @@ struct CameraView: View {
     
     
     var body: some View {
-        NavigationStack{
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
+                    
+                    QuadrantView().zIndex(2)
+                    
                     VStack {
                         
                         ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
-                        
+                       
+                    
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
@@ -72,7 +75,6 @@ struct CameraView: View {
             }
         }
     }
-}
 
 #Preview {
     CameraView()

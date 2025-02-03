@@ -8,10 +8,17 @@
 import SwiftUI
 
 struct QuadrantView: View {
-    @State private var selectedQuadrant: String = "Central"
-    @State private var showQuadrantSelector = false
-    @State private var previousSelectedQuadrant: String = "Central"
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    @State private var selectedQuadrant: RegionTypes
+    @State private var showQuadrantSelector: Bool
+    @State private var previousSelectedQuadrant: RegionTypes
 
+    init(showQuadrantSelector: Bool = false) {
+        _selectedQuadrant = State(initialValue: .central)
+        _previousSelectedQuadrant = State(initialValue: .central)
+        self.showQuadrantSelector = showQuadrantSelector
+    }
+    
     var body: some View {
         ZStack {
             VStack {
@@ -43,9 +50,9 @@ struct QuadrantView: View {
             }
             if showQuadrantSelector {
                 
-                Color.black.opacity(0.5)
+                Color.black.opacity(0.7)
                                    .edgesIgnoringSafeArea(.all)
-                                   .blur(radius: 10)
+                                   .blur(radius: 5)
                                    .transition(.opacity)
                                    .animation(.easeInOut, value: showQuadrantSelector)
 
@@ -62,6 +69,7 @@ struct QuadrantView: View {
                         withAnimation(.spring()) {
                             showQuadrantSelector = false
                         }
+                        selectedDataManager.setQuadrant(newQuadrant)
                     }
                 }
             }
@@ -70,5 +78,7 @@ struct QuadrantView: View {
 }
 
 #Preview {
-    QuadrantView()
+    QuadrantView(
+        showQuadrantSelector: false
+    ).environmentObject(SelectedDataManager())
 }

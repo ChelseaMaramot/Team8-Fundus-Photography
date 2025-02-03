@@ -1,31 +1,30 @@
-//
-//  ScanListView.swift
-//  Team8-Fundus-Photography
-//
-//  Created by chelsea maramot on 2025-01-09.
-//
-
 import SwiftUI
 
 struct ScanListView: View {
-    
-    var patientId: String
-    @StateObject private var storageManager = FirebaseManager()
-    @State private var scans: [FirebaseManager.Scan] = []
-    
+    var patientID: String
+    @StateObject private var viewModel: ScanListViewModel
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+
+    init(patientID: String) {
+        print(patientID)
+        _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+        self.patientID = patientID
+    }
+  
     var body: some View {
         VStack {
-            
-            if !scans.isEmpty{
-                List(scans, id: \.self) { scan in
+            if !viewModel.scanList.isEmpty {
+                List(viewModel.scanList) { scan in
                     NavigationLink(destination: ImageView()) {
-                        Card(name: scan.name, date: scan.createdDate, isStitched: scan.isStitched)
+                        Card(name: scan.name, isStitched: scan.isStitched)
                     }
                 }
             } else {
-                Text("No Scan found.")
+                Text("No Scans found.")
             }
-            Button {
+
+            NavigationLink {
+                CameraView()
             } label: {
                 Text("Add New Scan")
             }
@@ -33,13 +32,22 @@ struct ScanListView: View {
             .controlSize(.large)
         }
         .onAppear {
-            storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                scans = fetchedScans
+            selectedDataManager.setPatientID(patientID)
+            viewModel.fetchScans()
+        }
+        .sheet(isPresented: $viewModel.isShowingAddScanSheet) {
+            BottomSheet(
+                title: "Add New Scan",
+                placeholder: "Enter Scan Name"
+            ) { newScanName in
+                viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: newScanName)
             }
         }
     }
 }
 
 #Preview {
-    ScanListView(patientId: "testPatient1")
+    ScanListView(patientID: UUID().uuidString)
+        .environmentObject(SelectedDataManager())
+        
 }

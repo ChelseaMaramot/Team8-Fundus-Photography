@@ -23,6 +23,15 @@ struct Scan: Identifiable{
 }
 
 
+enum RegionTypes: String, CaseIterable {
+    case superior = "Superior"
+    case inferior = "Inferior"
+    case nasal = "Nasal"
+    case temporal = "Temporal"
+    case central = "Central"
+}
+
+
 struct ScanRegions{
     var superior: [ImageData]
     var inferior: [ImageData]

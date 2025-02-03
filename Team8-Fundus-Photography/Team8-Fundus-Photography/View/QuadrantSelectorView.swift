@@ -27,7 +27,7 @@ struct CircleButton: View {
 }
 
 struct QuadrantSelectorView: View {
-    @Binding var selectedQuadrant: String
+    @Binding var selectedQuadrant: RegionTypes
     let isInteractive: Bool
     let size: CGFloat
     let quadrants = ["Superior", "Inferior", "Nasal", "Temporal", "Central"]
@@ -54,9 +54,9 @@ struct QuadrantSelectorView: View {
     var body: some View {
         ZStack {
             ForEach(quadrants, id: \.self) { quadrant in
-                CircleButton(quadrant: quadrant, isSelected: selectedQuadrant == quadrant, size: size) {
+                CircleButton(quadrant: quadrant, isSelected: selectedQuadrant.rawValue == quadrant, size: size) {
                     if isInteractive {
-                        selectedQuadrant = quadrant
+                        selectedQuadrant = RegionTypes(rawValue: quadrant) ?? .central
                     }
                 }
                 .offset(offsetForQuadrant(quadrant))
@@ -66,5 +66,5 @@ struct QuadrantSelectorView: View {
 }
 
 #Preview {
-    QuadrantSelectorView(selectedQuadrant: .constant("Central"), isInteractive: false, size: 90)
+    QuadrantSelectorView(selectedQuadrant: .constant(RegionTypes(rawValue: "Central") ?? .central), isInteractive: false, size: 90)
 }

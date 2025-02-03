@@ -1,71 +1,48 @@
-//
-//  ScanListView.swift
-//  Team8-Fundus-Photography
-//
-//  Created by chelsea maramot on 2025-01-09.
-//
-
 import SwiftUI
 
 struct ScanListView: View {
     
-    @StateObject private var storageManager = FirebaseManager()
-    @State private var scans: [Scan] = []
-    @State private var isShowingAddScanSheet = false
+    @StateObject private var viewModel = ScanListViewModel()
+    
+    var patientID: UUID
     
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-    
-    var body: some View {
-        
 
-            VStack {
-                
-                if !scans.isEmpty{
-                    List(scans) { scan in
-                        NavigationLink(destination: ImageView()) {
-                            Card(name: scan.name, isStitched: scan.isStitched)
-                        }
+    var body: some View {
+        VStack {
+            if !viewModel.scans.isEmpty {
+                List(viewModel.scans) { scan in
+                    NavigationLink(destination: ImageView()) {
+                        Card(name: scan.name, isStitched: scan.isStitched)
                     }
-                } else {
-                    Text("No Scan found.")
                 }
-                
-                NavigationLink{
-                    CameraView()
-                } label: {
-                    Text("Add New Scan")
-                }  .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
+            } else {
+                Text("No Scans found.")
             }
-            .onAppear {
-                if let patientID = selectedDataManager.selectedPatientID {
-                    storageManager.fetchScanListForPatient(patientID: patientID) { fetchedScans in
-                        scans = fetchedScans
-                    }
-                }
+
+            NavigationLink {
+                CameraView()
+            } label: {
+                Text("Add New Scan")
             }
-            .sheet(isPresented: $isShowingAddScanSheet) {
-                BottomSheet(
-                    title: "Add New Scan",
-                    placeholder: "Enter Scan Name"
-                ) {newScanName in
-                    if let patientId = selectedDataManager.selectedPatientID {
-                        storageManager.addScanToFirebase(patientId: patientId, scanName: newScanName){ success in
-                            if success {
-                                // update the list
-                                storageManager.fetchScanListForPatient(patientID: patientId) { fetchedScans in
-                                    scans = fetchedScans
-                                }
-                            }
-                        }
-                    }
-                    
-                }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+        }
+        .onAppear {
+            viewModel.fetchScans(for: patientID)
+        }
+        .sheet(isPresented: $viewModel.isShowingAddScanSheet) {
+            BottomSheet(
+                title: "Add New Scan",
+                placeholder: "Enter Scan Name"
+            ) { newScanName in
+                viewModel.addScan(patientID: patientID, scanName: newScanName)
             }
         }
-    
+    }
 }
 
 #Preview {
-    ScanListView()
+    ScanListView(patientID: UUID(uuidString: "E20F0761-41EE-45AB-998A-456308F97E55")!)
+        .environmentObject(SelectedDataManager())
 }

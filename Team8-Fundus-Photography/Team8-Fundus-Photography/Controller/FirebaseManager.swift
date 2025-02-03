@@ -16,7 +16,7 @@ import FirebaseFirestore
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
-    @Published var imagesByPosition: [String: [UIImage]] = [:] // Store images by position
+    @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     
     
     // add images here
@@ -78,7 +78,8 @@ class FirebaseManager: ObservableObject {
                             let image = UIImage(data: data!)!
                             
                             DispatchQueue.main.async {
-                                self.imagesByPosition[position]?.append(image)
+                                let labeledImage = LabeledImage(image: image, isPrimary: doc["isPrimary"] as! Bool)
+                                self.imagesByPosition[position]?.append(labeledImage)
                             }
                         }
                     }

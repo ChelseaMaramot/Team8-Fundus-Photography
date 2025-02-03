@@ -5,28 +5,66 @@
 //  Created by Anjola Adewale on 2025-01-16.
 //
 
-//import SwiftUI
+// for future, only show empty postions if we are still in imaging mode
+
+
 import SwiftUI
 
 struct ScanSummary: View {
     @ObservedObject var firebaseManager: FirebaseManager
 
     var body: some View {
-        List {
-            ForEach(firebaseManager.imagesByPosition.values.flatMap { $0 }, id: \.self) { image in
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(height: 150) // Adjust size for readability
-                    .cornerRadius(10)
-                    .shadow(radius: 3)
-                    .padding(.vertical, 5)
+        ZStack {
+            
+            Color(UIColor.systemGray6) // Background color
+                .edgesIgnoringSafeArea(.all) // Extend to full screen
+            
+            VStack {
+                Text("Scan - \(formattedDate())")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.blue)
+                    .padding(.top, 10)
+
+                ScrollView {
+                    ForEach(firebaseManager.imagesByPosition.keys.sorted(), id: \.self) { position in
+                        ImageCard(
+                            position: position,
+                            images: firebaseManager.imagesByPosition[position] ?? [],
+                            onAddImage: {
+                                print("Add image for \(position)")
+                            }
+                        )
+                    }
+                }
+
+                Button(action: {
+                    print("Navigate to Scan List")
+                }) {
+                    Text("Scan List")
+                        .fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .padding()
+                        .frame(maxWidth: .infinity)
+                        .background(Color.blue)
+                        .cornerRadius(10)
+                        .padding(.horizontal)
+                }
+                .padding(.bottom, 20)
             }
+            .padding(.top)
         }
-        .navigationTitle("Scan Summary")
+        .colorScheme(.light)
+        .navigationBarTitle("Image Summary", displayMode: .inline)
         .onAppear {
             firebaseManager.retrievePhotos()
-            // fix this to only append new images to the list
         }
     }
+
+    private func formattedDate() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd @h:mma"
+        return formatter.string(from: Date())
+    }
 }
+

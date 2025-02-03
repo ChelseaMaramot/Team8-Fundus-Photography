@@ -10,17 +10,18 @@ import SwiftUI
 struct Card: View {
     
     var name: String
+    var date: Date
     var isStitched: Bool?
     var scanNumber: Int?
     
     var colors = cardColors()
     var spacing = cardSpacing()
     
-//    private var formattedDate: String {
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .medium
-//        return formatter.string(from: date)
-//    }
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter.string(from: date)
+    }
     
     var body: some View {
             VStack(alignment: .leading, spacing: 8){
@@ -56,15 +57,15 @@ struct Card: View {
                             .font(.system(size: 14))
                     }
                     
-//                 
-//                    Text(formattedDate)
-//                        .padding(.vertical, 4)
-//                        .padding(.horizontal)
-//                        .frame(maxWidth: .infinity, alignment: .center)
-//                        .background(colors.white)
-//                        .cornerRadius(spacing.cardInnerCornerRadius)
-//                        .font(.system(size:14))
-//                    
+                 
+                    Text(formattedDate)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .background(colors.white)
+                        .cornerRadius(spacing.cardInnerCornerRadius)
+                        .font(.system(size:14))
+                    
                    
                 }
             }
@@ -76,5 +77,5 @@ struct Card: View {
 }
 
 #Preview {
-    Card(name: "Chelsea Grace", scanNumber: 1)
+    Card(name: "Chelsea Grace", date: Date(), scanNumber: 1)
 }

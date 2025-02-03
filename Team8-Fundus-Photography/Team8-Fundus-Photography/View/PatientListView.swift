@@ -1,26 +1,33 @@
+//
+//  PatientListView.swift
+//  Team8-Fundus-Photography
+//
+//  Created by chelsea maramot on 2025-01-09.
+//
+
 import SwiftUI
 
 struct PatientListView: View {
     
-    @StateObject private var viewModel = PatientListViewModel()
-    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    //Observed objects marked with the @StateObject property wrapper don’t get destroyed and re-instantiated at times their containing view struct redraws.
+    @StateObject private var storageManager = FirebaseManager()
+    @State private var patientList: [FirebaseManager.Patient] = []
+    
     
     var body: some View {
         NavigationView {
             VStack {
-                if !viewModel.patientList.isEmpty {
-                    List(viewModel.patientList) { patient in
-                        NavigationLink(destination: ScanListView(patientID: patient.id)) {
-                            let name = patient.firstName + " " + patient.lastName
-                            Card(name: name, scanNumber: patient.scanCount)
+                if !patientList.isEmpty{
+                    List(patientList, id: \.self) {patient in
+                        NavigationLink(destination: ScanListView(patientId: patient.name)) {
+                            Card(name: patient.name, date: Date(), scanNumber: patient.scanCount)
                         }
                     }
-                } else {
+                }else {
                     Text("No Patients found.")
                 }
                 
                 Button {
-                    viewModel.isShowingAddPatientSheet = true
                 } label: {
                     Text("Add New Patient")
                 }
@@ -28,29 +35,17 @@ struct PatientListView: View {
                 .controlSize(.large)
                 
             }
-            .onAppear {
-                viewModel.fetchPatients()
-            }
-            .sheet(isPresented: $viewModel.isShowingAddPatientSheet) {
-                BottomSheet(
-                    title: "Add New Patient",
-                    placeholder: "Enter Patient Name"
-                ) { newPatientName in
-                    let newPatient = Patient(
-                        id: UUID().uuidString,
-                        firstName: newPatientName,
-                        lastName: "",
-                        scanCount: 0)
-                    
-                    viewModel.addPatient(patient: newPatient)
+            .onAppear{
+                storageManager.fetchPatientList {
+                    fetchedPatients in
+                    patientList = fetchedPatients
                 }
-                .presentationDetents([.fraction(0.50)])
             }
         }
     }
 }
 
+
 #Preview {
     PatientListView()
-        .environmentObject(SelectedDataManager())
 }

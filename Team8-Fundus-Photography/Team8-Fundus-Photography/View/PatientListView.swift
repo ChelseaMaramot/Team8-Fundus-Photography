@@ -11,7 +11,8 @@ struct PatientListView: View {
                 if !viewModel.patientList.isEmpty {
                     List(viewModel.patientList) { patient in
                         NavigationLink(destination: ScanListView(patientID: patient.id)) {
-                            Card(name: patient.name, scanNumber: patient.scanCount)
+                            let name = patient.firstName + " " + patient.lastName
+                            Card(name: name, scanNumber: patient.scanCount)
                         }
                     }
                 } else {
@@ -35,7 +36,9 @@ struct PatientListView: View {
                     title: "Add New Patient",
                     placeholder: "Enter Patient Name"
                 ) { newPatientName in
-                    viewModel.addPatient(name: newPatientName)
+                    let newPatient = Patient(firstName: newPatientName, lastName: "")
+                    
+                    viewModel.addPatient(patient: newPatient)
                 }
                 .presentationDetents([.fraction(0.50)])
             }

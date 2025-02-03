@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 import Combine
 
 class PatientListViewModel: ObservableObject {
@@ -13,18 +14,59 @@ class PatientListViewModel: ObservableObject {
     @Published var patientList: [Patient] = []
     @Published var isShowingAddPatientSheet = false
     
+    let userID = "user123"
+    
     private var storageManager = FirebaseManager()
     
     func fetchPatients() {
-        storageManager.fetchPatientList { [weak self] fetchedPatients in
-            self?.patientList = fetchedPatients
+        var fetchedPatients: [Patient] = []
+        let db = Firestore.firestore()
+        let patientRef = db.collection("patients").whereField("userIDs", arrayContains: userID)
+        
+        patientRef.getDocuments { querySnapshot, error in
+            if let error = error {
+                print("Error fetching patients: \(error.localizedDescription)")
+                return
+            }
+            
+            for document in querySnapshot?.documents ?? [] {
+                let data = document.data()
+                let patientID = document.documentID
+                let firstName = data["firstName"] as? String ?? ""
+                let lastName = data["lastName"] as? String ?? ""
+                let scanCount = data["scanCount"] as? Int ?? 0
+                
+                let patient = Patient(id: UUID(uuidString: patientID) ?? UUID(),
+                                      firstName: firstName,
+                                      lastName: lastName,
+                                      scanCount: scanCount)
+                fetchedPatients.append(patient)
+            }
+            
+    
+            self.patientList = fetchedPatients
+            
         }
     }
     
-    func addPatient(name: String) {
-        storageManager.addPatientToFirebase(name: name) { [weak self] success in
-            if success {
-                self?.fetchPatients()
+    
+    // im only adding first name for now cause bottom sheet only accepts name
+    func addPatient(patient: Patient) {
+        let db = Firestore.firestore()
+        let newPatientRef = db.collection("patients").document(UUID().uuidString)
+        
+        
+        newPatientRef.setData([
+            "firstName": patient.firstName,
+            "lastName": patient.lastName,
+            "scanCount": patient.scanCount,
+            "userIDs": [userID]  // chnage this when we have the authentication stuff
+        ]){ error in
+            if let error = error {
+                print("Error adding patient: \(error.localizedDescription)")
+            } else {
+                print("Patient added successfully")
+                self.fetchPatients()
             }
         }
     }

@@ -35,6 +35,7 @@ struct BottomSheet: View {
                     .textFieldStyle(.roundedBorder)
                     .font(.system(size: 30))
                     .padding()
+                
              
                 Button("Confirm") {
                     print("Button tapped with input: \(inputText)")

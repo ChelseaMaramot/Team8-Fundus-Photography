@@ -3,15 +3,15 @@ import cv2
 
 class FeatureDetector():
 
-    def __init__(self, detector_type = "SIFT", threshold=300, sigma = 12):
+    def __init__(self, detector_type = "SIFT", threshold=300, sigma = 12, contrast_threshold=0.015, edge_threshold=15):
         self.detector_type = detector_type
-        self.detector = self.create_detector(sigma=sigma)
+        self.detector = self.create_detector(sigma=sigma, contrast_threshold=contrast_threshold, edge_threshold=edge_threshold)
         self.threshold = threshold
 
-    def create_detector(self, sigma):
+    def create_detector(self, sigma, contrast_threshold, edge_threshold):
 
         if self.detector_type == "SIFT":
-            return cv2.xfeatures2d.SIFT_create(sigma = sigma)
+            return cv2.xfeatures2d.SIFT_create(sigma = sigma, contrastThreshold=contrast_threshold, edgeThreshold=edge_threshold)
         elif self.detector_type == "SURF":
             return cv2.xfeatures2d.SURF_create(self.threshold)
         else:

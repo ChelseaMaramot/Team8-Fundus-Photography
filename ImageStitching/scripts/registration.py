@@ -82,8 +82,8 @@ class Registration:
 
         return homographies
 
-    def register_two_images(self, image1, image2):
 
+    def register_two_images(self, image1, image2):
         img1_data = image1.get_data() 
         img2_data = image2.get_data() 
 

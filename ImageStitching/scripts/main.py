@@ -43,8 +43,6 @@ def preprocess_image(img_obj, processed_path):
     processed_img_obj = Image(image_data=processed_img_data, image_path=processed_path)
     return processed_img_obj
 
-
-
 def main(data_folder_path):
 
     input_folder_path = os.path.join(data_folder_path, "input")

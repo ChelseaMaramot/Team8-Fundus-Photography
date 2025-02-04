@@ -63,7 +63,35 @@ class FeatureMatcher:
                 points2.append(kp2[m.trainIdx].pt)
 
         H, mask = cv2.findHomography(np.float32(points1), np.float32(points2), cv2.RANSAC, 5.0)
+
+        if H is None or mask is None:
+            print("Homography computation failed")
+            return None, None
+
         return H, mask
+    
+
+    def draw_ransac_matches_and_save(self, image1, kp1, image2, kp2, matches, mask, folder_name, save_dir="./data/matched/"):
+        img1_data = image1.get_data()
+        img2_data = image2.get_data()
+        match_filename = f"{folder_name}/{os.path.splitext(image1.get_name())[0]}_{os.path.splitext(image2.get_name())[0]}.jpg"
+        save_path = os.path.join(save_dir, match_filename)
+
+        mask = mask.ravel().tolist()
+        
+        inlier_matches = [m for i, m in enumerate(matches) if mask[i]]
+        
+        img_matches = cv2.drawMatches(img1_data, kp1, img2_data, kp2, inlier_matches, None,
+                                    matchColor=(0, 255, 0), 
+                                    singlePointColor=(255, 0, 0), 
+                                    flags=cv2.DrawMatchesFlags_NOT_DRAW_SINGLE_POINTS)
+        
+
+        cv2.imwrite(save_path, img_matches)
+        print(f"Image with matches saved to {save_path}")
+                
+        return img_matches
+
 
 
     def draw_matches_and_save(self, image1, image2, kp1, kp2, matches, folder_name, save_dir="./data/matched/"):

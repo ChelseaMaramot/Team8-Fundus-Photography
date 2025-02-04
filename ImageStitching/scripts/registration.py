@@ -93,10 +93,15 @@ class Registration:
         # match image features
         self.matches = self.matcher.match_features(desc1, desc2, k=2)
         good_matches = self.matcher.filter_matches_by_ratio(self.matches)
+        self.matches = good_matches
         
-        self.matcher.draw_matches_and_save(image1, image2, kp1, kp2, good_matches, self.folder)
+        #self.matcher.draw_matches_and_save(image1, image2, kp1, kp2, good_matches, self.folder)
 
         H, mask = self.matcher.apply_ransac(kp1,kp2, good_matches)
+
+        self.matcher.draw_ransac_matches_and_save(image1, kp1, image2, kp2, self.matches, mask, self.folder)
+
+
 
         # warper = ImageWarper(image1, image2, H)
         # warped_img = warper.warp_image()

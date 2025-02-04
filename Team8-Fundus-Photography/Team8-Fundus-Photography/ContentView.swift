@@ -2,14 +2,16 @@ import SwiftUI
 
 struct ContentView: View {
     
+    @StateObject var selectedDataManager = SelectedDataManager()
+
     var body: some View {
         ZStack {
-            CameraView()
-            QuadrantView()
+            PatientListView()
+                .environmentObject(selectedDataManager)
         }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView().environmentObject(SelectedDataManager())
 }

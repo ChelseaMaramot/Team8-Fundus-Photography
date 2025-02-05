@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ImageCard: View {
     var position: String
-    var images: [LabeledImage]
+    @State var images: [LabeledImage]
     var onAddImage: () -> Void
     
     var body: some View {
@@ -23,15 +23,26 @@ struct ImageCard: View {
         ScrollView(.horizontal, showsIndicators: false){
             HStack{
                 ForEach(images) { labeledImage in
-                    Image(uiImage: labeledImage.image)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
-                        )
-                        .padding(.horizontal, 4)
+                    NavigationLink(destination: ImageView(image: labeledImage.image)){
+                        
+                        if let nonOptionalImage = labeledImage.image {
+                            // Use nonOptionalImage here; it is a non-optional UIImage
+                            Image(uiImage: nonOptionalImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 80)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
+                                )
+                                .padding(.horizontal, 4)
+                        } else {
+                            // Handle the nil case: show a placeholder or error message
+                            Text("No image available")
+                        }
+                        
+                        
+                    }
                 }
                 
                 // Add Image Button

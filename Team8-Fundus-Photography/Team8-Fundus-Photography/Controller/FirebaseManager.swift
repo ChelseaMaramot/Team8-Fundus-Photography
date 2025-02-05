@@ -42,7 +42,7 @@ class FirebaseManager: ObservableObject {
         
         let patientID = "testPatient1" // Replace with real patient ID
         let scanID = "testScan1" // Replace with real scan ID
-        let viewType = "Superior" // Replace with real view type
+        let viewType = "Central" // Replace with real view type
         let path = "patients/\(patientID)/scans/\(scanID)/\(viewType)/\(UUID().uuidString).jpg"
         let fileRef = storageRef.child(path)
         

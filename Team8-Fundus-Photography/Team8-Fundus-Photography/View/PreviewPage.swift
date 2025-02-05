@@ -17,6 +17,8 @@ struct PreviewPage: View {
     @State var lastOffset: CGSize = .zero
     @State private var navigateToCrop = false
     @State private var navigateToSummary = false
+    
+
     @State private var showCropView = false
     @StateObject var storageManager = FirebaseManager()
 

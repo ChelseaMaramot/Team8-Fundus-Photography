@@ -29,36 +29,48 @@ struct CameraView: View {
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
+                    
+                    QuadrantView().zIndex(2)
+                    
                     VStack {
                         
                         ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
+                        
                         
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .gesture(zoomGesture)
-                          
+                        
                         Spacer().frame(height: 40)
-                  
-                         LightControlView(
-                             sliderValue: $sliderValue,
-                             lightManager: lightManager
-                         )
+                        
+                        LightControlView(
+                            sliderValue: $sliderValue,
+                            lightManager: lightManager
+                        )
                         
                         CameraButton(action: capturePhoto)
-                        .padding(.bottom, 20)
+                            .padding(.bottom, 20)
                     }
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
                 if let image = capturedImage {
-                    PreviewPage(image: image) {
-                        print("Saving image to cloud")
-                    }
-                    .onAppear {
-                        print("Navigating to preview page")
-                    }
-                    
+                    PreviewPage(
+                        image: $capturedImage,
+                        onSave: { print("Saving image to cloud") },
+                        onRetake: {
+                            capturedImage = nil
+                            //                            image = nil
+                            showCapturedPhoto = false
+                            
+                            // Restart the camera session
+                            cameraManager.stopSession()
+                            DispatchQueue.main.async {
+                                cameraManager.startSession()
+                            }
+                        } // Reset capturedImage on retake
+                    )
                 }
             }
         }
@@ -194,6 +206,7 @@ extension CameraView {
     private func capturePhoto() {
             isFlashing = true
             cameraManager.capturePhoto { image in
+                print("new image is captured")
                 capturedImage = image
                 showCapturedPhoto = image != nil
             }

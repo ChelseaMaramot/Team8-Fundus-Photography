@@ -49,6 +49,8 @@ def main(data_folder_path):
     matched_folder_path = os.path.join(data_folder_path, "matched")
     processed_folder_path = os.path.join(data_folder_path, "processed")
     warped_folder_path = os.path.join(data_folder_path, "warped")
+    stitched_folder_path = os.path.join(data_folder_path, "stitched")
+                                      
                                       
     subfolders = [f.path for f in os.scandir(input_folder_path) if f.is_dir()]
     
@@ -58,10 +60,12 @@ def main(data_folder_path):
         matched_subfolder_path = os.path.join(matched_folder_path, subfolder_name)
         processed_subfolder_path = os.path.join(processed_folder_path, subfolder_name)
         warped_subfolder_path = os.path.join(warped_folder_path, subfolder_name)
+        stitched_subfolder_path = os.path.join(stitched_folder_path, subfolder_name)
 
         os.makedirs(matched_subfolder_path, exist_ok=True)
         os.makedirs(processed_subfolder_path, exist_ok=True)
         os.makedirs(warped_subfolder_path, exist_ok=True)
+        os.makedirs(stitched_subfolder_path, exist_ok=True)
         
         images_in_subfolder = [f for f in os.listdir(subfolder) if f.endswith(('.jpg', '.png'))]
         
@@ -86,11 +90,12 @@ def main(data_folder_path):
         # Apply warping to the images
         image_warper = ImageWarper(processed_images, homographies)
         warped_images = image_warper.warp_images()
+        stitched_images = image_warper.stitch_images()
         
-        # Save the warped images into the output folder
+        # Save the warped and stitched images into the output folder
         for i, warped_image in enumerate(warped_images):
             image_warper.save_warped_image(warped_image, subfolder_name)
-            
+            image_warper.save_stitched_image(subfolder_name)
 
 if __name__ == "__main__":
     input_path= './data/input'

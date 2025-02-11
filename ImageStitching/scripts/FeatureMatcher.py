@@ -62,7 +62,8 @@ class FeatureMatcher:
             points1.append(kp1[m.queryIdx].pt)
             points2.append(kp2[m.trainIdx].pt)
 
-        H, mask = cv2.findHomography(np.float32(points1), np.float32(points2), cv2.RANSAC, 5.0)
+        # we will transform 2 into 1
+        H, mask = cv2.findHomography(np.float32(points2), np.float32(points1), cv2.RANSAC, 5.0)
 
         if H is None or mask is None:
             print("Homography computation failed")

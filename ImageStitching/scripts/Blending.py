@@ -10,9 +10,10 @@
 
 
 class Blending:
-    def __init__(self, images, homographies, blending_method="simple"):
+    def __init__(self, warped_images, homographies, blending_method="simple"):
         # Fields to store images, homographies, and blending method
-        self.images = images
+        self.warped_images = warped_images
+
         self.homographies = homographies
         self.blending_method = blending_method
         self.blended_image = None

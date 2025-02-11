@@ -58,9 +58,9 @@ class FeatureMatcher:
         points1 = []
         points2 = []
         for m in matches:
-            if m.queryIdx < len(kp1) and m.trainIdx < len(kp2):
-                points1.append(kp1[m.queryIdx].pt)
-                points2.append(kp2[m.trainIdx].pt)
+            # if m.queryIdx < len(kp1) and m.trainIdx < len(kp2):
+            points1.append(kp1[m.queryIdx].pt)
+            points2.append(kp2[m.trainIdx].pt)
 
         H, mask = cv2.findHomography(np.float32(points1), np.float32(points2), cv2.RANSAC, 5.0)
 

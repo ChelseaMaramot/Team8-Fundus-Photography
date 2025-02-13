@@ -193,6 +193,13 @@ class CameraManager: NSObject, ObservableObject {
                    completion(nil)
                    return
                }
+        
+        
+        if !captureSession.isRunning {
+            print("rerunning capture session in capture photo")
+            self.startSession()
+        }
+
 
         print("taking a picture")
         photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureDelegate)

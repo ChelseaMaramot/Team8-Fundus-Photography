@@ -1,17 +1,19 @@
 import SwiftUI
+import FirebaseCore
+
 
 struct ContentView: View {
     
-    @StateObject var selectedDataManager = SelectedDataManager()
 
     var body: some View {
         ZStack {
-            PatientListView()
-                .environmentObject(selectedDataManager)
+            StartView()
         }
     }
 }
 
 #Preview {
-    ContentView().environmentObject(SelectedDataManager())
+    StartView().environmentObject(AuthService())
+        .environmentObject(SelectedDataManager())
+    
 }

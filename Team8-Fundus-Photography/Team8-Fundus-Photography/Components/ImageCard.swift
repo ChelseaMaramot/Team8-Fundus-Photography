@@ -68,5 +68,5 @@ struct ImageCard: View {
 }
 
 #Preview {
-    Card(name: "Chelsea Grace", date: Date(), scanNumber: 1)
+    //Card(name: "Chelsea Grace", date: Date(), scanNumber: 1)
 }

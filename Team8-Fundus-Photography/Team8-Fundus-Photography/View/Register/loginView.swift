@@ -4,6 +4,9 @@ import SwiftUI
 struct loginView: View {
     
     @State private var email: String = ""
+    @State private var password: String = ""
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) var dismiss
     
     var body: some View {
         NavigationView {
@@ -40,9 +43,9 @@ struct loginView: View {
                         .fontWeight(.medium)
                         .font(.system(size: 20))
                         .frame(alignment: .leading)
-                    TextField(
-                        "example@example.com",
-                        text: $email
+                    SecureField(
+                        "password",
+                        text: $password
                     )
                     .frame(height: 44)
                     .background(Color.white)
@@ -53,7 +56,14 @@ struct loginView: View {
                 .padding(.bottom, 40)
                 
                 
-                Button("Login"){}
+                Button("Login"){
+                    
+                    authService.regularSignIn(email: email, password: password) { error in
+                        if let e = error {
+                            print(e.localizedDescription)
+                        }
+                    }
+                }
                     .font(.system(size: 24))
                     .fontWeight(.medium)
                     .padding()
@@ -66,13 +76,11 @@ struct loginView: View {
                     Text("Don't have an account?")
                         .foregroundColor(.gray)
                     
-                    Button(action: {
-                        print("Navigate to Sign Up")
-                    }) {
+                    NavigationLink(destination: signUpView()){
                         Text("Sign Up")
-                            .foregroundColor(.blue)
-                            .fontWeight(.semibold)
-                    }
+                    } .foregroundColor(.blue)
+                        .fontWeight(.semibold)
+                    
                 }
                 .padding(.top, 80)
                 

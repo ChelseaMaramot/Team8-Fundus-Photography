@@ -51,7 +51,7 @@ struct registerView: View {
                     .cornerRadius(30)
                 
                 
-                NavigationLink(destination: registerView()){
+                NavigationLink(destination: signUpView()){
                     Text("Sign Up")
                 } .font(.system(size: 24))
                     .fontWeight(.medium)

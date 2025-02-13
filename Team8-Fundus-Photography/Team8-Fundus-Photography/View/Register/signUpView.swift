@@ -14,6 +14,9 @@ struct signUpView: View {
     @State private var lastName: String = ""
     @State private var password: String = ""
     
+    @EnvironmentObject var authService: AuthService
+    @Environment(\.dismiss) var dismiss
+    
     
     var body: some View {
         NavigationView {
@@ -80,9 +83,9 @@ struct signUpView: View {
                         .fontWeight(.medium)
                         .font(.system(size: 20))
                         .frame(alignment: .leading)
-                    TextField(
-                        "example@example.com",
-                        text: $email
+                    SecureField(
+                        "password",
+                        text: $password
                     )
                     .frame(height: 44)
                     .background(Color.white)
@@ -93,7 +96,13 @@ struct signUpView: View {
                 .padding(.bottom, 40)
                 
                 
-                Button("Login"){}
+                Button("Sign Up"){
+                    authService.regularCreateAccount(email: email, password: password, firstName: firstName, lastName: lastName){ error in
+                        if let e = error {
+                            print(e.localizedDescription)
+                        }
+                    }
+                }
                     .font(.system(size: 24))
                     .fontWeight(.medium)
                     .padding()
@@ -103,16 +112,15 @@ struct signUpView: View {
                     .cornerRadius(30)
                 
                 HStack{
-                    Text("Don't have an account?")
+                    Text("Already have an account?")
                         .foregroundColor(.gray)
                     
-                    Button(action: {
-                        print("Navigate to Sign Up")
-                    }) {
-                        Text("Sign Up")
-                            .foregroundColor(.blue)
-                            .fontWeight(.semibold)
-                    }
+                    NavigationLink(destination: loginView()){
+                        Text("Login")
+                    } .foregroundColor(.blue)
+                        .fontWeight(.semibold)
+                    
+                   
                 }
                 .padding(.top, 80)
                 
@@ -125,5 +133,5 @@ struct signUpView: View {
 }
 
 #Preview {
-    signUpView()
+    signUpView().environmentObject(AuthService())
 }

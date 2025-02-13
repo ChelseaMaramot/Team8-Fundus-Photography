@@ -7,9 +7,8 @@
 
 import SwiftUI
 
-
 struct PreviewPage: View {
-    @Binding var image: UIImage? //
+    @Binding var image: UIImage?
     let onSave: () -> Void
     let onRetake: () -> Void
     @State var scale = 1.0
@@ -26,46 +25,53 @@ struct PreviewPage: View {
     var body: some View {
         NavigationStack {
             VStack {
-                if let image = image { // Safely unwrap the optional image
-                    Image(uiImage: image)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width)
-                        .scaleEffect(scale)
-                        .offset(offset)
-                        .clipShape(Circle())
-                        .overlay(
-                            Circle()
-                                .stroke(Color.blue, lineWidth: 4)
-                        )
-                        .gesture(
-                            MagnificationGesture(minimumScaleDelta: 0)
-                                .onChanged { value in
-                                    withAnimation(.interactiveSpring()) {
-                                        scale = handleScaleChange(value)
+                // Background color
+                   // .edgesIgnoringSafeArea(.all) // Extend to full screen
+                // ZStack to layer image and overlay
+                ZStack {
+                    if let image = image { // Safely unwrap the optional image
+                        Image(uiImage: image)
+                            .resizable()
+                            .aspectRatio(contentMode: .fill)
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width)
+                            .scaleEffect(scale)
+                            .offset(offset)
+                            .clipShape(Circle())
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.blue, lineWidth: 4)
+                            )
+                            .gesture(
+                                MagnificationGesture(minimumScaleDelta: 0)
+                                    .onChanged { value in
+                                        withAnimation(.interactiveSpring()) {
+                                            scale = handleScaleChange(value)
+                                        }
                                     }
-                                }
-                                .onEnded { _ in
-                                    lastScale = scale
-                                }
-                                .simultaneously(
-                                    with: DragGesture(minimumDistance: 0)
-                                        .onChanged { value in
-                                            withAnimation(.interactiveSpring()) {
-                                                offset = handleOffsetChange(value.translation)
+                                    .onEnded { _ in
+                                        lastScale = scale
+                                    }
+                                    .simultaneously(
+                                        with: DragGesture(minimumDistance: 0)
+                                            .onChanged { value in
+                                                withAnimation(.interactiveSpring()) {
+                                                    offset = handleOffsetChange(value.translation)
+                                                }
                                             }
-                                        }
-                                        .onEnded { _ in
-                                            lastOffset = offset
-                                        }
-                                )
-                        )
-                } else {
-                    Text("No image selected")
-                        .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width)
-                        .background(Color.gray)
-                        .cornerRadius(10)
+                                            .onEnded { _ in
+                                                lastOffset = offset
+                                            }
+                                    )
+                            )
+                    } else {
+                        Text("No image selected")
+                            .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width)
+                            .background(Color.gray)
+                            .cornerRadius(10)
+                    }
                 }
+
+                // Bottom controls (buttons)
                 VStack {
                     Button("Crop") {
                         print("Image size before cropping: \(image?.size.width ?? 0)x\(image?.size.height ?? 0)")
@@ -109,14 +115,11 @@ struct PreviewPage: View {
                             }
                         }
                     )
-
-
-                    
                 }
                 .padding(.bottom, 10)
 
                 NavigationLink(
-                    destination: ScanSummary(),
+                    destination: ScanSummary(firebaseManager: FirebaseManager()),
                     isActive: $navigateToSummary,
                     label: { EmptyView() }
                 )
@@ -127,12 +130,14 @@ struct PreviewPage: View {
                     croppingStyle: .circular,
                     onCancel: { showCropView = false } // Close on cancel
                 )
+                
             }
+//            Color(UIColor.white)
+            .colorScheme(.light)
             .navigationTitle("Preview (manually cropped) Image")
         }
         .background(Color.white.edgesIgnoringSafeArea(.all)) // Move this here
     }
-       
 
     private func handleScaleChange(_ zoom: CGFloat) -> CGFloat {
         max(1, lastScale + zoom - (lastScale == 0 ? 0 : 1))

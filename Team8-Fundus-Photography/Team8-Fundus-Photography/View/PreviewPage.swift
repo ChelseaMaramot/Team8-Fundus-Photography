@@ -17,7 +17,7 @@ struct PreviewPage: View {
     @State var lastOffset: CGSize = .zero
     @State private var navigateToCrop = false
     @State private var navigateToSummary = false
-    
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
 
     @State private var showCropView = false
     @StateObject var storageManager = FirebaseManager()
@@ -37,10 +37,6 @@ struct PreviewPage: View {
                             .scaleEffect(scale)
                             .offset(offset)
                             .clipShape(Circle())
-                            .overlay(
-                                Circle()
-                                    .stroke(Color.blue, lineWidth: 4)
-                            )
                             .gesture(
                                 MagnificationGesture(minimumScaleDelta: 0)
                                     .onChanged { value in
@@ -86,7 +82,7 @@ struct PreviewPage: View {
                 HStack(spacing: 10) {
                     Button(action: {
                         if let image = image {
-                            storageManager.saveToFirebase(image: image)
+                            storageManager.saveToFirebase(image: image, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID(), region: selectedDataManager.getQuadrant().rawValue)
                         }
                         navigateToSummary = true
                     }) {
@@ -119,7 +115,7 @@ struct PreviewPage: View {
                 .padding(.bottom, 10)
 
                 NavigationLink(
-                    destination: ScanSummary(firebaseManager: FirebaseManager()),
+                    destination: ScanSummary(scanID: selectedDataManager.getScanID()),
                     isActive: $navigateToSummary,
                     label: { EmptyView() }
                 )

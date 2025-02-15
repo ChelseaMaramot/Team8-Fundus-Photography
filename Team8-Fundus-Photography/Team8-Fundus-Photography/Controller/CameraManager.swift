@@ -128,7 +128,10 @@ class CameraManager: NSObject, ObservableObject {
     func startSession(){
         if !captureSession.isRunning {
             print("Capture session has started running")
-            captureSession.startRunning()
+            DispatchQueue.global(qos: .userInitiated).async {
+                self.captureSession.startRunning()
+            }
+
         }
     }
     
@@ -184,18 +187,36 @@ class CameraManager: NSObject, ObservableObject {
     }
     
     func capturePhoto(completion: @escaping (UIImage?) -> Void) {
+        
+        print("\(self.captureSession.isRunning)")
+        
+        if !self.captureSession.isRunning  {
+                print("Capture session is not running")
+            DispatchQueue.global(qos: .userInitiated).async {
+                            self.captureSession.startRunning()
+                        }
+// why is photo nil?
+          
+            
+//                completion(nil)
+//                return
+        }
+        
+        guard let photoOutput = self.photoOutput else {
+            print("No photo output available")
+            completion(nil)
+            return
+        }
+        
         let photoSettings = AVCapturePhotoSettings()
         let photoCaptureDelegate = PhotoCaptureDelegate(completion: completion)
         self.photoCaptureDelegate = photoCaptureDelegate
-
-        guard let photoOutput = self.photoOutput else {
-                   print("No photo output available")
-                   completion(nil)
-                   return
-               }
-
-        print("taking a picture")
-        photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureDelegate)
-        print("done taking a picture")
-    }
+            
+            
+            print("Taking a picture...")
+            photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureDelegate)
+            print("Done taking a picture")
+        }
 }
+
+// fake fix, double capture eveything

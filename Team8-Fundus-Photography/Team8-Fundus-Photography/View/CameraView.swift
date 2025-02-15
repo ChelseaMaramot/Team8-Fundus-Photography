@@ -55,7 +55,7 @@ struct CameraView: View {
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
-                if let image = capturedImage {
+//                if let image = capturedImage {
                     PreviewPage(
                         image: $capturedImage,
                         onSave: { print("Saving image to cloud") },
@@ -71,7 +71,7 @@ struct CameraView: View {
                             }
                         } // Reset capturedImage on retake
                     )
-                }
+//                }
             }
         }
     }
@@ -208,7 +208,13 @@ extension CameraView {
             cameraManager.capturePhoto { image in
                 print("new image is captured")
                 capturedImage = image
-                showCapturedPhoto = image != nil
+                DispatchQueue.main.async {
+                    if image != nil{
+                        showCapturedPhoto = true
+                    }
+//                    showCapturedPhoto = true
+                }
+                // image != nil , this image might be too big and causing delays
             }
         }
     

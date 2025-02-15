@@ -24,22 +24,28 @@ struct CameraView: View {
     @State private var isScaled = false
     
     
+    
     var body: some View {
         NavigationStack{
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
-                    QuadrantView().zIndex(2)
+                    QuadrantView(cameraManager: cameraManager).zIndex(2)
+                        .environmentObject(SelectedDataManager())
                     
                     VStack {
                         
                         ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
-                        
-                        
+                         
                         CameraFeed
-                            .onAppear { cameraManager.startSession() }
-                            .onDisappear { cameraManager.stopSession() }
+                            .onAppear { cameraManager.startSession{
+                                print("Camera session started successfully.") }
+                            }
+                            .onDisappear {
+                                cameraManager.stopSession()
+                                print("Camera session stopped.")
+                            }
                             .gesture(zoomGesture)
                         
                         Spacer().frame(height: 40)
@@ -60,16 +66,10 @@ struct CameraView: View {
                         image: $capturedImage,
                         onSave: { print("Saving image to cloud") },
                         onRetake: {
+                            print("retaking image")
                             capturedImage = nil
-                            //                            image = nil
                             showCapturedPhoto = false
-                            
-                            // Restart the camera session
-                            cameraManager.stopSession()
-                            DispatchQueue.main.async {
-                                cameraManager.startSession()
-                            }
-                        } // Reset capturedImage on retake
+                        }
                     )
                 }
             }

@@ -25,11 +25,8 @@ struct PreviewPage: View {
     var body: some View {
         NavigationStack {
             VStack {
-                // Background color
-                   // .edgesIgnoringSafeArea(.all) // Extend to full screen
-                // ZStack to layer image and overlay
                 ZStack {
-                    if let image = image { // Safely unwrap the optional image
+                    if let image = image {
                         Image(uiImage: image)
                             .resizable()
                             .aspectRatio(contentMode: .fill)
@@ -71,11 +68,10 @@ struct PreviewPage: View {
                     }
                 }
 
-                // Bottom controls (buttons)
                 VStack {
                     Button("Crop") {
                         print("Image size before cropping: \(image?.size.width ?? 0)x\(image?.size.height ?? 0)")
-                        showCropView = true // Show cropping view
+                        showCropView = true
                     }
                     .frame(width: 120, height: 44)
                     .background(Color.blue)
@@ -126,17 +122,16 @@ struct PreviewPage: View {
             }
             .sheet(isPresented: $showCropView) {
                 ImageCropView(
-                    image: $image, // Pass the image binding
+                    image: $image,
                     croppingStyle: .circular,
-                    onCancel: { showCropView = false } // Close on cancel
+                    onCancel: { showCropView = false }
                 )
                 
             }
-//            Color(UIColor.white)
             .colorScheme(.light)
             .navigationTitle("Preview (manually cropped) Image")
         }
-        .background(Color.white.edgesIgnoringSafeArea(.all)) // Move this here
+        .background(Color.white.edgesIgnoringSafeArea(.all))
     }
 
     private func handleScaleChange(_ zoom: CGFloat) -> CGFloat {

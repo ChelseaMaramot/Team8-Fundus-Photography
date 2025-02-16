@@ -36,6 +36,7 @@ class CameraManager: NSObject, ObservableObject {
     private let sessionQueue = DispatchQueue(label: "com.demo.sessionQueue")
     
     @Published var status = Status.unconfigured
+    @Published var zoomFactor: CGFloat = 3.0
 //    @Published private var flashMode: AVCaptureDevice.FlashMode = .off
 
 
@@ -229,16 +230,24 @@ class CameraManager: NSObject, ObservableObject {
     func setZoomScale(factor: CGFloat){
         
         guard let device = self.videoDeviceInput?.device else { return }
-    
+        
+
         do{
             try device.lockForConfiguration()
             
-            device.videoZoomFactor = max(device.minAvailableVideoZoomFactor, max(factor, device.minAvailableVideoZoomFactor))
+            let clampedFactor = max(device.minAvailableVideoZoomFactor, min(factor, device.maxAvailableVideoZoomFactor))
+            device.videoZoomFactor = clampedFactor
+            self.zoomFactor = clampedFactor
             device.unlockForConfiguration()
             
         }catch {
             print(error.localizedDescription)
         }
+    }
+
+    func getCurrentZoomScale() -> CGFloat? {
+        guard let device = self.videoDeviceInput?.device else { return nil }
+        return device.videoZoomFactor
     }
     
     func setFocusOnTap(devicePoint: CGPoint){

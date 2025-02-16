@@ -17,8 +17,7 @@ struct CameraView: View {
     @State private var isFlashing = false
     @State private var isAdjustingZoom: Bool = false
     @State private var sliderValue: Double = 0.0
-    @State private var currentZoomFactor: CGFloat = 3.0
-    @State private var lastZoomFactor: CGFloat = 3.0
+    
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
     @State private var isScaled = false
@@ -36,7 +35,7 @@ struct CameraView: View {
                     
                     VStack {
                         
-                        ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
+                        ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
                          
                         CameraFeed
                             .onAppear { cameraManager.startSession{
@@ -94,6 +93,7 @@ extension CameraView {
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } .edgesIgnoringSafeArea(.all)
             
+            
             if isFocused {
                 FocusView(position: $focusLocation)
                     .scaleEffect(isScaled ? 0.8 : 1)
@@ -149,8 +149,7 @@ extension CameraView {
            MagnificationGesture()
                .onChanged { value in
                    isAdjustingZoom = true
-                   currentZoomFactor = min(max(currentZoomFactor + (value - 1.0), 0.5), 10)
-                   cameraManager.setZoomScale(factor: currentZoomFactor)
+                   cameraManager.setZoomScale(factor: min(max(cameraManager.zoomFactor + (value - 1.0), 0.5), 10))
                }
                .onEnded { _ in
                    isAdjustingZoom = false
@@ -160,6 +159,7 @@ extension CameraView {
     private struct ZoomIndicator: View {
         let currentZoomFactor: CGFloat
         let isAdjusting: Bool
+        
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")

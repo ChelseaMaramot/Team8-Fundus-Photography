@@ -82,8 +82,6 @@ class FirebaseManager: ObservableObject {
             print("Total documents retrived: \(snapshot!.documents.count)")
           
             
-          
-            
             guard let snapshot = snapshot else { return }
             
             for regionDoc in snapshot.documents {
@@ -132,11 +130,11 @@ class FirebaseManager: ObservableObject {
     
   
               
-    func retrievePhotos(patientID: String, scanName: String) {
+    func retrievePhotos(patientID: String, scanID: String) {
         print("Starting image retrieval")
         let db = Firestore.firestore()
         let storageRef = Storage.storage().reference()
-        let scanID = "37E92081-00F8-43F6-AF90-DA0C60C38EC7"
+//        let scanID = "37E92081-00F8-43F6-AF90-DA0C60C38EC7"
         
         self.imagesByPosition = [:]
 //        ["Nasal": [], "Superior": [], "Central": [], "Inferior": []]
@@ -145,6 +143,7 @@ class FirebaseManager: ObservableObject {
             .collection("scans").document(scanID)
             .collection("regions")
         
+
         imageRef.getDocuments { snapshot, error in
             if let error = error {
                 print("Failed to retrieve regions: \(error.localizedDescription)")

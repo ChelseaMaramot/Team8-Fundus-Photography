@@ -15,7 +15,7 @@ struct ScanListView: View {
         VStack {
             if !viewModel.scanList.isEmpty {
                 List(viewModel.scanList) { scan in
-                    NavigationLink(destination: ScanSummary(scanID: scan.id.uuidString)) {
+                    NavigationLink(destination: ScanSummary(scanID: scan.id)) {
                         Card(name: scan.name, isStitched: scan.isStitched)
                     }
                 }

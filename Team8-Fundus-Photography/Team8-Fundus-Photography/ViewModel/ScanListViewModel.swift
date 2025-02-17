@@ -43,16 +43,18 @@ class ScanListViewModel: ObservableObject {
                 _ = document.documentID
                 let name = data["name"]
                 let isStitched = data["isStitched"]
-                
-                let scan = Scan(name: name as! String,
+                let id = document.documentID
+                let scan = Scan(id: id, name: name as! String,
                                 regions: ScanRegions(),
                                 isStitched: (isStitched != nil))
                 
                 fetchedScans.append(scan)
                 
+                print("adding this scan: ", scan)
+                
             }
             self.scanList = fetchedScans
-//            print(self.scanList)
+            print(self.scanList)
         }
     }
     

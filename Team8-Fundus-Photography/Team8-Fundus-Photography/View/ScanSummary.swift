@@ -75,7 +75,7 @@ struct ScanSummary: View {
             .navigationBarTitle("Image Summary", displayMode: .inline)
             .onAppear {
                 selectedDataManager.setScanID(scanID)
-                viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 
             }
             .navigationDestination(isPresented: $navigateToCameraView) {

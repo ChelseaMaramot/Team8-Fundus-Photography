@@ -16,11 +16,13 @@ struct CameraView: View {
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
     @State private var isAdjustingZoom: Bool = false
+    @State private var isAdjustingFocus: Bool = false
     @State private var sliderValue: Double = 0.0
     @State private var currentZoomFactor: CGFloat = 3.0
     @State private var lastZoomFactor: CGFloat = 3.0
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
+    @State private var focusValue: Float = 0.5
     @State private var isScaled = false
     
     
@@ -28,18 +30,20 @@ struct CameraView: View {
         NavigationStack{
             GeometryReader { geometry in
                 ZStack {
-                    Color.white.edgesIgnoringSafeArea(.all)
-                    
-                    QuadrantView().zIndex(2)
             
-                    VStack {
+                    QuadrantView()
+                        .zIndex(2)
+            
+                    VStack(spacing: 0) {
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .gesture(zoomGesture)
                         
+                        FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
+                        
                         ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
-                            .padding(.bottom, 10)
+                   
                         
                         LightControlView(
                             sliderValue: $sliderValue,
@@ -47,9 +51,9 @@ struct CameraView: View {
                         )
                         
                         CameraButton(action: capturePhoto)
-                            .padding(.bottom, 20)
                     }
-                    .padding(.top, 100)
+                    .padding(.top, 50)
+                    .padding(.bottom, 150)
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
@@ -62,12 +66,11 @@ struct CameraView: View {
                             //                            image = nil
                             showCapturedPhoto = false
                             
-                            // Restart the camera session
                             cameraManager.stopSession()
                             DispatchQueue.main.async {
                                 cameraManager.startSession()
                             }
-                        } // Reset capturedImage on retake
+                        }
                     )
                 }
             }
@@ -226,6 +229,38 @@ extension CameraView {
             }
             .padding(.horizontal, 30)
             
+        }
+    }
+    
+    private struct FocusControlView: View {
+        @Binding var focusValue: Float
+        @Binding var isAdjustingFocus: Bool
+        let cameraManager: CameraManager
+        
+        var body: some View {
+            VStack(spacing: 10) {
+                Text("Focus: \(String(format: "%.2f", focusValue))")
+                    .foregroundColor(isAdjustingFocus ? .red : .blue)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
+                Slider(
+                    value: $focusValue,
+                    in: 0.0...1.0,
+                    step: 0.01,
+                    onEditingChanged: { editing in
+                        if editing {
+                            isAdjustingFocus = true
+                        } else {
+                            isAdjustingFocus = false
+                        }
+                    }
+                )
+                .onChange(of: focusValue) { newValue in
+                    cameraManager.setFocusWithSlider(newValue)
+                }
+             
+            }
+            .padding(.horizontal, 30)
         }
     }
     

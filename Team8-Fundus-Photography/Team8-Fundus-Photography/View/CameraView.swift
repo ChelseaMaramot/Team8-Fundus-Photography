@@ -31,18 +31,15 @@ struct CameraView: View {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
                     QuadrantView().zIndex(2)
-                    
+            
                     VStack {
-                        
-                        ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
-                        
-                        
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .gesture(zoomGesture)
                         
-                        Spacer().frame(height: 40)
+                        ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
+                            .padding(.bottom, 10)
                         
                         LightControlView(
                             sliderValue: $sliderValue,
@@ -52,6 +49,7 @@ struct CameraView: View {
                         CameraButton(action: capturePhoto)
                             .padding(.bottom, 20)
                     }
+                    .padding(.top, 100)
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
@@ -83,7 +81,7 @@ struct CameraView: View {
 // subviews
 extension CameraView {
     
-    
+
     private var CameraFeed: some View {
         ZStack{
             CameraPreview(session: cameraManager.getSession()){ tapPoint in
@@ -168,6 +166,33 @@ extension CameraView {
         }
     }
     
+    private struct ZoomControlView: View {
+        @Binding var currentZoomFactor: CGFloat
+        @Binding var isAdjustingZoom: Bool
+        let cameraManager: CameraManager
+        
+        var body: some View {
+            VStack(spacing: 10){
+                Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
+                    .foregroundColor(isAdjustingZoom ? .red : .blue)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+               
+                Slider(
+                    value: $currentZoomFactor,
+                    in: 0.5...10,
+                    step: 0.1,
+                    onEditingChanged: { editing in
+                        isAdjustingZoom = editing
+                    }
+                )
+                .onChange(of: currentZoomFactor) { newValue in
+                    cameraManager.setZoomScale(factor: newValue)
+                }
+            }
+            .padding(.horizontal, 30)
+        }
+    }
+    
     
     private struct LightControlView: View {
         @Binding var sliderValue: Double
@@ -175,6 +200,10 @@ extension CameraView {
 
         var body: some View {
             VStack(spacing: 10) {
+                Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
+                    .foregroundColor(lightManager.isAdjusting ? .red : .blue)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                
                 Slider(
                     value: $sliderValue,
                     in: lightManager.minIntensity...lightManager.maxIntensity,
@@ -194,11 +223,8 @@ extension CameraView {
                     }
                 }
                 
-                Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
-                    .foregroundColor(lightManager.isAdjusting ? .red : .blue)
             }
-            .padding(.bottom, 20)
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 30)
             
         }
     }

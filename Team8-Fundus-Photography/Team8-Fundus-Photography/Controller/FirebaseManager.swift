@@ -17,21 +17,25 @@ import FirebaseFirestore
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
+
     
-    
-    func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String) {
-        
+    // saving to images collection
+    func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String, completion: @escaping () -> Void) {
+        print("saving to firebase images collection...")
         let storageRef = Storage.storage().reference()
         let db = Firestore.firestore()
+        let dispatchGroup = DispatchGroup()
         
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
             print("Failed to convert image to JPEG data.")
             return
         }
         
-        let path = "patients/\(patientID)/scans/\(scanName)/\(region)/\(UUID().uuidString).jpg"
-        print("This is the new path: \(path)")
-        let fileRef = storageRef.child(path)
+        let imageID = UUID().uuidString
+        let url = "patients/\(patientID)/scans/\(scanName)/\(region)/\(imageID).jpg"
+        print("This is the image url: \(url)")
+        
+        let fileRef = storageRef.child(url)
         
         // Upload image data to Firebase Storage
         fileRef.putData(imageData, metadata: nil) { metadata, error in
@@ -40,21 +44,79 @@ class FirebaseManager: ObservableObject {
                 return
             }
             
-            // Successfully uploaded the image, now save the URL to Firestore
-            let imageRef = db.collection("patients").document(patientID)
-                .collection("scans").document(scanName)
-                .collection("regions").document(region)
-                .collection("images")
+            dispatchGroup.enter()
             
-            imageRef.addDocument(data: ["imageURL": path]) { error in
+            // Successfully uploaded the image, now save the URL to Firestore
+            let imageRef = db.collection("images").document(imageID)
+            print("adding image to this firestore path:")
+            print(imageRef.path)
+            
+            let docData: [String: Any] = [
+                
+                    "isPrimary": false,
+                    "patientID": patientID,
+                    "position": region,
+                    "scanID": scanName,
+                    "url": url
+            ]
+            
+            
+            imageRef.setData(docData){ error in
                 if let error = error {
                     print("Failed to save image path to Firestore: \(error.localizedDescription)")
                 } else {
                     print("Successfully saved image path to Firestore.")
                 }
+                
+                dispatchGroup.leave()
             }
         }
+        dispatchGroup.notify(queue: .main) {
+           print("done saving image to firebase!")
+            completion()
+        }
     }
+    
+    
+//    func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String) {
+//        print("saving to firebase...")
+//        let storageRef = Storage.storage().reference()
+//        let db = Firestore.firestore()
+//        
+//        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+//            print("Failed to convert image to JPEG data.")
+//            return
+//        }
+//        
+//        let path = "patients/\(patientID)/scans/\(scanName)/\(region)/\(UUID().uuidString).jpg"
+//        print("This is the new path: \(path)")
+//        let fileRef = storageRef.child(path)
+//        
+//        // Upload image data to Firebase Storage
+//        fileRef.putData(imageData, metadata: nil) { metadata, error in
+//            if let error = error {
+//                print("Failed to upload image: \(error.localizedDescription)")
+//                return
+//            }
+//            
+//            // Successfully uploaded the image, now save the URL to Firestore
+//            let imageRef = db.collection("patients").document(patientID)
+//                .collection("scans").document(scanName)
+//                .collection("regions").document(region)
+//                .collection("images")
+//            
+//            imageRef.addDocument(data: ["imageURL": path]) { error in
+//                if let error = error {
+//                    print("Failed to save image path to Firestore: \(error.localizedDescription)")
+//                } else {
+//                    print("Successfully saved image path to Firestore.")
+//                }
+//            }
+//        }
+//    }
+//
+    
+    
     
 //    func retrievePtrhotos(patientID: String, scanName: String) {
 //        print("starting image retrieval")
@@ -146,9 +208,6 @@ class FirebaseManager: ObservableObject {
                 completion(nil)
             }
         }
-        
-        
-
     }
   
               

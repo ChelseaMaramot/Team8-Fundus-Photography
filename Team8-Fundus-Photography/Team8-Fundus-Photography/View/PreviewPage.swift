@@ -82,9 +82,12 @@ struct PreviewPage: View {
                 HStack(spacing: 10) {
                     Button(action: {
                         if let image = image {
-                            storageManager.saveToFirebase(image: image, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID(), region: selectedDataManager.getQuadrant().rawValue)
+                            storageManager.saveToFirebase(image: image, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID(), region: selectedDataManager.getQuadrant().rawValue) {
+                                
+                                navigateToSummary = true
+                            }
                         }
-                        navigateToSummary = true
+       
                     }) {
                         Text("Save")
                             .frame(width: 120, height: 44)

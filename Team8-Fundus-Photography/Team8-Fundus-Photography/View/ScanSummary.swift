@@ -42,6 +42,7 @@ struct ScanSummary: View {
                                     position: position,
                                     images: viewModel.imagesByPosition[position] ?? [],
                                     onAddImage: {
+                                        print("adding image")
                                         navigateToCameraView = true
                                         print("Add image for \(position)")
                                         let imageCount = viewModel.imagesByPosition[position]?.count ?? 0

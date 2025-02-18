@@ -500,7 +500,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Team8-Fundus-Photography/Preview Content\"";
-				DEVELOPMENT_TEAM = K4BVXF6729;
+				DEVELOPMENT_TEAM = T44S569Z79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";
@@ -535,7 +535,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"Team8-Fundus-Photography/Preview Content\"";
-				DEVELOPMENT_TEAM = K4BVXF6729;
+				DEVELOPMENT_TEAM = T44S569Z79;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Team8-Fundus-Photography/Info.plist";

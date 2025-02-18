@@ -20,17 +20,19 @@ struct CameraPreview: UIViewRepresentable {
         
         var videoPreviewLayer: AVCaptureVideoPreviewLayer { layer as! AVCaptureVideoPreviewLayer }
     }
-
+    
     let session: AVCaptureSession
     var onTap: (CGPoint) -> Void
     
     func makeCoordinator() -> TapToFocusCoordinator {
-          TapToFocusCoordinator(self)
-      }
+        TapToFocusCoordinator(self)
+    }
     
     //  Initialize and return a CameraPreviewView
     //  creates view controller obkect and configures init state
     func makeUIView(context: Context) -> VideoPreviewView{
+        print("make ui view in cam preview...")
+        print(session)
         let videoPreview = VideoPreviewView()
         videoPreview.videoPreviewLayer.session = session
         videoPreview.videoPreviewLayer.videoGravity = .resizeAspectFill
@@ -38,11 +40,12 @@ struct CameraPreview: UIViewRepresentable {
         
         let tapGesture = UITapGestureRecognizer(target: context.coordinator, action: #selector(context.coordinator.handleTapGesture(_:)))
         videoPreview.addGestureRecognizer(tapGesture)
-       
+        
         return videoPreview
     }
-
+    
     //  called when there is an update from SwiftUI
     func updateUIView(_ uiView: VideoPreviewView, context: Context) {
-        
-    }}
+       
+    }
+}

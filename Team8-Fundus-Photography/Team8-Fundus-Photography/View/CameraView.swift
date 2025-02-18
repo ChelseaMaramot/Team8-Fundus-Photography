@@ -17,11 +17,11 @@ struct CameraView: View {
     @State private var isFlashing = false
     @State private var isAdjustingZoom: Bool = false
     @State private var sliderValue: Double = 0.0
-    @State private var currentZoomFactor: CGFloat = 3.0
-    @State private var lastZoomFactor: CGFloat = 3.0
+    
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
     @State private var isScaled = false
+    
     
     
     var body: some View {
@@ -30,16 +30,21 @@ struct CameraView: View {
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
-                    QuadrantView().zIndex(2)
+                    QuadrantView(cameraManager: cameraManager).zIndex(2)
+                        .environmentObject(SelectedDataManager())
                     
                     VStack {
                         
-                        ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
-                        
-                        
+                        ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
+                         
                         CameraFeed
-                            .onAppear { cameraManager.startSession() }
-                            .onDisappear { cameraManager.stopSession() }
+                            .onAppear { cameraManager.startSession{
+                                print("Camera session started successfully.") }
+                            }
+                            .onDisappear {
+                                cameraManager.stopSession()
+                                print("Camera session stopped.")
+                            }
                             .gesture(zoomGesture)
                         
                         Spacer().frame(height: 40)
@@ -60,16 +65,10 @@ struct CameraView: View {
                         image: $capturedImage,
                         onSave: { print("Saving image to cloud") },
                         onRetake: {
+                            print("retaking image")
                             capturedImage = nil
-                            //                            image = nil
                             showCapturedPhoto = false
-                            
-                            // Restart the camera session
-                            cameraManager.stopSession()
-                            DispatchQueue.main.async {
-                                cameraManager.startSession()
-                            }
-                        } // Reset capturedImage on retake
+                        }
                     )
 //                }
             }
@@ -93,6 +92,7 @@ extension CameraView {
                 
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } .edgesIgnoringSafeArea(.all)
+            
             
             if isFocused {
                 FocusView(position: $focusLocation)
@@ -149,8 +149,7 @@ extension CameraView {
            MagnificationGesture()
                .onChanged { value in
                    isAdjustingZoom = true
-                   currentZoomFactor = min(max(currentZoomFactor + (value - 1.0), 0.5), 10)
-                   cameraManager.setZoomScale(factor: currentZoomFactor)
+                   cameraManager.setZoomScale(factor: min(max(cameraManager.zoomFactor + (value - 1.0), 0.5), 10))
                }
                .onEnded { _ in
                    isAdjustingZoom = false
@@ -160,6 +159,7 @@ extension CameraView {
     private struct ZoomIndicator: View {
         let currentZoomFactor: CGFloat
         let isAdjusting: Bool
+        
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")

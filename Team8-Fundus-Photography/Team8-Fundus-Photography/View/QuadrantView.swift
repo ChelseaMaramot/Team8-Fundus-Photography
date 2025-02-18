@@ -12,11 +12,13 @@ struct QuadrantView: View {
     @State private var selectedQuadrant: RegionTypes
     @State private var showQuadrantSelector: Bool
     @State private var previousSelectedQuadrant: RegionTypes
-
-    init(showQuadrantSelector: Bool = false) {
+    var cameraManager: CameraManager // Pass CameraManager directly
+    
+    init(cameraManager: CameraManager, showQuadrantSelector: Bool = false) {
         _selectedQuadrant = State(initialValue: .central)
         _previousSelectedQuadrant = State(initialValue: .central)
         self.showQuadrantSelector = showQuadrantSelector
+        self.cameraManager = cameraManager // Initialize CameraManager here
     }
     
     var body: some View {
@@ -56,8 +58,6 @@ struct QuadrantView: View {
                                    .transition(.opacity)
                                    .animation(.easeInOut, value: showQuadrantSelector)
 
-                
-                
                 QuadrantSelectorView(
                     selectedQuadrant: $selectedQuadrant,
                     isInteractive: true,
@@ -66,10 +66,20 @@ struct QuadrantView: View {
                 .onChange(of: selectedQuadrant) { newQuadrant in
                     if newQuadrant != previousSelectedQuadrant {
                         previousSelectedQuadrant = newQuadrant
+                        selectedDataManager.setQuadrant(newQuadrant)
                         withAnimation(.spring()) {
                             showQuadrantSelector = false
                         }
-                        selectedDataManager.setQuadrant(newQuadrant)
+                    }
+                }
+                .onAppear {
+                    // Stop camera session when the quadrant selector is large
+                    cameraManager.stopSession()
+                }
+                .onDisappear {
+                    // Start camera session when the quadrant selector is smaller
+                    cameraManager.startSession {
+                        // Optionally handle anything after the session starts
                     }
                 }
             }
@@ -77,8 +87,9 @@ struct QuadrantView: View {
     }
 }
 
-#Preview {
-    QuadrantView(
-        showQuadrantSelector: false
-    ).environmentObject(SelectedDataManager())
-}
+
+//#Preview {
+//    QuadrantView(
+//        showQuadrantSelector: false
+//    ).environmentObject(SelectedDataManager())
+//}

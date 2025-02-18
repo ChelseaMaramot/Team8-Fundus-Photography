@@ -12,4 +12,5 @@ struct LabeledImage: Identifiable {
 //    let url = String()
     let image: UIImage?
     var isPrimary: Bool // should i add postion here too?
+    let position: String
 }

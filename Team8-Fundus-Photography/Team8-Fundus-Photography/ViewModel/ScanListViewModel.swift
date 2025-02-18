@@ -50,11 +50,9 @@ class ScanListViewModel: ObservableObject {
                 
                 fetchedScans.append(scan)
                 
-                print("adding this scan: ", scan)
-                
             }
             self.scanList = fetchedScans
-            print(self.scanList)
+//            print(self.scanList)
         }
     }
     

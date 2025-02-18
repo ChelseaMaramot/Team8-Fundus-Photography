@@ -10,8 +10,11 @@ import UIKit
 
 struct CameraView: View {
     
-    @ObservedObject private var cameraManager = CameraManager()
-    @ObservedObject private var lightManager = LightManager()
+    @StateObject private var cameraManager = CameraManager()
+    @StateObject private var lightManager = LightManager()
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+
+    
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
@@ -30,8 +33,9 @@ struct CameraView: View {
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
-                    QuadrantView(cameraManager: cameraManager).zIndex(2)
-                        .environmentObject(SelectedDataManager())
+                    QuadrantView(cameraManager: cameraManager)
+                        .zIndex(2)
+           
                     
                     VStack {
                         

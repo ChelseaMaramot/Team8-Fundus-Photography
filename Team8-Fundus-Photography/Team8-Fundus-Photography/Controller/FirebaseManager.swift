@@ -238,8 +238,7 @@ class FirebaseManager: ObservableObject {
                         dispatchGroup.enter()
                         
                         let data = document.data()
-                        
-                        print("data: ", data)
+                    
                         
                         if let imageURLString = data["url"] as? String,
                            let position = data["position"] as? String,
@@ -255,9 +254,7 @@ class FirebaseManager: ObservableObject {
                                 }
                                 dispatchGroup.leave()
                             
-                                print("printing array")
-                                print(imagesByPosition)
-                                
+                        
                             }
                         }else{
                             dispatchGroup.leave()
@@ -267,7 +264,6 @@ class FirebaseManager: ObservableObject {
                     dispatchGroup.notify(queue: .main) {
                         self.imagesByPosition = imagesByPosition
                         print("Done")
-                        print(imagesByPosition)
                     }
                 } else {
                     print("No documents found")

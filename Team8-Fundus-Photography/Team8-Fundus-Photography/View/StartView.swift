@@ -10,6 +10,7 @@ import FirebaseAuth
 
 struct StartView: View {
     @EnvironmentObject var authService: AuthService
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
     
     var body: some View {
         if authService.signedIn {
@@ -22,6 +23,7 @@ struct StartView: View {
 
 struct StartView_Previews: PreviewProvider {
     @StateObject static var authService = AuthService()
+    @StateObject var selectedDataManager = SelectedDataManager()
 
     static var previews: some View {
         if authService.signedIn {

@@ -12,7 +12,6 @@ import SwiftUI
 
 struct ScanSummary: View {
     var scanID: String
-//    @ObservedObject var viewModel: FirebaseManager
     @StateObject var viewModel = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false

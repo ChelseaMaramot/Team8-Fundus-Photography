@@ -34,6 +34,10 @@ class CameraManager: NSObject, ObservableObject {
     private var photoOutput: AVCapturePhotoOutput?
     private var photoSettings: AVCapturePhotoSettings?
     private let sessionQueue = DispatchQueue(label: "com.demo.sessionQueue")
+    private var dispatchGroup = DispatchGroup()
+    
+    private var isCameraReady: Bool = false
+
     
     @Published var status = Status.unconfigured
     @Published var zoomFactor: CGFloat = 3.0
@@ -48,7 +52,7 @@ class CameraManager: NSObject, ObservableObject {
         super.init()
 
         self.checkPermission()
-        self.configureSession()
+        self.configureSession{}
     }
     
     
@@ -88,7 +92,9 @@ class CameraManager: NSObject, ObservableObject {
         
         DispatchQueue.main.async {
             self.status = .configured
+            print("done setting video input")
         }
+        
 
         self.videoDeviceInput = videoDeviceInput
     }
@@ -102,6 +108,7 @@ class CameraManager: NSObject, ObservableObject {
             
             DispatchQueue.main.async {
                 self.status = .configured
+                print("done setting photo output")
             }
             
             self.photoOutput = photoOutput
@@ -134,7 +141,7 @@ class CameraManager: NSObject, ObservableObject {
             DispatchQueue.main.async {
                 self?.permissionGranted = granted
                 if granted {
-                    self?.configureSession()
+                    self?.configureSession{}
                 } else {
                     DispatchQueue.main.async {
                         self?.status = .unauthorized
@@ -145,7 +152,11 @@ class CameraManager: NSObject, ObservableObject {
     }
 
     
-    func configureSession(){
+    func configureSession(completion: @escaping () -> Void) {
+        print("configuring cam session")
+        
+        dispatchGroup.enter()
+        
         sessionQueue.async { [weak self] in
             guard let self, self.status == .unconfigured else { return }
             
@@ -156,26 +167,29 @@ class CameraManager: NSObject, ObservableObject {
             
             self.setVideoInput()
             
+            
             self.setPhotoOutput()
             
             self.captureSession.commitConfiguration()
-            
-            // automatically have the camera set to 3 by default
-            // at the beginning of each session
+         
             self.setZoomScale(factor: 3.0)
+            
+            DispatchQueue.main.async {
+                self.isCameraReady = true
+                self.dispatchGroup.leave()
+                completion()
+            }
         }
     }
     
     
     func startSession(completion: @escaping () -> Void) {
-        sessionQueue.async {
-            if self.status == .configured && !self.captureSession.isRunning {
-                self.captureSession.startRunning()
-                print("Capture session started.")
-            }
-            DispatchQueue.main.async {
-                completion()
-            }
+        
+
+        dispatchGroup.notify(queue: .main) { [weak self] in
+            guard let self = self else { return }
+            self.captureSession.startRunning()
+            print("Camera session started successfully.")
         }
     }
 
@@ -208,9 +222,6 @@ class CameraManager: NSObject, ObservableObject {
         photoOutput.capturePhoto(with: photoSettings, delegate: photoCaptureDelegate)
     }
 
-
-        }
-    }
     
     
     func stopSession() {

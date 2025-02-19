@@ -130,10 +130,12 @@ class FirebaseManager: ObservableObject {
                         if let imageURLString = data["url"] as? String,
                            let position = data["position"] as? String,
                            let isPrimary = data["isPrimary"] as? Bool,
+                           let imageID = document.documentID as? String,
                            let imageURL = URL(string: imageURLString) {
                             
                             self.downloadImage(from: imageURLString, position: position) { image in
-                                let labeledImage = LabeledImage(image: image, isPrimary: isPrimary, position: position)
+                                let labeledImage = LabeledImage(id: imageID,
+                                                                isPrimary: isPrimary, position: position, image: image)
                                 
                                 if imagesByPosition[position] != nil {
                                     imagesByPosition[position]?.append(labeledImage)
@@ -162,7 +164,7 @@ class FirebaseManager: ObservableObject {
     }
     
     func setPrimaryImage(for position: String, image: LabeledImage, patientID: String, scanID: String) {
-        print("Setting new primary image")
+        print("Setting new primary image for \(image)")
         if var images = imagesByPosition[position] {
             let dispatchGroup = DispatchGroup()
 
@@ -177,9 +179,9 @@ class FirebaseManager: ObservableObject {
 
      
             dispatchGroup.enter()
-            updateImagePrimaryStatus(patientID: patientID, scanID: scanID, imageID: image.id.uuidString, isPrimary: true) { success in
+            updateImagePrimaryStatus(patientID: patientID, scanID: scanID, imageID: image.id, isPrimary: true) { success in
                 if !success {
-                    print("Failed to update primary status for image ID: \(image.id.uuidString)")
+                    print("Failed to update primary status for image ID: \(image.id)")
                 }
                 dispatchGroup.leave()
             }
@@ -188,9 +190,9 @@ class FirebaseManager: ObservableObject {
             for otherImage in images {
                 if otherImage.id != image.id {
                     dispatchGroup.enter()
-                    updateImagePrimaryStatus(patientID: patientID, scanID: scanID, imageID: otherImage.id.uuidString, isPrimary: false) { success in
+                    updateImagePrimaryStatus(patientID: patientID, scanID: scanID, imageID: otherImage.id, isPrimary: false) { success in
                         if !success {
-                            print("Failed to update primary status for image ID: \(otherImage.id.uuidString)")
+                            print("Failed to update primary status for image ID: \(otherImage.id)")
                         }
                         dispatchGroup.leave()
                     }

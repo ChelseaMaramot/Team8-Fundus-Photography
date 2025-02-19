@@ -1,17 +1,19 @@
+//
+//  ContentView.swift
+//  Team8-Fundus-Photography
+//
+//  Created by chelsea maramot on 2024-11-03.
+//
+
 import SwiftUI
 
 struct ContentView: View {
     
-    @StateObject var selectedDataManager = SelectedDataManager()
-
     var body: some View {
-        ZStack {
-            PatientListView()
-                .environmentObject(selectedDataManager)
-        }
+        CameraView()
     }
 }
 
 #Preview {
-    ContentView().environmentObject(SelectedDataManager())
+    ContentView()
 }

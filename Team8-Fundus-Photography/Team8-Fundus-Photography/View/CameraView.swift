@@ -16,13 +16,11 @@ struct CameraView: View {
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
     @State private var isAdjustingZoom: Bool = false
-    @State private var isAdjustingFocus: Bool = false
     @State private var sliderValue: Double = 0.0
     @State private var currentZoomFactor: CGFloat = 3.0
     @State private var lastZoomFactor: CGFloat = 3.0
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
-    @State private var focusValue: Float = 0.5
     @State private var isScaled = false
     
     
@@ -30,48 +28,37 @@ struct CameraView: View {
         NavigationStack{
             GeometryReader { geometry in
                 ZStack {
-            
-                    QuadrantView()
-                        .zIndex(2)
-            
-                    VStack(spacing: 0) {
+                    Color.white.edgesIgnoringSafeArea(.all)
+                    VStack {
+                        
+                        ZoomIndicator(currentZoomFactor: currentZoomFactor, isAdjusting: isAdjustingZoom)
+                        
                         CameraFeed
                             .onAppear { cameraManager.startSession() }
                             .onDisappear { cameraManager.stopSession() }
                             .gesture(zoomGesture)
-                        
-                        FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
-                        
-                        ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
-                   
-                        
-                        LightControlView(
-                            sliderValue: $sliderValue,
-                            lightManager: lightManager
-                        )
+                          
+                        Spacer().frame(height: 40)
+                  
+                         LightControlView(
+                             sliderValue: $sliderValue,
+                             lightManager: lightManager
+                         )
                         
                         CameraButton(action: capturePhoto)
+                        .padding(.bottom, 20)
                     }
-                    .padding(.top, 50)
-                    .padding(.bottom, 150)
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
                 if let image = capturedImage {
-                    PreviewPage(
-                        image: $capturedImage,
-                        onSave: { print("Saving image to cloud") },
-                        onRetake: {
-                            capturedImage = nil
-                            //                            image = nil
-                            showCapturedPhoto = false
-                            
-                            cameraManager.stopSession()
-                            DispatchQueue.main.async {
-                                cameraManager.startSession()
-                            }
-                        }
-                    )
+                    PreviewPage(image: image) {
+                        print("Saving image to cloud")
+                    }
+                    .onAppear {
+                        print("Navigating to preview page")
+                    }
+                    
                 }
             }
         }
@@ -84,7 +71,7 @@ struct CameraView: View {
 // subviews
 extension CameraView {
     
-
+    
     private var CameraFeed: some View {
         ZStack{
             CameraPreview(session: cameraManager.getSession()){ tapPoint in
@@ -169,33 +156,6 @@ extension CameraView {
         }
     }
     
-    private struct ZoomControlView: View {
-        @Binding var currentZoomFactor: CGFloat
-        @Binding var isAdjustingZoom: Bool
-        let cameraManager: CameraManager
-        
-        var body: some View {
-            VStack(spacing: 10){
-                Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
-                    .foregroundColor(isAdjustingZoom ? .red : .blue)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-               
-                Slider(
-                    value: $currentZoomFactor,
-                    in: 0.5...10,
-                    step: 0.1,
-                    onEditingChanged: { editing in
-                        isAdjustingZoom = editing
-                    }
-                )
-                .onChange(of: currentZoomFactor) { newValue in
-                    cameraManager.setZoomScale(factor: newValue)
-                }
-            }
-            .padding(.horizontal, 30)
-        }
-    }
-    
     
     private struct LightControlView: View {
         @Binding var sliderValue: Double
@@ -203,10 +163,6 @@ extension CameraView {
 
         var body: some View {
             VStack(spacing: 10) {
-                Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
-                    .foregroundColor(lightManager.isAdjusting ? .red : .blue)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
                 Slider(
                     value: $sliderValue,
                     in: lightManager.minIntensity...lightManager.maxIntensity,
@@ -226,48 +182,18 @@ extension CameraView {
                     }
                 }
                 
+                Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
+                    .foregroundColor(lightManager.isAdjusting ? .red : .blue)
             }
-            .padding(.horizontal, 30)
+            .padding(.bottom, 20)
+            .padding(.horizontal, 20)
             
-        }
-    }
-    
-    private struct FocusControlView: View {
-        @Binding var focusValue: Float
-        @Binding var isAdjustingFocus: Bool
-        let cameraManager: CameraManager
-        
-        var body: some View {
-            VStack(spacing: 10) {
-                Text("Focus: \(String(format: "%.2f", focusValue))")
-                    .foregroundColor(isAdjustingFocus ? .red : .blue)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                
-                Slider(
-                    value: $focusValue,
-                    in: 0.0...1.0,
-                    step: 0.01,
-                    onEditingChanged: { editing in
-                        if editing {
-                            isAdjustingFocus = true
-                        } else {
-                            isAdjustingFocus = false
-                        }
-                    }
-                )
-                .onChange(of: focusValue) { newValue in
-                    cameraManager.setFocusWithSlider(newValue)
-                }
-             
-            }
-            .padding(.horizontal, 30)
         }
     }
     
     private func capturePhoto() {
             isFlashing = true
             cameraManager.capturePhoto { image in
-                print("new image is captured")
                 capturedImage = image
                 showCapturedPhoto = image != nil
             }

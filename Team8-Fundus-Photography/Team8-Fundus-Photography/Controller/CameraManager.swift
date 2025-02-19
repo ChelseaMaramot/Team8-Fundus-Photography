@@ -25,7 +25,6 @@ class CameraManager: NSObject, ObservableObject {
     private var photoCaptureDelegate: PhotoCaptureDelegate?
     private var photoOutput: AVCapturePhotoOutput?
     private var photoSettings: AVCapturePhotoSettings?
-    
 //    @Published private var flashMode: AVCaptureDevice.FlashMode = .off
 
 
@@ -157,33 +156,10 @@ class CameraManager: NSObject, ObservableObject {
         }
     }
     
-    func setFocusWithSlider(_ focusValue: Float) {
-        guard let device = self.videoDeviceInput?.device else { return }
-        
-        do {
-            try device.lockForConfiguration()
-            
-            if device.isFocusModeSupported(.locked) {
-                device.focusMode = .locked
-                device.setFocusModeLocked(lensPosition: focusValue) { time in
-                    print("Focus set at: \(focusValue)")
-                }
-            }
-            
-            device.unlockForConfiguration()
-            
-        } catch {
-            print("Error setting focus with slider: \(error)")
-        }
-    }
-
-    
-    
-    
     func setFocusOnTap(devicePoint: CGPoint){
         guard let device = self.videoDeviceInput?.device else {return}
         
-        print("Focusing on tap")
+        print("Focusing")
         
         do {
             try device.lockForConfiguration()

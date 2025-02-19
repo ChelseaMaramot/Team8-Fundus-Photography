@@ -35,11 +35,10 @@ struct ScanSummary: View {
                         ScrollView {
                             ForEach(viewModel.imagesByPosition.keys.sorted(), id: \.self) { position in
                                 
-                               
-
+                            
                                 ImageCard(
+                                    viewModel: viewModel,
                                     position: position,
-                                    images: viewModel.imagesByPosition[position] ?? [],
                                     onAddImage: {
                                         print("adding image")
                                         navigateToCameraView = true
@@ -47,6 +46,8 @@ struct ScanSummary: View {
                                         let imageCount = viewModel.imagesByPosition[position]?.count ?? 0
                                         print("Position: \(position), Total Images: \(imageCount)")  // Debug print
 
+                                    }, onSelectImage: {selectedImage in
+                                        viewModel.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                                     }
                                 )
                             }

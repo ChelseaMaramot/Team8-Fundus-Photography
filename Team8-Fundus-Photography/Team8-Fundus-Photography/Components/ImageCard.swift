@@ -8,11 +8,15 @@
 import SwiftUI
 
 struct ImageCard: View {
+    @ObservedObject var viewModel: FirebaseManager
     var position: String
-    @State var images: [LabeledImage]
     var onAddImage: () -> Void
-    
+    var onSelectImage: (LabeledImage) -> Void
+
     var body: some View {
+        
+        let images = viewModel.imagesByPosition[position] ?? []
+        
         VStack(alignment: .leading) {
             Text(position)
                 .font(.headline)
@@ -36,6 +40,10 @@ struct ImageCard: View {
                                     Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
                                 )
                                 .padding(.horizontal, 4)
+                                .onLongPressGesture{
+                                    triggerHapticFeedback()
+                                    onSelectImage(labeledImage)
+                                }
                         } else {
                             // Handle the nil case: show a placeholder or error message
                             Text("No image available")
@@ -66,6 +74,12 @@ struct ImageCard: View {
     }
     
 }
+
+private func triggerHapticFeedback() {
+       let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+       impactFeedback.prepare()
+       impactFeedback.impactOccurred()
+   }
 
 #Preview {
     //Card(name: "Chelsea Grace", date: Date(), scanNumber: 1)

@@ -194,14 +194,13 @@ class FirebaseManager: ObservableObject {
         let modifiedPath = path.replacingOccurrences(of: "regions", with: position)
         let storageRef = Storage.storage().reference(withPath: modifiedPath)
         
-        print("Downloading image")
         
         storageRef.getData(maxSize: 10 * 1024 * 1024) { (data, error) in
             if let error = error {
                 print("Error downloading image: \(error.localizedDescription)")
                 completion(nil)
             } else if let data = data, let image = UIImage(data: data) {
-                print("image downloaded")
+                //print("image downloaded")
                 completion(image)
             } else {
                 print("no image to download: nil")
@@ -242,10 +241,11 @@ class FirebaseManager: ObservableObject {
                         
                         if let imageURLString = data["url"] as? String,
                            let position = data["position"] as? String,
+                           let isPrimary = data["isPrimary"] as? Bool,
                            let imageURL = URL(string: imageURLString) {
                 
                             self.downloadImage(from: imageURLString, position: position) { image in
-                                let labeledImage = LabeledImage(image: image, isPrimary: true, position: position)
+                                let labeledImage = LabeledImage(image: image, isPrimary: isPrimary, position: position)
                                 
                                 if imagesByPosition[position] != nil {
                                     imagesByPosition[position]?.append(labeledImage)
@@ -263,7 +263,6 @@ class FirebaseManager: ObservableObject {
                                 
                     dispatchGroup.notify(queue: .main) {
                         self.imagesByPosition = imagesByPosition
-                        print("Done")
                     }
                 } else {
                     print("No documents found")

@@ -17,7 +17,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             print("Failed to configure Firebase.")
         }
-        
+            
         return true
     }
 }
@@ -26,10 +26,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 struct Team8_Fundus_PhotographyApp: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    @StateObject var authService = AuthService()
+    @StateObject var selectedDataManager = SelectedDataManager()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
-            //CameraView()
+                .environmentObject(authService)
+                .environmentObject(selectedDataManager)
         }
     }
 }

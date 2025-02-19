@@ -43,8 +43,8 @@ class ScanListViewModel: ObservableObject {
                 _ = document.documentID
                 let name = data["name"]
                 let isStitched = data["isStitched"]
-                
-                let scan = Scan(name: name as! String,
+                let id = document.documentID
+                let scan = Scan(id: id, name: name as! String,
                                 regions: ScanRegions(),
                                 isStitched: (isStitched != nil))
                 
@@ -52,26 +52,30 @@ class ScanListViewModel: ObservableObject {
                 
             }
             self.scanList = fetchedScans
-            print(self.scanList)
+//            print(self.scanList)
         }
     }
     
-    // Function to add a new scan to the patient
-    func addScan(patientID: String, scanName: String) {
+    // Function to add a new scan to the patient and return the UUID
+    func addScan(patientID: String, scanName: String, completion: @escaping (String?) -> Void) {
         let db = Firestore.firestore()
-        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(UUID().uuidString)
+        let newScanUUID = UUID().uuidString
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(newScanUUID)
         
         newScanRef.setData([
             "name": scanName,
             "isStitched": false,
-            "regions": ScanRegions()
-        ]){ error in
+//            "regions": ScanRegions() // this is broken / unneeded
+        ]) { error in
             if let error = error {
-                print("Error adding scans: \(error.localizedDescription)")
+                print("Error adding scan: \(error.localizedDescription)")
+                completion(nil)
             } else {
-                print("Scan added successfully")
+                print("Scan added successfully with UUID: \(newScanUUID)")
                 self.fetchScans()
+                completion(newScanUUID)
             }
         }
     }
+
 }

@@ -11,7 +11,10 @@
 import SwiftUI
 
 struct ScanSummary: View {
-    @ObservedObject var firebaseManager: FirebaseManager
+    var scanID: String
+    @StateObject var viewModel = FirebaseManager()
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    @State private var navigateToCameraView = false
 
     var body: some View {
         NavigationStack{
@@ -21,22 +24,36 @@ struct ScanSummary: View {
                     .edgesIgnoringSafeArea(.all) // Extend to full screen
                 
                 VStack {
+                    
                     Text("Scan - \(formattedDate())")
                         .font(.title3)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
                         .padding(.top, 10)
+                    
+                    if !viewModel.imagesByPosition.isEmpty {
+                        ScrollView {
+                            ForEach(viewModel.imagesByPosition.keys.sorted(), id: \.self) { position in
+                                
+                            
+                                ImageCard(
+                                    viewModel: viewModel,
+                                    position: position,
+                                    onAddImage: {
+                                        print("adding image")
+                                        navigateToCameraView = true
+                                        print("Add image for \(position)")
+                                        let imageCount = viewModel.imagesByPosition[position]?.count ?? 0
+                                        print("Position: \(position), Total Images: \(imageCount)")  // Debug print
 
-                    ScrollView {
-                        ForEach(firebaseManager.imagesByPosition.keys.sorted(), id: \.self) { position in
-                            ImageCard(
-                                position: position,
-                                images: firebaseManager.imagesByPosition[position] ?? [],
-                                onAddImage: {
-                                    print("Add image for \(position)")
-                                }
-                            )
+                                    }, onSelectImage: {selectedImage in
+                                        viewModel.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
+                                    }
+                                )
+                            }
                         }
+                    } else {
+                        Text("No Images found.")
                     }
 
                     Button(action: {
@@ -58,9 +75,13 @@ struct ScanSummary: View {
             .colorScheme(.light)
             .navigationBarTitle("Image Summary", displayMode: .inline)
             .onAppear {
-                firebaseManager.retrievePhotos()
+                selectedDataManager.setScanID(scanID)
+                viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 
             }
+            .navigationDestination(isPresented: $navigateToCameraView) {
+                            CameraView()  // Navigate to your CameraView with any necessary parameters
+                        }
         
         }
     }

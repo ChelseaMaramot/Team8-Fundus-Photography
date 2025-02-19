@@ -10,34 +10,47 @@ import UIKit
 
 struct CameraView: View {
     
-    @ObservedObject private var cameraManager = CameraManager()
-    @ObservedObject private var lightManager = LightManager()
+    @StateObject private var cameraManager = CameraManager()
+    @StateObject private var lightManager = LightManager()
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+
+    
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
     @State private var isFlashing = false
     @State private var isAdjustingZoom: Bool = false
     @State private var isAdjustingFocus: Bool = false
     @State private var sliderValue: Double = 0.0
-    @State private var currentZoomFactor: CGFloat = 3.0
-    @State private var lastZoomFactor: CGFloat = 3.0
+    
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
     @State private var focusValue: Float = 0.5
     @State private var isScaled = false
     
     
+    
     var body: some View {
         NavigationStack{
             GeometryReader { geometry in
                 ZStack {
-            
-                    QuadrantView()
+                    Color.white.edgesIgnoringSafeArea(.all)
+                    
+                    QuadrantView(cameraManager: cameraManager)
                         .zIndex(2)
-            
-                    VStack(spacing: 0) {
+           
+                    
+                    VStack {
+                        
+                        ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
+                         
                         CameraFeed
-                            .onAppear { cameraManager.startSession() }
-                            .onDisappear { cameraManager.stopSession() }
+                            .onAppear { cameraManager.startSession{
+                                print("Camera session started successfully.") }
+                            }
+                            .onDisappear {
+                                cameraManager.stopSession()
+                                print("Camera session stopped.")
+                            }
                             .gesture(zoomGesture)
                         
                         FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
@@ -57,13 +70,13 @@ struct CameraView: View {
                 }
             }
             .navigationDestination(isPresented: $showCapturedPhoto) {
-                if let image = capturedImage {
+//                if let image = capturedImage {
                     PreviewPage(
                         image: $capturedImage,
                         onSave: { print("Saving image to cloud") },
                         onRetake: {
+                            print("retaking image")
                             capturedImage = nil
-                            //                            image = nil
                             showCapturedPhoto = false
                             
                             cameraManager.stopSession()
@@ -72,7 +85,7 @@ struct CameraView: View {
                             }
                         }
                     )
-                }
+//                }
             }
         }
     }
@@ -94,6 +107,7 @@ extension CameraView {
                 
                 UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             } .edgesIgnoringSafeArea(.all)
+            
             
             if isFocused {
                 FocusView(position: $focusLocation)
@@ -150,8 +164,7 @@ extension CameraView {
            MagnificationGesture()
                .onChanged { value in
                    isAdjustingZoom = true
-                   currentZoomFactor = min(max(currentZoomFactor + (value - 1.0), 0.5), 10)
-                   cameraManager.setZoomScale(factor: currentZoomFactor)
+                   cameraManager.setZoomScale(factor: min(max(cameraManager.zoomFactor + (value - 1.0), 0.5), 10))
                }
                .onEnded { _ in
                    isAdjustingZoom = false
@@ -161,6 +174,7 @@ extension CameraView {
     private struct ZoomIndicator: View {
         let currentZoomFactor: CGFloat
         let isAdjusting: Bool
+        
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
@@ -269,7 +283,13 @@ extension CameraView {
             cameraManager.capturePhoto { image in
                 print("new image is captured")
                 capturedImage = image
-                showCapturedPhoto = image != nil
+                DispatchQueue.main.async {
+                    if image != nil{
+                        showCapturedPhoto = true
+                    }
+//                    showCapturedPhoto = true
+                }
+                // image != nil , this image might be too big and causing delays
             }
         }
     

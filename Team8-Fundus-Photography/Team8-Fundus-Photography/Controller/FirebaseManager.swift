@@ -67,10 +67,17 @@ class FirebaseManager: ObservableObject {
                 } else {
                     print("Successfully saved image path to Firestore.")
                 }
+            
                 
                 dispatchGroup.leave()
             }
         }
+        // Fetch latest images from Firestore
+        self.retrievePhotos(patientID: patientID, scanID: scanName)
+        let labeledImage = LabeledImage(id: imageID,
+                                            isPrimary: false, position: region, image: image)
+        self.imagesByPosition[region]?.append(labeledImage)
+        
         dispatchGroup.notify(queue: .main) {
             print("done saving image to firebase!")
             completion()
@@ -119,7 +126,7 @@ class FirebaseManager: ObservableObject {
                 }
                 
                 if let snapshot = snapshot, !snapshot.isEmpty {
-                    var imagesByPosition: [String: [LabeledImage]] = [:]
+                    var fetchedImagesByPosition: [String: [LabeledImage]] = [:]
                     
                     for document in snapshot.documents {
                         dispatchGroup.enter()
@@ -137,10 +144,10 @@ class FirebaseManager: ObservableObject {
                                 let labeledImage = LabeledImage(id: imageID,
                                                                 isPrimary: isPrimary, position: position, image: image)
                                 
-                                if imagesByPosition[position] != nil {
-                                    imagesByPosition[position]?.append(labeledImage)
+                                if fetchedImagesByPosition[position] != nil {
+                                    fetchedImagesByPosition[position]?.append(labeledImage)
                                 } else {
-                                    imagesByPosition[position] = [labeledImage]
+                                    fetchedImagesByPosition[position] = [labeledImage]
                                 }
                                 dispatchGroup.leave()
                                 
@@ -152,7 +159,7 @@ class FirebaseManager: ObservableObject {
                     }
                     
                     dispatchGroup.notify(queue: .main) {
-                        self.imagesByPosition = imagesByPosition
+                        self.imagesByPosition = fetchedImagesByPosition
                     }
                 } else {
                     print("No documents found")

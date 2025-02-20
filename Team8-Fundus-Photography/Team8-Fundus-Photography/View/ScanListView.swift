@@ -3,6 +3,7 @@ import SwiftUI
 struct ScanListView: View {
     var patientID: String
     @StateObject private var viewModel: ScanListViewModel
+    @StateObject var storageManager = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
 
     init(patientID: String) {
@@ -15,7 +16,7 @@ struct ScanListView: View {
         VStack {
             if !viewModel.scanList.isEmpty {
                 List(viewModel.scanList) { scan in
-                    NavigationLink(destination: ScanSummary(scanID: scan.id)) {
+                    NavigationLink(destination: ScanSummary(scanID: scan.id, viewModel: storageManager)) {
                         Card(name: scan.name, isStitched: scan.isStitched)
                     }
                 }

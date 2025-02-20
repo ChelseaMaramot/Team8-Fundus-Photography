@@ -114,7 +114,7 @@ struct PreviewPage: View {
                 .padding(.bottom, 10)
 
                 NavigationLink(
-                    destination: ScanSummary(scanID: selectedDataManager.getScanID()),
+                    destination: ScanSummary(scanID: selectedDataManager.getScanID(), viewModel: storageManager),
                     isActive: $navigateToSummary,
                     label: { EmptyView() }
                 )

@@ -23,7 +23,7 @@ struct PreviewPage: View {
     @StateObject var storageManager = FirebaseManager()
 
     var body: some View {
-        NavigationStack {
+        
             VStack {
                 ZStack {
                     if let image = image {
@@ -129,7 +129,7 @@ struct PreviewPage: View {
             }
             .colorScheme(.light)
             .navigationTitle("Preview (manually cropped) Image")
-        }
+        
         .background(Color.white.edgesIgnoringSafeArea(.all))
     }
 

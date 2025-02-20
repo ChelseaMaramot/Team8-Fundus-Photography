@@ -7,7 +7,7 @@ struct PatientListView: View {
     @EnvironmentObject var authService: AuthService
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack{
                 
                 Button("Log out") {

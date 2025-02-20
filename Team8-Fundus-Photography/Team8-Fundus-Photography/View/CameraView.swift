@@ -22,6 +22,9 @@ struct CameraView: View {
     @State private var isAdjustingFocus: Bool = false
     @State private var sliderValue: Double = 0.0
     
+    @State private var currentZoomFactor: CGFloat = 3.0
+    @State private var lastZoomFactor: CGFloat = 3.0
+    
     @State private var isFocused = false
     @State private var focusLocation: CGPoint = .zero
     @State private var focusValue: Float = 0.5
@@ -30,7 +33,7 @@ struct CameraView: View {
     
     
     var body: some View {
-        NavigationStack{
+    
             GeometryReader { geometry in
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
@@ -65,7 +68,7 @@ struct CameraView: View {
                         
                         CameraButton(action: capturePhoto)
                     }
-                    .padding(.top, 50)
+                    .padding(.top, 1)
                     .padding(.bottom, 150)
                 }
             }
@@ -79,15 +82,11 @@ struct CameraView: View {
                             capturedImage = nil
                             showCapturedPhoto = false
                             
-                            cameraManager.stopSession()
-                            DispatchQueue.main.async {
-                                cameraManager.startSession()
-                            }
                         }
                     )
 //                }
             }
-        }
+        
     }
 }
 

@@ -21,7 +21,7 @@ struct ImageView: View {
     @StateObject private var storageManager = FirebaseManager()
 
     var body: some View {
-        NavigationStack {
+       
             ZStack {
                 Color.white.edgesIgnoringSafeArea(.all)
                 
@@ -125,7 +125,7 @@ struct ImageView: View {
                     onCancel: { showCropView = false } // Dismiss the crop view on cancel
                 )
             }
-        }
+        
     }
 
     // Helper functions for gesture handling

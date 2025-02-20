@@ -17,7 +17,7 @@ struct ScanSummary: View {
     @State private var navigateToCameraView = false
 
     var body: some View {
-        NavigationStack{
+        
             ZStack {
                 
                 Color(UIColor.systemGray6) // Background color
@@ -83,7 +83,7 @@ struct ScanSummary: View {
                             CameraView()  // Navigate to your CameraView with any necessary parameters
                         }
         
-        }
+        
     }
 
     private func formattedDate() -> String {

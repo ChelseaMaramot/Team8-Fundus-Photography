@@ -13,7 +13,8 @@ struct ImageCard: View {
     var position: String
     var onAddImage: () -> Void
     var onSelectImage: (LabeledImage) -> Void
-
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    
     var body: some View {
         
         let images = viewModel.imagesByPosition[position] ?? []

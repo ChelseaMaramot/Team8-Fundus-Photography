@@ -41,9 +41,13 @@ struct ScanSummary: View {
                                 isFromScanList: isFromScanList,
                                 position: position,
                                 onAddImage: {
-                                    print("adding image")
+                                    if let newQuadrant = RegionTypes(rawValue: position) {
+                                        selectedDataManager.setQuadrant(newQuadrant)
+                                    }
+//                                    selectedDataManager.setQuadrant(newQuadrant)
                                     navigateToCameraView = true
                                     print("Add image for \(position)")
+                                    
                                     let imageCount = viewModel.imagesByPosition[position]?.count ?? 0
                                     print("Position: \(position), Total Images: \(imageCount)")
                                 }, onSelectImage: { selectedImage in

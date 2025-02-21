@@ -17,6 +17,7 @@ struct ScanSummary: View {
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()  // Add a refreshID to force view updates
     @State private var isLoading = true
+    var isFromScanList: Bool
     
     var body: some View {
         
@@ -35,7 +36,9 @@ struct ScanSummary: View {
                     ScrollView {
                         ForEach(viewModel.imagesByPosition.keys.sorted(), id: \.self) { position in
                             ImageCard(
+                                
                                 viewModel: viewModel,
+                                isFromScanList: isFromScanList,
                                 position: position,
                                 onAddImage: {
                                     print("adding image")

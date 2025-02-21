@@ -112,7 +112,13 @@ class FirebaseManager: ObservableObject {
         let imagesRef = db.collection("images")
         let storageRef = Storage.storage().reference()
         let dispatchGroup = DispatchGroup()
-        
+        var fetchedImagesByPosition: [String: [LabeledImage]] = [
+            "Central": [],
+            "Superior": [],
+            "Nasal": [],
+            "Temporal": [],
+            "Inferior": []
+        ]
         print("pID: ", patientID)
         print("sID: ", scanID)
         
@@ -126,7 +132,7 @@ class FirebaseManager: ObservableObject {
                 }
                 
                 if let snapshot = snapshot, !snapshot.isEmpty {
-                    var fetchedImagesByPosition: [String: [LabeledImage]] = [:]
+                    
                     
                     for document in snapshot.documents {
                         dispatchGroup.enter()

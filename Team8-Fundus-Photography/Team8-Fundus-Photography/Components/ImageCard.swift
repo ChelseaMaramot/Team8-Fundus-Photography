@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ImageCard: View {
     @ObservedObject var viewModel: FirebaseManager
+    var isFromScanList: Bool
     var position: String
     var onAddImage: () -> Void
     var onSelectImage: (LabeledImage) -> Void
@@ -16,6 +17,7 @@ struct ImageCard: View {
     var body: some View {
         
         let images = viewModel.imagesByPosition[position] ?? []
+        let isMaxImagesReached = images.count >= 4
         
         VStack(alignment: .leading) {
             Text(position)
@@ -54,12 +56,19 @@ struct ImageCard: View {
                 }
                 
                 // Add Image Button
-                Button(action: onAddImage) {
+                Button(action: {
+                    if !isMaxImagesReached && !isFromScanList {
+                        onAddImage()
+                        
+                    }
+                }) {
+                    
+                    
                     Image(systemName: "plus")
                         .font(.system(size: 24))
-                        .foregroundColor(.white)
+                        .foregroundColor((isMaxImagesReached || isFromScanList) ? .black : .white)
                         .padding(10)
-                        .background(Color.blue)
+                        .background((isMaxImagesReached || isFromScanList) ? Color.gray : Color.blue)
                         .clipShape(Circle())
                     }
             }

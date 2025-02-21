@@ -57,16 +57,23 @@ struct ScanSummary: View {
                             )
                         }
                     }
-                } else {
+                    
+                    
+                } else if  isLoading {
                     ProgressView() // Or ActivityIndicator for older iOS
                                         .progressViewStyle(.circular) // Customize if needed
                                         .scaleEffect(1.5) // Adjust size
                 }
+                else {
+                    Text("No data available")
+                }
 
-                Button(action: {
-                    print("Navigate to Scan List")
-                }) {
-                    Text("Scan List")
+//                NavigationLink(destination: NewScanView())
+                NavigationLink(destination: isFromScanList
+                                ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
+                                : AnyView(NewScanView()))
+{
+                    Text((isFromScanList) ? "Return to Scan List" : "Save Scan")
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding()
@@ -85,7 +92,7 @@ struct ScanSummary: View {
         
         .onAppear {
             selectedDataManager.setScanID(scanID)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 print("starting delayed action")
                 viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false

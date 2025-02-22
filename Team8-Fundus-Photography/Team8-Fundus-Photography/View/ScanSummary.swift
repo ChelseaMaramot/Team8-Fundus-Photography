@@ -12,6 +12,7 @@ import SwiftUI
 
 struct ScanSummary: View {
     var scanID: String
+    var scanName: String
     @ObservedObject var viewModel: FirebaseManager
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false
@@ -26,7 +27,7 @@ struct ScanSummary: View {
                 .edgesIgnoringSafeArea(.all)
             
             VStack {
-                Text("Scan - \(formattedDate())")
+                Text("\(selectedDataManager.getScanName()) - \(formattedDate())")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.blue)
@@ -73,7 +74,7 @@ struct ScanSummary: View {
                                 ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
                                : AnyView(NewScanView(patientID: selectedDataManager.getPatientID())))
 {
-                    Text((isFromScanList) ? "Return to Scan List" : "Save Scan")
+                    Text((isFromScanList) ? "Return to Scan List" : "Add Scan Details")
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding()
@@ -92,6 +93,7 @@ struct ScanSummary: View {
         
         .onAppear {
             selectedDataManager.setScanID(scanID)
+            selectedDataManager.setScanName(scanName)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 print("starting delayed action")
                 viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())

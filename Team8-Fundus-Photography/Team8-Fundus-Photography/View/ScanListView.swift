@@ -19,7 +19,7 @@ struct ScanListView: View {
         VStack {
             if !viewModel.scanList.isEmpty {
                 List(viewModel.scanList) { scan in
-                    NavigationLink(destination: ScanSummary(scanID: scan.id, viewModel: storageManager, isFromScanList: true)) {
+                    NavigationLink(destination: ScanSummary(scanID: scan.id, scanName: scan.name, viewModel: storageManager, isFromScanList: true)) {
                         Card(name: scan.name, isStitched: scan.isStitched)
                     }
                 }
@@ -60,6 +60,7 @@ struct ScanListView: View {
             if let error = error {
                 print("Error adding scan: \(error.localizedDescription)")
             } else {
+                selectedDataManager.setScanName(scanName)
                 navigateToCamera = true
             }
         }

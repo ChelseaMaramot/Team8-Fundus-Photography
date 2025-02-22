@@ -11,10 +11,10 @@ struct NewScanView: View {
     @State  var scanDate: Date = Date()
     @State  var isSaving: Bool = false
     @State  var showAlert: Bool = false
+    @State  var navToScanList: Bool = false
     @StateObject var viewModel: ScanListViewModel
     @State  var alertMessage: String = ""
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-    
 
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
@@ -30,7 +30,7 @@ struct NewScanView: View {
                     .padding(.top)
 
                 // Eye Diagram View (replace with your actual implementation)
-                EyeDiagramView()
+                PrimaryImagesQuadrantView()
                     .frame(height: 200) // Adjust height as needed
                     .padding(.vertical)
 
@@ -52,14 +52,17 @@ struct NewScanView: View {
                 .padding(.horizontal) // Add horizontal padding to the form fields
 
                 Spacer() // Push button to the bottom
+                
+                NavigationLink("", destination: ScanListView(patientID: selectedDataManager.getPatientID()), isActive: $navToScanList)
 
+                
                 // Scan List Button
                 Button(action: saveScan){
                     HStack {
                         if isSaving {
                             ProgressView()
                         }
-                        Text("Save Scan")
+                        Text("Done")
                             .bold()
                             .fontWeight(.bold)
                             .foregroundColor(.white)
@@ -71,6 +74,9 @@ struct NewScanView: View {
                     }
                 }
                 .padding(.bottom) // Add padding at the bottom
+                .onAppear(){
+                    scanName = selectedDataManager.getScanName()
+                }
             }
             
         }
@@ -80,20 +86,20 @@ struct NewScanView: View {
         isSaving = true
        
         
-        viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID(), scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { error in
+        viewModel.updateScan(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID(), scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { error in
             isSaving = false
             if let error = error {
                 alertMessage = "Failed to save: \(error.localizedDescription)"
                 showAlert = true
             } else {
-                presentationMode.wrappedValue.dismiss()  // Close the view
+                navToScanList = true
             }
         }
     }
 }
 
 // Placeholder for Eye Diagram View (replace with your actual view)
-struct EyeDiagramView: View {
+struct PrimaryImagesQuadrantView: View {
     var body: some View {
         // Replace with your custom eye diagram drawing code
         // This example uses a ZStack with circles for the points

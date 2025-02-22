@@ -76,10 +76,6 @@ class ScanListViewModel: ObservableObject {
     }
     func addScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
-
-//        let patientID = selectedDataManager.getPatientID()
-//
-//       let scanID = selectedDataManager.getScanID()
         
         let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
 
@@ -101,4 +97,56 @@ class ScanListViewModel: ObservableObject {
             }
         }
     }
+    
+    func updateScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
+        let db = Firestore.firestore()
+        
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+
+        let data: [String: Any] = [ // Use a dictionary of type [String: Any]
+            "name": scanName,
+            "isStitched": false,
+            "date": scanDate, // Consider storing as Timestamp for better Firestore compatibility
+            "details": scanDetails
+        ]
+       
+        newScanRef.updateData(data) { error in // Use the completion handler provided by setData
+            if let error = error {
+                completion(error)
+            } else {
+                DispatchQueue.main.async {
+                    self.fetchScans()
+                }
+                completion(nil)
+            }
+        }
+    }
+    
+
+    func getScanName(scanID: String, completion: @escaping (String, Date?) -> Void) {
+        let db = Firestore.firestore()
+        
+        // Assume that the patientID and scanID are used to navigate to the scan document
+        let patientID = selectedDataManager.getPatientID() // Replace with actual patient ID
+        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+        
+        scanRef.getDocument { document, error in
+            if let error = error {
+                print("Error fetching scan: \(error.localizedDescription)")
+                completion("", nil)
+            } else if let document = document, document.exists {
+                // Extract scanName and scanDate from Firestore document
+                let scanName = document.get("name") as? String ?? "Unknown"
+                let scanDate = document.get("date") as? Timestamp
+                let date = scanDate?.dateValue()
+            
+                // Return the values through the completion handler
+                completion(scanName, date)
+            } else {
+                print("Document does not exist")
+                completion("", nil)
+            }
+        }
+    }
+
 }

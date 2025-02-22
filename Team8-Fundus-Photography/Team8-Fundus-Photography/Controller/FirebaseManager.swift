@@ -20,7 +20,7 @@ class FirebaseManager: ObservableObject {
     
     
     // saving to images collection
-    func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String, completion: @escaping () -> Void) {
+    func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
         print("saving to firebase images collection...")
         let storageRef = Storage.storage().reference()
         let db = Firestore.firestore()
@@ -32,7 +32,7 @@ class FirebaseManager: ObservableObject {
         }
         
         let imageID = UUID().uuidString
-        let url = "patients/\(patientID)/scans/\(scanName)/\(region)/\(imageID).jpg"
+        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
         print("This is the image url: \(url)")
         
         let fileRef = storageRef.child(url)
@@ -56,7 +56,7 @@ class FirebaseManager: ObservableObject {
                 "isPrimary": false,
                 "patientID": patientID,
                 "position": region,
-                "scanID": scanName,
+                "scanID": scanID,
                 "url": url
             ]
             
@@ -73,7 +73,7 @@ class FirebaseManager: ObservableObject {
             }
         }
         // Fetch latest images from Firestore
-        self.retrievePhotos(patientID: patientID, scanID: scanName)
+        self.retrievePhotos(patientID: patientID, scanID: scanID)
         let labeledImage = LabeledImage(id: imageID,
                                             isPrimary: false, position: region, image: image)
         self.imagesByPosition[region]?.append(labeledImage)

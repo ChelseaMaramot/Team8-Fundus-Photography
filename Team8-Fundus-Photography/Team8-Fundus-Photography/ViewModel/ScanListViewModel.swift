@@ -11,7 +11,7 @@ import FirebaseFirestore
 class ScanListViewModel: ObservableObject {
     @Published var scanList: [Scan] = []
     @Published var isShowingAddScanSheet = false
-    
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
  
     private var patientID: String
     private var storageManager = FirebaseManager()
@@ -42,11 +42,14 @@ class ScanListViewModel: ObservableObject {
                 let data = document.data()
                 _ = document.documentID
                 let name = data["name"]
+                let createdDate = data["date"] as? String ?? " "
                 let isStitched = data["isStitched"]
+                let details = data["details"] as? String ?? ""
                 let id = document.documentID
+                // add scan data and get scan details
                 let scan = Scan(id: id, name: name as! String,
-                                regions: ScanRegions(),
-                                isStitched: (isStitched != nil))
+                                isStitched: (isStitched != nil), details: details)
+            
                 
                 fetchedScans.append(scan)
                 
@@ -56,26 +59,46 @@ class ScanListViewModel: ObservableObject {
         }
     }
     
-    // Function to add a new scan to the patient and return the UUID
-    func addScan(patientID: String, scanName: String, completion: @escaping (String?) -> Void) {
+    func addScanName(patientID: String, scanName: String, scanID: String ) {
         let db = Firestore.firestore()
-        let newScanUUID = UUID().uuidString
-        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(newScanUUID)
+        let newPatientRef = db.collection("patients").document(UUID().uuidString)
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
         
         newScanRef.setData([
-            "name": scanName,
-            "isStitched": false,
-//            "regions": ScanRegions() // this is broken / unneeded
-        ]) { error in
+            "name": scanName
+        ]){ error in
             if let error = error {
                 print("Error adding scan: \(error.localizedDescription)")
-                completion(nil)
             } else {
-                print("Scan added successfully with UUID: \(newScanUUID)")
-                self.fetchScans()
-                completion(newScanUUID)
+                print("Scan added successfully")
             }
         }
     }
+    func addScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
+        let db = Firestore.firestore()
 
+//        let patientID = selectedDataManager.getPatientID()
+//
+//       let scanID = selectedDataManager.getScanID()
+        
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+
+        let data: [String: Any] = [ // Use a dictionary of type [String: Any]
+            "name": scanName,
+            "isStitched": false,
+            "date": scanDate, // Consider storing as Timestamp for better Firestore compatibility
+            "details": scanDetails
+        ]
+       
+        newScanRef.setData(data) { error in // Use the completion handler provided by setData
+            if let error = error {
+                completion(error)
+            } else {
+                DispatchQueue.main.async {
+                    self.fetchScans()
+                }
+                completion(nil)
+            }
+        }
+    }
 }

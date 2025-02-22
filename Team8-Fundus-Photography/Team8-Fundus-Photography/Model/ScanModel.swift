@@ -11,13 +11,16 @@ struct Scan: Identifiable{
     let id: String
     let name: String
     let isStitched: Bool
-    var regions: ScanRegions
+//    let date: Date
+    let details: String
+//    var regions: ScanRegions
 
     
-    init(id: String, createdDate: Date = Date(),  name: String, regions: ScanRegions, isStitched: Bool) {
+    init(id: String, createdDate: Date = Date(),  name: String, isStitched: Bool, details: String) {
         self.id = id
         self.name = name
-        self.regions = regions
+//        self.date = createdDate
+        self.details = details
         self.isStitched = isStitched
     }
 }

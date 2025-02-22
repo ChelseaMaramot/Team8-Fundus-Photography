@@ -2,7 +2,7 @@ import SwiftUI
 
 struct PatientListView: View {
     
-    @StateObject private var viewModel = PatientListViewModel()
+    @StateObject  var viewModel = PatientListViewModel()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @EnvironmentObject var authService: AuthService
     

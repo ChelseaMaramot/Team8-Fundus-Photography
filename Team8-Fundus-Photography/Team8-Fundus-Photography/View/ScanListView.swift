@@ -2,16 +2,19 @@ import SwiftUI
 
 struct ScanListView: View {
     var patientID: String
+    @State private var isShowingAddScanSheet = false
+    @State private var newScanName = ""
+    @State private var navigateToCamera = false
     @StateObject private var viewModel: ScanListViewModel
     @StateObject var storageManager = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-
+    
     init(patientID: String) {
-//        print(patientID)
+        //        print(patientID)
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
         self.patientID = patientID
     }
-  
+    
     var body: some View {
         VStack {
             if !viewModel.scanList.isEmpty {
@@ -23,38 +26,43 @@ struct ScanListView: View {
             } else {
                 Text("No Scans found.")
             }
-            NavigationLink(destination: CameraView()) {
+            
+            Button(action: {
+                isShowingAddScanSheet = true
+            }) {
                 Text("Add New Scan")
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    print("scan name: \(selectedDataManager.getScanID())")
-                    if selectedDataManager.getScanID().isEmpty {
-                        viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: "New Scan") {  scanUUID in
-                            if let uuid = scanUUID {
-                                selectedDataManager.setScanID(uuid)
-                                }
-                        }
-                        print("added new scan name: \(selectedDataManager.getScanID())")
-                    }
-                }
-            )
+            NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
+            
+            
         }
         .onAppear {
             selectedDataManager.setPatientID(patientID)
             viewModel.fetchScans()
         }
-        // taking this out for now cause we are not using this sheet?
-//        .sheet(isPresented: $viewModel.isShowingAddScanSheet) {
-//            BottomSheet(
-//                title: "Add New Scan",
-//                placeholder: "Enter Scan Name"
-//            ) { newScanName in
-//                viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: newScanName)
-//            }
-//        }
+        .sheet(isPresented: $isShowingAddScanSheet) {
+            BottomSheet(
+                title: "Add New Scan",
+                placeholder: "Enter Scan Name"
+            ) { newName in
+                saveAndNavigate(scanName: newName)
+                
+            }
+        }
+    }
+
+    func saveAndNavigate(scanName: String) {
+        let newscanID = UUID().uuidString
+        selectedDataManager.setScanID(newscanID)
+        viewModel.addScan(patientID: patientID, scanID : newscanID, scanName: newScanName, scanDetails: "Default scan details", scanDate: Date()) { error in
+            if let error = error {
+                print("Error adding scan: \(error.localizedDescription)")
+            } else {
+                navigateToCamera = true
+            }
+        }
     }
 }
 

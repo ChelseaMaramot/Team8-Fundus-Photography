@@ -1,22 +1,26 @@
-//
-//  NewScanView.swift
-//  Team8-Fundus-Photography
-//
-//  Created by Anjola Adewale on 2025-02-21.
-//
 
 
 import SwiftUI
 
 struct NewScanView: View {
     @Environment(\.presentationMode) var presentationMode
-    @State private var scanName: String = ""
-    @State private var scanDetails: String = ""
-    @State private var scanDate: Date = Date()
-    @State private var isSaving: Bool = false
-    @State private var showAlert: Bool = false
-    @State private var alertMessage: String = ""
+    var patientID: String
+//    @StateObject private var viewModel = ScanListViewModel()
+    @State  var scanName: String = ""
+    @State  var scanDetails: String = ""
+    @State  var scanDate: Date = Date()
+    @State  var isSaving: Bool = false
+    @State  var showAlert: Bool = false
+    @StateObject var viewModel: ScanListViewModel
+    @State  var alertMessage: String = ""
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    
 
+    init(patientID: String) {
+        _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+        self.patientID = patientID
+    }
+    
     var body: some View {
         NavigationView { // Embed in NavigationView for toolbar
             VStack { // Use VStack for main layout
@@ -50,35 +54,42 @@ struct NewScanView: View {
                 Spacer() // Push button to the bottom
 
                 // Scan List Button
-                Button(action: {
-                    // Action for Scan List button
-                }) {
-                    Text("Scan List")
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                Button(action: saveScan){
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                        }
+                        Text("Save Scan")
+                            .bold()
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
                 }
                 .padding(.bottom) // Add padding at the bottom
             }
-            .navigationBarBackButtonHidden(true) // Hide default back button
-            .toolbar { // Add custom back button to the toolbar
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left") // Use a chevron or custom image
-                        Text("Save Scan") // Match the design
-                    }
-                }
-            }
+            
         }
     }
 
-    // ... (saveScan function remains the same)
+    private func saveScan() {
+        isSaving = true
+       
+        
+        viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID(), scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { error in
+            isSaving = false
+            if let error = error {
+                alertMessage = "Failed to save: \(error.localizedDescription)"
+                showAlert = true
+            } else {
+                presentationMode.wrappedValue.dismiss()  // Close the view
+            }
+        }
+    }
 }
 
 // Placeholder for Eye Diagram View (replace with your actual view)
@@ -119,5 +130,5 @@ struct EyeDiagramView: View {
 
 
 #Preview {
-    NewScanView()
+//    NewScanView()
 }

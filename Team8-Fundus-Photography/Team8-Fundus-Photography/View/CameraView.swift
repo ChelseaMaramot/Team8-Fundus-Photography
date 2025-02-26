@@ -39,7 +39,7 @@ struct CameraView: View {
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
-                    QuadrantView(cameraManager: cameraManager)
+                    QuadrantView(cameraManager: cameraManager, selectedDataManager: selectedDataManager)
                         .zIndex(2)
            
                     

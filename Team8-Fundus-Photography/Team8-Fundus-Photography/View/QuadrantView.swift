@@ -14,9 +14,9 @@ struct QuadrantView: View {
     @State private var previousSelectedQuadrant: RegionTypes
     var cameraManager: CameraManager // Pass CameraManager directly
     
-    init(cameraManager: CameraManager, showQuadrantSelector: Bool = false) {
-        _selectedQuadrant = State(initialValue: .central)
-        _previousSelectedQuadrant = State(initialValue: .central)
+    init(cameraManager: CameraManager, showQuadrantSelector: Bool = false, selectedDataManager: SelectedDataManager) {
+        _selectedQuadrant = State(initialValue: selectedDataManager.getQuadrant())
+        _previousSelectedQuadrant = State(initialValue: selectedDataManager.getQuadrant())
         self.showQuadrantSelector = showQuadrantSelector
         self.cameraManager = cameraManager // Initialize CameraManager here
     }
@@ -34,7 +34,7 @@ struct QuadrantView: View {
                             size: 20
                         )
                         .frame(width: 120, height: 120)
-                        .offset(x: -10, y: 10)
+                        .offset(x: -10)
                         .overlay(
                             Rectangle()
                                 .stroke(Color.clear)

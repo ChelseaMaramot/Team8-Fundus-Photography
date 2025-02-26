@@ -6,9 +6,13 @@ struct PatientListView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @EnvironmentObject var authService: AuthService
     
+    @State private var showConfirmationModal = false
+    @State private var patientToDeleteID: String? = nil
+    @State private var patientToDeleteName: String? = nil
+    
     var body: some View {
         NavigationStack {
-            VStack{
+            VStack {
                 
                 Button("Log out") {
                     print("Log out tapped!")
@@ -21,11 +25,14 @@ struct PatientListView: View {
                 
                 VStack {
                     if !viewModel.patientList.isEmpty {
-                        List(viewModel.patientList) { patient in
-                            NavigationLink(destination: ScanListView(patientID: patient.id)) {
-                                let name = patient.firstName + " " + patient.lastName
-                                Card(name: name, scanNumber: patient.scanCount)
+                        List {
+                            ForEach(viewModel.patientList) { patient in
+                                NavigationLink(destination: ScanListView(patientID: patient.id)) {
+                                    let name = patient.firstName + " " + patient.lastName
+                                    Card(name: name, scanNumber: patient.scanCount)
+                                }
                             }
+                            .onDelete(perform: deletePatient)
                         }
                     } else {
                         Text("No Patients found.")
@@ -59,6 +66,26 @@ struct PatientListView: View {
                     .presentationDetents([.fraction(0.50)])
                 }
             }
+            .confirmationDialog("Are you sure you want to delete \(patientToDeleteName ?? "this patient")?", isPresented: $showConfirmationModal, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    if let patientID = patientToDeleteID {
+                        viewModel.deletePatient(patientID: patientID)
+                    }
+                }
+                Button("Cancel", role: .cancel) {
+                    patientToDeleteID = nil
+                    patientToDeleteName = nil
+                }
+            }
+        }
+    }
+    
+    private func deletePatient(at offsets: IndexSet) {
+        for index in offsets {
+            let patient = viewModel.patientList[index]
+            patientToDeleteID = patient.id
+            patientToDeleteName = patient.firstName + " " + patient.lastName
+            showConfirmationModal = true
         }
     }
 }

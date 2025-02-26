@@ -35,6 +35,7 @@ struct CameraView: View {
     var body: some View {
     
             GeometryReader { geometry in
+                
                 ZStack {
                     Color.white.edgesIgnoringSafeArea(.all)
                     
@@ -43,6 +44,15 @@ struct CameraView: View {
            
                     
                     VStack {
+                        Text("\(selectedDataManager.getQuadrant().rawValue ?? "None")")
+                            .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 5)
+                                .background(Color.blue.opacity(0.8))
+                                .cornerRadius(12)
+                                .shadow(radius: 5)
                         
                         ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
                          
@@ -177,7 +187,7 @@ extension CameraView {
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
-                .padding()
+                .padding(.top, 5)
                 .foregroundColor(isAdjusting ? .red : .blue)
         }
     }
@@ -188,10 +198,11 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10){
+            VStack(spacing: 5){
                 Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
                     .foregroundColor(isAdjustingZoom ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 5)
                
                 Slider(
                     value: $currentZoomFactor,
@@ -215,7 +226,7 @@ extension CameraView {
         let lightManager: LightManager
 
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
                     .foregroundColor(lightManager.isAdjusting ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -251,7 +262,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 Text("Focus: \(String(format: "%.2f", focusValue))")
                     .foregroundColor(isAdjustingFocus ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)

@@ -7,8 +7,9 @@ struct ScanListView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
 
     @State private var showConfirmationModal = false
-    @State private var scanToDeleteID: String? = nil
-    @State private var scanToDeleteName: String? = nil
+    @State private var scanIDsToDelete: [String] = []
+    @State private var isEditing = false
+    
 
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
@@ -20,20 +21,20 @@ struct ScanListView: View {
             if !viewModel.scanList.isEmpty {
                 List {
                     ForEach(viewModel.scanList) { scan in
-                        NavigationLink(destination: ScanSummary(scanID: scan.id, viewModel: storageManager, isFromScanList: true)) {
-                            Card(name: scan.name, isStitched: scan.isStitched)
-                        }
-                        .swipeActions {
-                            Button(role: .destructive) {
-                                scanToDeleteID = scan.id
-                                scanToDeleteName = scan.name
-                                showConfirmationModal = true
-                            } label: {
-                                Label("Delete", systemImage: "trash")
+                        HStack{
+                            if isEditing {
+                                Image(systemName: scanIDsToDelete.contains(scan.id) ? "checkmark.circle.fill" : "circle")
+                                    .onTapGesture {
+                                        toggleSelection(for: scan)
+                                    }
                             }
+                            NavigationLink(destination: ScanSummary(scanID: scan.id, viewModel: storageManager, isFromScanList: true)) {
+                                Card(name: scan.name, isStitched: scan.isStitched)
+                            }
+                            
                         }
                     }
-                    .onDelete(perform: delete)
+                    .onDelete(perform: swipeToDelete)
                 }
             } else {
                 Text("No Scans found.")
@@ -62,23 +63,49 @@ struct ScanListView: View {
             selectedDataManager.setPatientID(patientID)
             viewModel.fetchScans()
         }
-        .confirmationDialog("Are you sure you want to delete the scan: \(scanToDeleteName ?? "this scan")?", isPresented: $showConfirmationModal, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
-                if let scanID = scanToDeleteID {
-                    viewModel.deleteScan(scanID: scanID)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(isEditing ? "Done" : "Edit") {
+                    isEditing.toggle()
+                    if !isEditing {
+                        scanIDsToDelete.removeAll()
+                    }
                 }
             }
-            Button("Cancel", role: .cancel) {
-                scanToDeleteID = nil
-                scanToDeleteName = nil
+            
+            if isEditing && !scanIDsToDelete.isEmpty {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Delete", role: .destructive) {
+                        showConfirmationModal = true
+                    }
+                }
             }
+        }
+        .confirmationDialog("Are you sure you want to delete these patients", isPresented: $showConfirmationModal, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                for scanID in scanIDsToDelete {
+                    viewModel.deleteScan(scanID: scanID)
+                }
+                scanIDsToDelete.removeAll()
+                isEditing = false
+            }
+            Button("Cancel", role: .cancel) {}
         }
     }
 
-    private func delete(at offsets: IndexSet) {
+    
+    private func toggleSelection(for scan: Scan) {
+        if let index = scanIDsToDelete.firstIndex(of: scan.id) {
+            scanIDsToDelete.remove(at: index)
+        } else {
+            scanIDsToDelete.append(scan.id)
+        }
+    }
+    
+    private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
-            let scanID = viewModel.scanList[index].id
-            viewModel.deleteScan(scanID: scanID)
+            let scan = viewModel.scanList[index]
+            viewModel.deleteScan(scanID: scan.id)
         }
     }
 }

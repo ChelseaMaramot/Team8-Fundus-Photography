@@ -7,7 +7,6 @@ struct PatientListView: View {
     
     @State private var showConfirmationModal = false
     @State private var patientIDsToDelete: [String] = []
-    @State private var patientNamesToDelete: [String] = []
     @State private var isEditing = false
     
     var body: some View {

@@ -1,19 +1,18 @@
 import SwiftUI
 
 struct PatientListView: View {
-    
     @StateObject private var viewModel = PatientListViewModel()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @EnvironmentObject var authService: AuthService
     
     @State private var showConfirmationModal = false
-    @State private var patientToDeleteID: String? = nil
-    @State private var patientToDeleteName: String? = nil
+    @State private var patientIDsToDelete: [String] = []
+    @State private var patientNamesToDelete: [String] = []
+    @State private var isEditing = false
     
     var body: some View {
         NavigationStack {
             VStack {
-                
                 Button("Log out") {
                     print("Log out tapped!")
                     authService.regularSignOut { error in
@@ -27,12 +26,20 @@ struct PatientListView: View {
                     if !viewModel.patientList.isEmpty {
                         List {
                             ForEach(viewModel.patientList) { patient in
-                                NavigationLink(destination: ScanListView(patientID: patient.id)) {
-                                    let name = patient.firstName + " " + patient.lastName
-                                    Card(name: name, scanNumber: patient.scanCount)
+                                let name = patient.firstName + " " + patient.lastName
+                                HStack {
+                                    if isEditing {
+                                        Image(systemName: patientIDsToDelete.contains(patient.id) ? "checkmark.circle.fill" : "circle")
+                                            .onTapGesture {
+                                                toggleSelection(for: patient)
+                                            }
+                                    }
+                                    NavigationLink(destination: ScanListView(patientID: patient.id)) {
+                                        Card(name: name, scanNumber: patient.scanCount)
+                                    }
                                 }
                             }
-                            .onDelete(perform: deletePatient)
+                            .onDelete(perform: swipeToDelete)
                         }
                     } else {
                         Text("No Patients found.")
@@ -66,26 +73,49 @@ struct PatientListView: View {
                     .presentationDetents([.fraction(0.50)])
                 }
             }
-            .confirmationDialog("Are you sure you want to delete \(patientToDeleteName ?? "this patient")?", isPresented: $showConfirmationModal, titleVisibility: .visible) {
-                Button("Delete", role: .destructive) {
-                    if let patientID = patientToDeleteID {
-                        viewModel.deletePatient(patientID: patientID)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(isEditing ? "Done" : "Edit") {
+                        isEditing.toggle()
+                        if !isEditing {
+                            patientIDsToDelete.removeAll()
+                        }
                     }
                 }
-                Button("Cancel", role: .cancel) {
-                    patientToDeleteID = nil
-                    patientToDeleteName = nil
+                
+                if isEditing && !patientIDsToDelete.isEmpty {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Delete", role: .destructive) {
+                            showConfirmationModal = true
+                        }
+                    }
                 }
+            }
+            .confirmationDialog("Are you sure you want to delete these patients?", isPresented: $showConfirmationModal, titleVisibility: .visible) {
+                Button("Delete", role: .destructive) {
+                    for patientID in patientIDsToDelete {
+                        viewModel.deletePatient(patientID: patientID)
+                    }
+                    patientIDsToDelete.removeAll()
+                    isEditing = false
+                }
+                Button("Cancel", role: .cancel) {}
             }
         }
     }
     
-    private func deletePatient(at offsets: IndexSet) {
+    private func toggleSelection(for patient: Patient) {
+        if let index = patientIDsToDelete.firstIndex(of: patient.id) {
+            patientIDsToDelete.remove(at: index)
+        } else {
+            patientIDsToDelete.append(patient.id)
+        }
+    }
+    
+    private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
             let patient = viewModel.patientList[index]
-            patientToDeleteID = patient.id
-            patientToDeleteName = patient.firstName + " " + patient.lastName
-            showConfirmationModal = true
+            viewModel.deletePatient(patientID: patient.id)
         }
     }
 }

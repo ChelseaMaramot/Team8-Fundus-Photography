@@ -39,25 +39,28 @@ struct ScanListView: View {
             } else {
                 Text("No Scans found.")
             }
-
-            NavigationLink(destination: CameraView()) {
-                Text("Add New Scan")
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .simultaneousGesture(
-                TapGesture().onEnded {
-                    print("scan name: \(selectedDataManager.getScanID())")
-                    if selectedDataManager.getScanID().isEmpty {
-                        viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: "New Scan") { scanUUID in
-                            if let uuid = scanUUID {
-                                selectedDataManager.setScanID(uuid)
-                            }
-                        }
-                        print("added new scan name: \(selectedDataManager.getScanID())")
-                    }
+            
+            if !isEditing{
+                
+                NavigationLink(destination: CameraView()) {
+                    Text("Add New Scan")
                 }
-            )
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                .simultaneousGesture(
+                    TapGesture().onEnded {
+                        print("scan name: \(selectedDataManager.getScanID())")
+                        if selectedDataManager.getScanID().isEmpty {
+                            viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: "New Scan") { scanUUID in
+                                if let uuid = scanUUID {
+                                    selectedDataManager.setScanID(uuid)
+                                }
+                            }
+                            print("added new scan name: \(selectedDataManager.getScanID())")
+                        }
+                    }
+                )
+            }
         }
         .onAppear {
             selectedDataManager.setPatientID(patientID)
@@ -74,10 +77,12 @@ struct ScanListView: View {
             }
             
             if isEditing && !scanIDsToDelete.isEmpty {
-                ToolbarItem(placement: .navigationBarLeading) {
+                ToolbarItem(placement: .bottomBar) {
                     Button("Delete", role: .destructive) {
                         showConfirmationModal = true
                     }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
                 }
             }
         }
@@ -92,6 +97,7 @@ struct ScanListView: View {
             Button("Cancel", role: .cancel) {}
         }
     }
+        
 
     
     private func toggleSelection(for scan: Scan) {

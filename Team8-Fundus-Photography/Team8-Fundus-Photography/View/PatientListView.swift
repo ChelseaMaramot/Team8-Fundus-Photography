@@ -44,14 +44,16 @@ struct PatientListView: View {
                         Text("No Patients found.")
                     }
                     
-                    Button {
-                        viewModel.isShowingAddPatientSheet = true
-                    } label: {
-                        Text("Add New Patient")
+                    if !isEditing{
+                        
+                        Button {
+                            viewModel.isShowingAddPatientSheet = true
+                        } label: {
+                            Text("Add New Patient")
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-                    
                 }
                 .onAppear {
                     viewModel.fetchPatients()
@@ -83,10 +85,12 @@ struct PatientListView: View {
                 }
                 
                 if isEditing && !patientIDsToDelete.isEmpty {
-                    ToolbarItem(placement: .navigationBarLeading) {
+                    ToolbarItem(placement: .bottomBar) { // Places Delete button at the bottom
                         Button("Delete", role: .destructive) {
                             showConfirmationModal = true
                         }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
                     }
                 }
             }

@@ -149,7 +149,9 @@ extension ScanListView {
                 scanIDsToDelete.removeAll()
                 isEditing = false
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                scanIDsToDelete.removeAll()
+            }
         }
     }
 }
@@ -168,7 +170,8 @@ extension ScanListView {
     private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
             let scan = viewModel.scanList[index]
-            viewModel.deleteScan(scanID: scan.id)
+            scanIDsToDelete.append(scan.id)
+            showConfirmationModal = true
         }
     }
 }

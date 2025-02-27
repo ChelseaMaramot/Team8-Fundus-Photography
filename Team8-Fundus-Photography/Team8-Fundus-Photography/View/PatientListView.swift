@@ -151,7 +151,9 @@ extension PatientListView {
                 patientIDsToDelete.removeAll()
                 isEditing = false
             }
-            Button("Cancel", role: .cancel) {}
+            Button("Cancel", role: .cancel) {
+                   patientIDsToDelete.removeAll()
+               }
         }
     }
 }
@@ -169,8 +171,10 @@ extension PatientListView {
     private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
             let patient = viewModel.patientList[index]
-            viewModel.deletePatient(patientID: patient.id)
+            patientIDsToDelete.append(patient.id)
+            showConfirmationModal = true
         }
+
     }
 }
 

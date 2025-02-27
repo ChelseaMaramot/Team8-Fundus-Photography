@@ -21,28 +21,6 @@ struct ScanListView: View {
 
     var body: some View {
         VStack {
-            HStack{
-                Text("Sort By")
-                    .fontWeight(.light)
-                    .font(.system(size: 12))
-                
-                Button(action: {
-                    
-                }) {
-                    Text("A->Z")
-                        .fontWeight(.medium)
-                        .font(.system(size: 12))
-                        .padding(5)
-                        .background(colors.cardBackground)
-                        .foregroundColor(colors.cardMainText)
-                        .cornerRadius(13)
-                }
-            }
-            .padding(.leading, 16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            
-            
             scanListView
             addScanButton
         }
@@ -68,6 +46,8 @@ extension ScanListView {
     private var scanListView: some View {
         Group {
             if !viewModel.scanList.isEmpty {
+                Spacer()
+                filters
                 List {
                     ForEach(sortedScans) { scan in
                         scanRow(for: scan)
@@ -80,6 +60,28 @@ extension ScanListView {
                 Text("No Scans found.")
             }
         }
+    }
+    
+    private var filters: some View {
+        HStack{
+            Text("Sort By")
+                .fontWeight(.light)
+                .font(.system(size: 12))
+            
+            Button(action: {
+                sortAscending.toggle()
+            }) {
+                Text(sortAscending ? "A->Z" : "Z->A")
+                    .fontWeight(.medium)
+                    .font(.system(size: 12))
+                    .padding(5)
+                    .background(colors.cardBackground)
+                    .foregroundColor(colors.cardMainText)
+                    .cornerRadius(13)
+            }
+        }
+        .padding(.leading, 30)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private var sortedScans: [Scan] {
@@ -225,7 +227,7 @@ extension ScanListView {
 
     private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
-            let scan = viewModel.scanList[index]
+            let scan = sortedScans[index]
             scanIDsToDelete.append(scan.id)
             showConfirmationModal = true
         }

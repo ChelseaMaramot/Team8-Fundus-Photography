@@ -9,6 +9,9 @@ struct ScanListView: View {
     @State private var showConfirmationModal = false
     @State private var scanIDsToDelete: [String] = []
     @State private var isEditing = false
+    @State private var sortAscending = true
+    
+    var colors = cardColors()
 
     // Initializer
     init(patientID: String) {
@@ -18,6 +21,28 @@ struct ScanListView: View {
 
     var body: some View {
         VStack {
+            HStack{
+                Text("Sort By")
+                    .fontWeight(.light)
+                    .font(.system(size: 12))
+                
+                Button(action: {
+                    
+                }) {
+                    Text("A->Z")
+                        .fontWeight(.medium)
+                        .font(.system(size: 12))
+                        .padding(5)
+                        .background(colors.cardBackground)
+                        .foregroundColor(colors.cardMainText)
+                        .cornerRadius(13)
+                }
+            }
+            .padding(.leading, 16)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            
+            
+            
             scanListView
             addScanButton
         }
@@ -34,6 +59,7 @@ struct ScanListView: View {
             deleteConfirmationDialog
         }
     }
+        
 }
 
 // MARK: - UI Components
@@ -43,17 +69,25 @@ extension ScanListView {
         Group {
             if !viewModel.scanList.isEmpty {
                 List {
-                    ForEach(viewModel.scanList) { scan in
+                    ForEach(sortedScans) { scan in
                         scanRow(for: scan)
                     }
                     .onDelete(perform: swipeToDelete)
                 }
+                .frame(maxWidth: .infinity)
+                .listStyle(PlainListStyle()) 
             } else {
                 Text("No Scans found.")
             }
         }
     }
-
+    
+    private var sortedScans: [Scan] {
+        sortAscending
+        ? viewModel.scanList.sorted { $0.name.lowercased() < $1.name.lowercased() }
+        : viewModel.scanList.sorted { $0.name.lowercased() > $1.name.lowercased() }
+    }
+    
     private func scanRow(for scan: Scan) -> some View {
         HStack {
             if isEditing {
@@ -107,9 +141,21 @@ extension ScanListView {
 
     private func toolbarContent() -> some ToolbarContent {
         Group {
+            ToolbarItemGroup(placement: .navigationBarLeading) {
+                Spacer()
+            }
+            ToolbarItemGroup(placement: .principal) {
+                Text("Scans")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color.blue)
+            
+            }
+            
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 editButton
             }
+            
 
             if isEditing && !scanIDsToDelete.isEmpty {
                 ToolbarItem(placement: .bottomBar) {
@@ -118,6 +164,16 @@ extension ScanListView {
             }
         }
     }
+    
+    private var sortButton: some View {
+        Button(action: {
+            sortAscending.toggle()
+        }) {
+            Image(systemName: sortAscending ? "arrow.up.arrow.down" : "arrow.down.arrow.up")
+                .foregroundColor(.blue)
+        }
+    }
+    
 
     private var editButton: some View {
         Button(isEditing ? "Done" : "Edit") {

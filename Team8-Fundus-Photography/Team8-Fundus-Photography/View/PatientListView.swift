@@ -59,6 +59,8 @@ extension PatientListView {
                     }
                     .onDelete(perform: swipeToDelete)
                 }
+                .frame(maxWidth: .infinity)
+                .listStyle(PlainListStyle()) 
             }
         }
     }

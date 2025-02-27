@@ -10,10 +10,11 @@ struct ScanListView: View {
     @State private var scanIDsToDelete: [String] = []
     @State private var isEditing = false
     @State private var sortAscending = true
+    @State private var showSearchField = false
+    @State private var searchQuery = ""
     
     var colors = cardColors()
 
-    // Initializer
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
         self.patientID = patientID
@@ -47,6 +48,8 @@ extension ScanListView {
         Group {
             if !viewModel.scanList.isEmpty {
                 Spacer()
+                searchField
+                Spacer()
                 filters
                 List {
                     ForEach(sortedScans) { scan in
@@ -60,6 +63,23 @@ extension ScanListView {
                 Text("No Scans found.")
             }
         }
+    }
+    
+    
+    private var searchField: some View {
+        VStack{
+            TextField("Search Scans", text: $searchQuery)
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(Color.white)
+                .cornerRadius(13)
+                .padding(.horizontal)
+                .onChange(of: searchQuery) { _ in
+                      viewModel.searchScans(query: searchQuery)
+                }
+        }
+        .padding(15)
+        .background(Color.blue)
     }
     
     private var filters: some View {
@@ -164,15 +184,6 @@ extension ScanListView {
                     deleteButton
                 }
             }
-        }
-    }
-    
-    private var sortButton: some View {
-        Button(action: {
-            sortAscending.toggle()
-        }) {
-            Image(systemName: sortAscending ? "arrow.up.arrow.down" : "arrow.down.arrow.up")
-                .foregroundColor(.blue)
         }
     }
     

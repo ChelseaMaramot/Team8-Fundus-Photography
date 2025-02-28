@@ -1,3 +1,11 @@
+//
+//  ImageCard.swift
+//  Team8-Fundus-Photography
+//
+//  Created by Anjola Adewale on 2025-02-02.
+//
+
+
 import SwiftUI
 
 struct ImageCard: View {

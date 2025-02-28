@@ -6,8 +6,6 @@
 //
 
 // for future, only show empty postions if we are still in imaging mode
-
-
 import SwiftUI
 
 struct ScanSummary: View {
@@ -17,26 +15,28 @@ struct ScanSummary: View {
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()  // Add a refreshID to force view updates
     @State private var isLoading = true
+    @State private var isEditing = false
+    @State private var selectedEditImages: [LabeledImage] = []
+    @State private var showDeleteConfirmation = false
+
     var isFromScanList: Bool
     
     var body: some View {
-        
         ZStack {
             Color(UIColor.systemGray6)
                 .edgesIgnoringSafeArea(.all)
             
-            VStack {
+            VStack(spacing: 16) {  // Adjusted spacing between elements
                 Text("Scan - \(formattedDate())")
                     .font(.title3)
                     .fontWeight(.bold)
                     .foregroundColor(.blue)
-                    .padding(.top, 10)
+                    .padding(.top, 16)  // Adjusted padding to provide more space
                 
                 if !viewModel.imagesByPosition.isEmpty {
                     ScrollView {
                         ForEach(viewModel.imagesByPosition.keys.sorted(), id: \.self) { position in
                             ImageCard(
-                                
                                 viewModel: viewModel,
                                 isFromScanList: isFromScanList,
                                 position: position,
@@ -44,65 +44,96 @@ struct ScanSummary: View {
                                     if let newQuadrant = RegionTypes(rawValue: position) {
                                         selectedDataManager.setQuadrant(newQuadrant)
                                     }
-//                                    selectedDataManager.setQuadrant(newQuadrant)
                                     navigateToCameraView = true
                                     print("Add image for \(position)")
                                     
                                     let imageCount = viewModel.imagesByPosition[position]?.count ?? 0
                                     print("Position: \(position), Total Images: \(imageCount)")
-                                }, onSelectImage: { selectedImage in
+                                },
+                                onSelectImage: { selectedImage in
                                     viewModel.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                                     refreshID = UUID()  // Force a view update
-                                }
+                                },
+                                isEditing: $isEditing,
+                                selectedEditImages: $selectedEditImages
                             )
                         }
                     }
-                    
-                    
-                } else if  isLoading {
-                    ProgressView() // Or ActivityIndicator for older iOS
-                                        .progressViewStyle(.circular) // Customize if needed
-                                        .scaleEffect(1.5) // Adjust size
-                }
-                else {
+                    .padding(.horizontal)  // Add horizontal padding to scroll view
+                } else if isLoading {
+                    ProgressView()
+                        .progressViewStyle(.circular)
+                        .scaleEffect(1.5)
+                } else {
                     Text("No data available")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
                 }
-
-//                NavigationLink(destination: NewScanView())
-                NavigationLink(destination: isFromScanList
-                                ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
-                                : AnyView(NewScanView()))
-{
-                    Text((isFromScanList) ? "Return to Scan List" : "Save Scan")
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                
+                if isEditing {
+                    Button(action: {
+                        showDeleteConfirmation = true
+                    }) {
+                        Text("Delete Images")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.red)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)  // Adjust bottom padding
+                } else {
+                    NavigationLink(destination: isFromScanList
+                                   ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
+                                   : AnyView(NewScanView())) {
+                        Text((isFromScanList) ? "Return to Scan List" : "Save Scan")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)  // Adjust bottom padding
                 }
-                .padding(.bottom, 20)
+                
             }
- 
-            .padding(.top)
+            .padding(.top)  // Adjust top padding
         }
         .colorScheme(.light)
         .navigationBarTitle("Image Summary", displayMode: .inline)
+        .navigationBarItems(trailing: Button(action: {
+            isEditing.toggle()
+            selectedEditImages.removeAll()
+        }) {
+            Text(isEditing ? "Done" : "Edit")
+                .fontWeight(.bold)
+        }
+        .disabled(isFromScanList)
+        )
         
         .onAppear {
             selectedDataManager.setScanID(scanID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                print("starting delayed action")
                 viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false
-                print("forcing view update")
-                refreshID = UUID()  // F
-                print("Delayed action executed!")
-                            }
+                refreshID = UUID()  // Force a view update
+            }
         }
         .navigationDestination(isPresented: $navigateToCameraView) {
-            CameraView()  // Navigate to your CameraView with any necessary parameters
+            CameraView()
+        }
+        .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                viewModel.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                selectedEditImages.removeAll()
+            }
+            Button("Cancel", role: .cancel) {
+                selectedEditImages.removeAll()
+            }
         }
     }
 

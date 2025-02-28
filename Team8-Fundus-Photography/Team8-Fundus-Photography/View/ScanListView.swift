@@ -133,8 +133,10 @@ extension ScanListView {
             if !isEditing {
                 NavigationLink(destination: CameraView()) {
                     Text("Add New Scan")
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
                         .simultaneousGesture(
                             TapGesture().onEnded {
                                 addNewScan()

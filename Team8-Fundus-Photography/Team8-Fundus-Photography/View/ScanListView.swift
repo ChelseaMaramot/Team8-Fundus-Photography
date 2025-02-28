@@ -45,10 +45,9 @@ struct ScanListView: View {
 extension ScanListView {
 
     private var scanListView: some View {
-        Group {
+        VStack {
+            searchField
             if !viewModel.scanList.isEmpty {
-                Spacer()
-                searchField
                 Spacer()
                 filters
                 List {
@@ -60,9 +59,12 @@ extension ScanListView {
                 .frame(maxWidth: .infinity)
                 .listStyle(PlainListStyle()) 
             } else {
+                Spacer()
                 Text("No Scans found.")
+                Spacer()
             }
         }
+        .padding(.top)
     }
     
     

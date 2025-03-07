@@ -193,7 +193,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 5){
+            VStack(spacing: 3){
                 Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
                     .foregroundColor(isAdjustingZoom ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -220,7 +220,7 @@ extension CameraView {
         let lightManager: LightManager
 
         var body: some View {
-            VStack(spacing: 5) {
+            VStack(spacing: 3) {
                 Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
                     .foregroundColor(lightManager.isAdjusting ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -256,7 +256,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 5) {
+            VStack(spacing: 3) {
                 Text("Focus: \(String(format: "%.2f", focusValue))")
                     .foregroundColor(isAdjustingFocus ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)

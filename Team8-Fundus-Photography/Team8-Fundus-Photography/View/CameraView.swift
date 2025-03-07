@@ -10,6 +10,7 @@ import UIKit
 
 struct CameraView: View {
     @State private var isRecording = false
+    @State private var mode = "photo"
     @StateObject private var cameraManager = CameraManager()
     @StateObject private var lightManager = LightManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
@@ -67,13 +68,12 @@ struct CameraView: View {
                     
                     CameraButton(
                         isRecording: $isRecording,
+                        mode: $mode,
                         captureAction: capturePhoto,
                         startRecordingAction: startRecording,
                         stopRecordingAction: stopRecording
                     )
                 }
-                .padding(.top, 1)
-                .padding(.bottom, 150)
             }
         }
         .navigationDestination(isPresented: $showCapturedPhoto) {
@@ -179,7 +179,7 @@ extension CameraView {
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
-                .padding()
+                .padding(.bottom, 5)
                 .foregroundColor(isAdjusting ? .red : .blue)
         }
     }
@@ -190,7 +190,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10){
+            VStack(spacing: 5){
                 Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
                     .foregroundColor(isAdjustingZoom ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -217,7 +217,7 @@ extension CameraView {
         let lightManager: LightManager
 
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
                     .foregroundColor(lightManager.isAdjusting ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -253,7 +253,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 5) {
                 Text("Focus: \(String(format: "%.2f", focusValue))")
                     .foregroundColor(isAdjustingFocus ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)

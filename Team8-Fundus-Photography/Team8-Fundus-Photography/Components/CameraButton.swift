@@ -8,24 +8,51 @@
 import SwiftUI
 
 struct CameraButton: View {
-    var action: () -> Void
+    @Binding var isRecording: Bool
+    var captureAction: () -> Void
+    var startRecordingAction: () -> Void
+    var stopRecordingAction: () -> Void
     
     var body: some View {
-        Button(action: action, label: {
+        Button(action: {
+            if !isRecording {
+                captureAction()
+            }else{
+                isRecording = false
+                stopRecordingAction()
+            }
+        }, label: {
             Circle()
-                .foregroundColor(.blue)
-                .frame(width:80, height: 80, alignment: .center)
+                .fill(isRecording ? Color.red : Color.blue)
+                .frame(width: 80, height: 80, alignment: .center)
                 .overlay(
                     Circle()
                         .stroke(Color.black.opacity(0.8), lineWidth: 2)
                         .frame(width: 65, height: 65, alignment: .center)
                 )
         })
+        .simultaneousGesture(
+            LongPressGesture(minimumDuration: 0.3)
+                .onEnded { _ in
+                    isRecording = true
+                    startRecordingAction()
+                }
+        )
     }
 }
 
+
 #Preview {
-    CameraButton(action: {
-        print("Camera button tapped!")
-    })
+    CameraButton(
+        isRecording: .constant(false),
+        captureAction: {
+            print("Photo captured!")
+        },
+        startRecordingAction: {
+            print("Video recording started!")
+        },
+        stopRecordingAction: {
+            print("Video recording stopped!")
+        }
+    )
 }

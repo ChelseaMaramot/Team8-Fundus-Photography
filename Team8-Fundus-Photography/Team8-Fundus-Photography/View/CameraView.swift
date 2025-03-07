@@ -9,11 +9,10 @@ import SwiftUI
 import UIKit
 
 struct CameraView: View {
-    
+    @State private var isRecording = false
     @StateObject private var cameraManager = CameraManager()
     @StateObject private var lightManager = LightManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-
     
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
@@ -33,59 +32,62 @@ struct CameraView: View {
     
     
     var body: some View {
-    
-            GeometryReader { geometry in
-                ZStack {
-                    Color.white.edgesIgnoringSafeArea(.all)
+        
+        GeometryReader { geometry in
+            ZStack {
+                Color.white.edgesIgnoringSafeArea(.all)
+                
+                QuadrantView(cameraManager: cameraManager)
+                    .zIndex(2)
+                
+                
+                VStack {
                     
-                    QuadrantView(cameraManager: cameraManager)
-                        .zIndex(2)
-           
+                    ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
                     
-                    VStack {
-                        
-                        ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
-                         
-                        CameraFeed
-                            .onAppear { cameraManager.startSession{
-                                print("Camera session started successfully.") }
-                            }
-                            .onDisappear {
-                                cameraManager.stopSession()
-                                print("Camera session stopped.")
-                            }
-                            .gesture(zoomGesture)
-                        
-                        FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
-                        
-                        ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
-                   
-                        
-                        LightControlView(
-                            sliderValue: $sliderValue,
-                            lightManager: lightManager
-                        )
-                        
-                        CameraButton(action: capturePhoto)
-                    }
-                    .padding(.top, 1)
-                    .padding(.bottom, 150)
-                }
-            }
-            .navigationDestination(isPresented: $showCapturedPhoto) {
-//                if let image = capturedImage {
-                    PreviewPage(
-                        image: $capturedImage,
-                        onSave: { print("Saving image to cloud") },
-                        onRetake: {
-                            print("retaking image")
-                            capturedImage = nil
-                            showCapturedPhoto = false
-                            
+                    CameraFeed
+                        .onAppear { cameraManager.startSession{
+                            print("Camera session started successfully.") }
                         }
+                        .onDisappear {
+                            cameraManager.stopSession()
+                            print("Camera session stopped.")
+                        }
+                        .gesture(zoomGesture)
+                    
+                    FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
+                    
+                    ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
+                    
+                    
+                    LightControlView(
+                        sliderValue: $sliderValue,
+                        lightManager: lightManager
                     )
-//                }
+                    
+                    CameraButton(
+                        isRecording: $isRecording,
+                        captureAction: capturePhoto,
+                        startRecordingAction: startRecording,
+                        stopRecordingAction: stopRecording
+                    )
+                }
+                .padding(.top, 1)
+                .padding(.bottom, 150)
             }
+        }
+        .navigationDestination(isPresented: $showCapturedPhoto) {
+            PreviewPage(
+                image: $capturedImage,
+                onSave: { print("Saving image to cloud") },
+                onRetake: {
+                    print("retaking image")
+                    capturedImage = nil
+                    showCapturedPhoto = false
+                    
+                }
+            )
+        }
         
     }
 }
@@ -286,13 +288,21 @@ extension CameraView {
                     if image != nil{
                         showCapturedPhoto = true
                     }
-//                    showCapturedPhoto = true
                 }
-                // image != nil , this image might be too big and causing delays
             }
         }
     
+    
+    private func startRecording() {
+        isRecording = true
+        print("starting to record...")
+        cameraManager.startRecording()
+    }
 
+    private func stopRecording() {
+        isRecording = false
+        cameraManager.stopRecording()
+    }
     
 }
 

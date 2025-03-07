@@ -30,6 +30,9 @@ struct CameraView: View {
     @State private var focusValue: Float = 0.5
     @State private var isScaled = false
     
+    @State private var elapsedTime: TimeInterval = 0
+    @State private var timer: Timer? = nil
+
     
     
     var body: some View {
@@ -44,8 +47,8 @@ struct CameraView: View {
                 
                 VStack {
                     
-                    ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
-                    
+                    recordingTimeIndicator
+                        
                     CameraFeed
                         .onAppear { cameraManager.startSession{
                             print("Camera session started successfully.") }
@@ -295,15 +298,37 @@ extension CameraView {
     
     private func startRecording() {
         isRecording = true
+        elapsedTime = 0
         print("starting to record...")
         cameraManager.startRecording()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+                elapsedTime += 1
+        }
     }
 
     private func stopRecording() {
         isRecording = false
         cameraManager.stopRecording()
+        timer?.invalidate()
+        timer = nil
     }
     
+    private var formattedElapsedTime: String {
+        let minutes = Int(elapsedTime) / 60
+        let seconds = Int(elapsedTime) % 60
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+    
+    private var recordingTimeIndicator: some View {
+        Text(isRecording ? "\(formattedElapsedTime)" : " ")
+            .font(.system(size: 20))
+            .foregroundColor(.white)
+            .background(isRecording ? Color.red : Color.clear)
+            .padding(5)
+            .cornerRadius(10)
+            .opacity(isRecording ? 1 : 0)
+    }
 }
 
 #Preview {

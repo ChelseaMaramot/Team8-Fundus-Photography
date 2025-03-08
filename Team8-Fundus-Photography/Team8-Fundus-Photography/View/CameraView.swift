@@ -32,7 +32,9 @@ struct CameraView: View {
     
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer? = nil
-
+    
+    @State private var recordedVideoURL: URL?
+    @State private var navigateToFrameSelector = false
     
     
     var body: some View {
@@ -90,6 +92,11 @@ struct CameraView: View {
                     
                 }
             )
+        }
+        .navigationDestination(isPresented: $navigateToFrameSelector){
+            if let videoURL = recordedVideoURL {
+                VideoFrameSelectorView(videoURL: videoURL)
+            }
         }
         
     }
@@ -312,6 +319,12 @@ extension CameraView {
         cameraManager.stopRecording()
         timer?.invalidate()
         timer = nil
+
+        if let videoURL = cameraManager.recordedVideoURL {
+            recordedVideoURL = videoURL
+            navigateToFrameSelector = true
+            print("video url: \(recordedVideoURL)")
+        }
     }
     
     private var formattedElapsedTime: String {

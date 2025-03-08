@@ -29,7 +29,8 @@ class CameraManager: NSObject, ObservableObject {
 
     private var isRecording = false
     private var isCameraReady: Bool = false
-
+    
+    @Published var recordedVideoURL: URL?
     @Published var status = Status.unconfigured
     @Published var zoomFactor: CGFloat = 3.0
 
@@ -214,6 +215,8 @@ class CameraManager: NSObject, ObservableObject {
 
 
         let outputURL = FileManager.default.temporaryDirectory.appendingPathComponent("\(UUID().uuidString).mov")
+        self.recordedVideoURL = outputURL
+        
         videoCaptureDelegate = VideoCaptureDelegate { savedURL in
             if let savedURL = savedURL {
                 print("Video successfully saved to: \(savedURL.absoluteString)")

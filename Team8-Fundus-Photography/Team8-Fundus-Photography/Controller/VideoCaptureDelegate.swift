@@ -11,7 +11,7 @@ import Photos
 
 class VideoCaptureDelegate: NSObject, AVCaptureFileOutputRecordingDelegate {
     
-    private let completion: (URL?) -> Void
+    var completion: (URL?) -> Void
     
     init(completion: @escaping (URL?) -> Void) {
         print("Initializing VideoCaptureDelegate")
@@ -20,7 +20,7 @@ class VideoCaptureDelegate: NSObject, AVCaptureFileOutputRecordingDelegate {
     
     func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]) {
         DispatchQueue.main.async {
-            print("✅ Video recording started at \(fileURL.absoluteString)")
+            print("Video recording started at \(fileURL.absoluteString)")
         }
     }
     
@@ -36,9 +36,16 @@ class VideoCaptureDelegate: NSObject, AVCaptureFileOutputRecordingDelegate {
         Task {
             let accessGranted = await isPhotoLibraryReadWriteAccessGranted
             if accessGranted {
-                await save(videoAt: outputFileURL)
-                DispatchQueue.main.async {
-                    self.completion(outputFileURL)
+                await save(videoAt: outputFileURL) { success in
+                    DispatchQueue.main.async {
+                        if success {
+                            print("Video saved successfully!")
+                            self.completion(outputFileURL)
+                        } else {
+                            print("Video save failed.")
+                            self.completion(nil)
+                        }
+                    }
                 }
             } else {
                 print("No access granted for saving video.")
@@ -49,7 +56,7 @@ class VideoCaptureDelegate: NSObject, AVCaptureFileOutputRecordingDelegate {
         }
     }
     
-    func save(videoAt url: URL) async {
+    func save(videoAt url: URL, completion: @escaping (Bool) -> Void) async {
         PHPhotoLibrary.shared().performChanges {
             let creationRequest = PHAssetCreationRequest.forAsset()
             creationRequest.addResource(with: .video, fileURL: url, options: nil)
@@ -57,9 +64,7 @@ class VideoCaptureDelegate: NSObject, AVCaptureFileOutputRecordingDelegate {
             if let error = error {
                 print("Error saving video: \(error.localizedDescription)")
             }
-            if success {
-                print("Video saved successfully!")
-            }
+            completion(success)
         }
     }
     

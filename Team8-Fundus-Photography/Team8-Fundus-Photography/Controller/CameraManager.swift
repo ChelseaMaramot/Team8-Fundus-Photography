@@ -219,32 +219,41 @@ class CameraManager: NSObject, ObservableObject {
         
         videoCaptureDelegate = VideoCaptureDelegate { savedURL in
             if let savedURL = savedURL {
-                print("Video successfully saved to: \(savedURL.absoluteString)")
-            } else {
-                print("Failed to save video.")
+                self.recordedVideoURL = savedURL
+                print("Video will be saved to (using delegate url): \(savedURL.absoluteString)")
             }
         }
-
-        print("Starting video recording...")
+        
         if let videoConnection = movieOutput.connection(with: .video) {
-            movieOutput.startRecording(to: outputURL, recordingDelegate: videoCaptureDelegate!)
+            movieOutput.startRecording(to: self.recordedVideoURL!, recordingDelegate: videoCaptureDelegate!)
             isRecording = true
         }else {
             print("No video connection found!")
         }
     }
-
-    func stopRecording() {
+    
+    func stopRecording(completion: @escaping () -> Void) {
         guard let movieOutput = self.movieOutput, isRecording else {
             print("No active recording to stop")
             return
         }
-
+        
         print("Stopping video recording...")
         movieOutput.stopRecording()
         isRecording = false
+        videoCaptureDelegate?.completion = { savedURL in
+            DispatchQueue.main.async {
+                if let savedURL = savedURL {
+                    print("Video successfully saved to: \(savedURL.absoluteString)")
+                    self.recordedVideoURL = savedURL
+                } else {
+                    print("Failed to save the video")
+                }
+                completion()
+            }
+        }
     }
-    
+
     func setZoomScale(factor: CGFloat) {
         guard let device = self.videoDeviceInput?.device else { return }
 

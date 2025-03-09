@@ -33,7 +33,6 @@ struct CameraView: View {
     @State private var elapsedTime: TimeInterval = 0
     @State private var timer: Timer? = nil
     
-    @State private var recordedVideoURL: URL?
     @State private var navigateToFrameSelector = false
     
     
@@ -50,10 +49,11 @@ struct CameraView: View {
                 VStack {
                     
                     recordingTimeIndicator
-                        
+                    
                     CameraFeed
                         .onAppear { cameraManager.startSession{
                             print("Camera session started successfully.") }
+    
                         }
                         .onDisappear {
                             cameraManager.stopSession()
@@ -93,12 +93,13 @@ struct CameraView: View {
                 }
             )
         }
-        .navigationDestination(isPresented: $navigateToFrameSelector){
-            if let videoURL = recordedVideoURL {
+        .navigationDestination(isPresented: $navigateToFrameSelector) {
+            if let videoURL = cameraManager.recordedVideoURL {
                 VideoFrameSelectorView(videoURL: videoURL)
+            } else {
+                Text("Video not available")
             }
         }
-        
     }
 }
 
@@ -316,17 +317,17 @@ extension CameraView {
 
     private func stopRecording() {
         isRecording = false
-        cameraManager.stopRecording()
+        cameraManager.stopRecording {
+            DispatchQueue.main.async {
+                if cameraManager.recordedVideoURL != nil {
+                    navigateToFrameSelector = true
+                }
+            }
+        }
         timer?.invalidate()
         timer = nil
-
-        if let videoURL = cameraManager.recordedVideoURL {
-            recordedVideoURL = videoURL
-            navigateToFrameSelector = true
-            print("video url: \(recordedVideoURL)")
-        }
     }
-    
+
     private var formattedElapsedTime: String {
         let minutes = Int(elapsedTime) / 60
         let seconds = Int(elapsedTime) % 60

@@ -5,41 +5,75 @@
 //  Created by chelsea maramot on 2025-03-07.
 //
 
+
 import SwiftUI
 import AVKit
 
+class VideoPlayerManager: ObservableObject {
+    @Published var player: AVPlayer? = nil
+    
+    func loadVideo(from videoURL: URL, completion: @escaping () -> Void) {
+        print("in load video...")
+        
+        if FileManager.default.fileExists(atPath: videoURL.path) {
+            print("URL exists: \(videoURL)")
+            DispatchQueue.main.async {
+                self.player = AVPlayer(url: videoURL)
+                completion()
+            }
+        } else {
+            print("url does not exist")
+            DispatchQueue.global(qos: .background).async {
+                while !FileManager.default.fileExists(atPath: videoURL.path) {
+                    print("waiting for video to save")
+                    usleep(100_000)
+                }
+                DispatchQueue.main.async {
+                    self.player = AVPlayer(url: videoURL)
+                    completion()
+                }
+            }
+        }
+    }
+}
+
 struct VideoFrameSelectorView: View {
     let videoURL: URL
+    @StateObject private var videoManager = VideoPlayerManager()
     @State private var currentTime: CMTime = .zero
     @State private var extractedImage: UIImage? = nil
-    @State private var player: AVPlayer
-    
+    @State private var isVideoReady: Bool = false
+    @State private var videoDuration: Double = 0.0
+
     init(videoURL: URL) {
         self.videoURL = videoURL
-        self._player = State(initialValue: AVPlayer(url: videoURL))
     }
     
     var body: some View {
         VStack {
-            VideoPlayer(player: player)
-                .frame(height: 300)
-                .onAppear {
-                    player.seek(to: currentTime)
-                }
-            
-            // Slider to scrub through the video
-            Slider(value: Binding(
-                get: { CMTimeGetSeconds(currentTime) },
-                set: { newValue in
-                    let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
-                    player.seek(to: newTime)
-                    currentTime = newTime
-                }
-            ), in: 0...(CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero).isNaN ? 0 : CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)))
-            .padding()
-
-            
-            // Capture frame button
+            if isVideoReady, let player = videoManager.player {
+                VideoPlayer(player: player)
+                    .frame(height: 300)
+                    .onAppear {
+                        player.seek(to: currentTime)
+                    }
+    
+              
+                Slider(value: Binding(
+                               get: { CMTimeGetSeconds(currentTime) },
+                               set: { newValue in
+                                   let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
+                                   player.seek(to: newTime)
+                                   currentTime = newTime
+                               }
+                           ), in: 0...(CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero).isNaN ? 0 : CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)))
+                           .padding()
+                
+            } else {
+                ProgressView("Loading video...")
+                    .frame(height: 300)
+            }
+      
             Button("Capture Frame") {
                 extractFrame(from: videoURL, at: currentTime) { image in
                     extractedImage = image
@@ -47,7 +81,6 @@ struct VideoFrameSelectorView: View {
             }
             .padding()
             
-            // Show the extracted image
             if let image = extractedImage {
                 Image(uiImage: image)
                     .resizable()
@@ -55,12 +88,23 @@ struct VideoFrameSelectorView: View {
                     .frame(height: 200)
             }
         }
+        .onAppear {
+            print("VideoFrameSelectorView appeared. Loading video from URL: \(videoURL)")
+            videoManager.loadVideo(from: videoURL) {
+                if let duration = videoManager.player?.currentItem?.duration {
+                    videoDuration = CMTimeGetSeconds(duration)
+                    isVideoReady =  duration.isValid
+                }
+            }
+        }
         .onDisappear {
-            player.pause()
+            print("VideoFrameSelectorView disappeared. Pausing and releasing player.")
+            videoManager.player?.pause()
+            videoManager.player = nil
+            isVideoReady = false
         }
     }
     
-    /// Extracts a frame from the video at the selected time
     private func extractFrame(from url: URL, at time: CMTime, completion: @escaping (UIImage?) -> Void) {
         let asset = AVAsset(url: url)
         let generator = AVAssetImageGenerator(asset: asset)

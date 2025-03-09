@@ -95,7 +95,7 @@ struct CameraView: View {
         }
         .navigationDestination(isPresented: $navigateToFrameSelector) {
             if let videoURL = cameraManager.recordedVideoURL {
-                VideoFrameSelectorView(videoURL: videoURL)
+                VideoFrameSelectorView(videoURL: videoURL, elapsedTime: elapsedTime)
             } else {
                 Text("Video not available")
             }
@@ -310,8 +310,8 @@ extension CameraView {
         print("starting to record...")
         cameraManager.startRecording()
         
-        timer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
-                elapsedTime += 1
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            elapsedTime += 0.1
         }
     }
 
@@ -327,11 +327,12 @@ extension CameraView {
         timer?.invalidate()
         timer = nil
     }
-
+    
     private var formattedElapsedTime: String {
-        let minutes = Int(elapsedTime) / 60
-        let seconds = Int(elapsedTime) % 60
-        return String(format: "%02d:%02d", minutes, seconds)
+        let seconds = Int(elapsedTime)
+        let milliseconds = Int((elapsedTime - Double(seconds)) * 1000)
+        let roundedMilliseconds = (milliseconds / 100) * 100 // Round to nearest 100ms
+        return String(format: "%02d.%03d", seconds, roundedMilliseconds)
     }
     
     private var recordingTimeIndicator: some View {

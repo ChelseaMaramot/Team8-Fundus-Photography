@@ -39,14 +39,16 @@ class VideoPlayerManager: ObservableObject {
 
 struct VideoFrameSelectorView: View {
     let videoURL: URL
+    let elapsedTime: TimeInterval
+    
     @StateObject private var videoManager = VideoPlayerManager()
     @State private var currentTime: CMTime = .zero
     @State private var extractedImage: UIImage? = nil
     @State private var isVideoReady: Bool = false
-    @State private var videoDuration: Double = 0.0
 
-    init(videoURL: URL) {
+    init(videoURL: URL, elapsedTime: TimeInterval) {
         self.videoURL = videoURL
+        self.elapsedTime = elapsedTime
     }
     
     var body: some View {
@@ -57,22 +59,22 @@ struct VideoFrameSelectorView: View {
                     .onAppear {
                         player.seek(to: currentTime)
                     }
-    
-              
-                Slider(value: Binding(
-                               get: { CMTimeGetSeconds(currentTime) },
-                               set: { newValue in
-                                   let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
-                                   player.seek(to: newTime)
-                                   currentTime = newTime
-                               }
-                           ), in: 0...(CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero).isNaN ? 0 : CMTimeGetSeconds(player.currentItem?.duration ?? CMTime.zero)))
-                           .padding()
-                
+
             } else {
                 ProgressView("Loading video...")
                     .frame(height: 300)
             }
+            
+            
+            Slider(value: Binding(
+                get: { CMTimeGetSeconds(currentTime) }, // Get the current time in seconds
+                set: { newValue in
+                    let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
+                    videoManager.player?.seek(to: newTime) // Seek to the new time
+                    currentTime = newTime
+                }
+            ), in: 0...elapsedTime)
+            .padding()
       
             Button("Capture Frame") {
                 extractFrame(from: videoURL, at: currentTime) { image in
@@ -92,7 +94,6 @@ struct VideoFrameSelectorView: View {
             print("VideoFrameSelectorView appeared. Loading video from URL: \(videoURL)")
             videoManager.loadVideo(from: videoURL) {
                 if let duration = videoManager.player?.currentItem?.duration {
-                    videoDuration = CMTimeGetSeconds(duration)
                     isVideoReady =  duration.isValid
                 }
             }
@@ -127,6 +128,7 @@ struct VideoFrameSelectorView: View {
     }
 }
 
+
 #Preview {
-    VideoFrameSelectorView(videoURL: URL(string: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4")!)
+    VideoFrameSelectorView(videoURL: URL(string: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4")!, elapsedTime: 10) // Example elapsedTime
 }

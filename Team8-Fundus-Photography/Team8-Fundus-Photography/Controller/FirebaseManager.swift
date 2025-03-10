@@ -4,22 +4,18 @@
 //
 //  Created by Anjola Adewale on 2025-01-08.
 //
-
 import Foundation
 import FirebaseStorage
-import Foundation
 import AVFoundation
 import UIKit
 import FirebaseFirestore
-
 
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     
-    
-    // saving to images collection
+    // Saving to images collection
     func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String, completion: @escaping () -> Void) {
         print("saving to firebase images collection...")
         let storageRef = Storage.storage().reference()
@@ -52,7 +48,6 @@ class FirebaseManager: ObservableObject {
             print(imageRef.path)
             
             let docData: [String: Any] = [
-                
                 "isPrimary": false,
                 "patientID": patientID,
                 "position": region,
@@ -60,22 +55,21 @@ class FirebaseManager: ObservableObject {
                 "url": url
             ]
             
-            
-            imageRef.setData(docData){ error in
+            imageRef.setData(docData) { error in
                 if let error = error {
                     print("Failed to save image path to Firestore: \(error.localizedDescription)")
                 } else {
                     print("Successfully saved image path to Firestore.")
                 }
-            
                 
                 dispatchGroup.leave()
             }
         }
+        
         // Fetch latest images from Firestore
         self.retrievePhotos(patientID: patientID, scanID: scanName)
         let labeledImage = LabeledImage(id: imageID,
-                                            isPrimary: false, position: region, image: image)
+                                        isPrimary: false, position: region, image: image)
         self.imagesByPosition[region]?.append(labeledImage)
         
         dispatchGroup.notify(queue: .main) {
@@ -85,17 +79,14 @@ class FirebaseManager: ObservableObject {
     }
     
     func downloadImage(from path: String, position: String, completion: @escaping (UIImage?) -> Void) {
-        
         let modifiedPath = path.replacingOccurrences(of: "regions", with: position)
         let storageRef = Storage.storage().reference(withPath: modifiedPath)
-        
         
         storageRef.getData(maxSize: 10 * 1024 * 1024) { (data, error) in
             if let error = error {
                 print("Error downloading image: \(error.localizedDescription)")
                 completion(nil)
             } else if let data = data, let image = UIImage(data: data) {
-                //print("image downloaded")
                 completion(image)
             } else {
                 print("no image to download: nil")
@@ -104,13 +95,11 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    
     // Uses Anjola's images collection
     func retrievePhotos(patientID: String, scanID: String) {
         print("Starting image retrieval")
         let db = Firestore.firestore()
         let imagesRef = db.collection("images")
-        let storageRef = Storage.storage().reference()
         let dispatchGroup = DispatchGroup()
         var fetchedImagesByPosition: [String: [LabeledImage]] = [
             "Central": [],
@@ -122,23 +111,19 @@ class FirebaseManager: ObservableObject {
         print("pID: ", patientID)
         print("sID: ", scanID)
         
-        
         imagesRef.whereField("patientID", isEqualTo: patientID)
             .whereField("scanID", isEqualTo: scanID)
-            .getDocuments{ (snapshot, error) in
+            .getDocuments { (snapshot, error) in
                 if let error = error {
                     print("Error getting documents: \(error.localizedDescription)")
                     return
                 }
                 
                 if let snapshot = snapshot, !snapshot.isEmpty {
-                    
-                    
                     for document in snapshot.documents {
                         dispatchGroup.enter()
                         
                         let data = document.data()
-                        
                         
                         if let imageURLString = data["url"] as? String,
                            let position = data["position"] as? String,
@@ -156,10 +141,8 @@ class FirebaseManager: ObservableObject {
                                     fetchedImagesByPosition[position] = [labeledImage]
                                 }
                                 dispatchGroup.leave()
-                                
-                                
                             }
-                        }else{
+                        } else {
                             dispatchGroup.leave()
                         }
                     }
@@ -170,10 +153,7 @@ class FirebaseManager: ObservableObject {
                 } else {
                     print("No documents found")
                 }
-                
-                
             }
-        
     }
     
     func setPrimaryImage(for position: String, image: LabeledImage, patientID: String, scanID: String) {
@@ -181,7 +161,6 @@ class FirebaseManager: ObservableObject {
         if var images = imagesByPosition[position] {
             let dispatchGroup = DispatchGroup()
 
-      
             for index in images.indices {
                 if images[index].id == image.id {
                     images[index].isPrimary = true
@@ -190,7 +169,6 @@ class FirebaseManager: ObservableObject {
                 }
             }
 
-     
             dispatchGroup.enter()
             updateImagePrimaryStatus(patientID: patientID, scanID: scanID, imageID: image.id, isPrimary: true) { success in
                 if !success {
@@ -199,7 +177,6 @@ class FirebaseManager: ObservableObject {
                 dispatchGroup.leave()
             }
 
-   
             for otherImage in images {
                 if otherImage.id != image.id {
                     dispatchGroup.enter()
@@ -219,9 +196,6 @@ class FirebaseManager: ObservableObject {
         }
     }
 
-    
-    
-    
     func updateImagePrimaryStatus(patientID: String, scanID: String, imageID: String, isPrimary: Bool, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         print("Updating isPrimary for image ID: \(imageID)")
@@ -236,7 +210,6 @@ class FirebaseManager: ObservableObject {
                 completion(success)
             }
 
-          
             if let document = document, document.exists {
                 imageRef.updateData([
                     "isPrimary": isPrimary
@@ -256,11 +229,48 @@ class FirebaseManager: ObservableObject {
             completion(success)
         }
     }
+    
+    // Will need to see what happens if deletion from one of the sites fail.
+    func deleteSelectedImages(selectedImages: [LabeledImage], patientID: String, scanName: String) {
+        let db = Firestore.firestore()
+        let storageRef = Storage.storage().reference()
+        let dispatchGroup = DispatchGroup()
 
+        for image in selectedImages {
+            let url = "patients/\(patientID)/scans/\(scanName)/\(image.position)/\(image.id).jpg"
+            print("deleting from storage \(url)")
+            let imageRef = storageRef.child(url)
+            
+            // Delete the image from Firebase Storage
+            imageRef.delete { error in
+                dispatchGroup.enter()
+                if let error = error {
+                    print("Error deleting image from Firebase Storage: \(error.localizedDescription)")
+                } else {
+                    print("Successfully deleted image from Firebase Storage.")
+                }
+                dispatchGroup.leave()
+            }
+            
+            // Delete the image document from Firestore
+            let imageDocRef = db.collection("images").document(image.id)
+            imageDocRef.delete { error in
+                dispatchGroup.enter()
+                if let error = error {
+                    print("Error deleting image document from Firestore: \(error.localizedDescription)")
+                } else {
+                    print("Successfully deleted image document from Firestore.")
+                }
+                dispatchGroup.leave()
+            }
+            
+            if var images = self.imagesByPosition[image.position] {
+                self.imagesByPosition[image.position] = images.filter { $0.id != image.id }
+            }
+        }
+
+        dispatchGroup.notify(queue: .main) {
+            print("All selected images have been deleted from Firebase and Firestore.")
+        }
+    }
 }
-
-
-  
-
-
-

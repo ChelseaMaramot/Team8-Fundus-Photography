@@ -5,10 +5,8 @@
 //  Created by chelsea maramot on 2025-03-07.
 //
 
-
 import SwiftUI
 import AVKit
-
 
 struct VideoFrameSelectorView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
@@ -27,11 +25,10 @@ struct VideoFrameSelectorView: View {
 
     @State private var navigateToScanSummary = false
     @State private var isCapturingFrame = false
-
+    @State private var sliderValue: Double = 0.0
 
     let videoURL: URL
     let elapsedTime: TimeInterval
-
 
     init(videoURL: URL, elapsedTime: TimeInterval) {
         self.videoURL = videoURL
@@ -50,15 +47,13 @@ struct VideoFrameSelectorView: View {
                     .frame(height: 300)
             }
             
-            Slider(value: Binding(
-                get: { CMTimeGetSeconds(currentTime) },
-                set: { newValue in
+            Slider(value: $sliderValue, in: 0...elapsedTime, step: 0.001)
+                .onChange(of: sliderValue) { newValue in
                     let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
                     videoManager.player?.seek(to: newTime)
                     currentTime = newTime
                 }
-            ), in: 0...elapsedTime)
-            .padding()
+                .padding()
             
             VStack {
                 if let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], !images.isEmpty {
@@ -162,6 +157,9 @@ struct VideoFrameSelectorView: View {
                 }
             }
         }
+        .onChange(of: currentTime) { newTime in
+            sliderValue = CMTimeGetSeconds(newTime)
+        }
         .navigationTitle("Select Frames from Video")
         .navigationBarItems(trailing: Button(action: {
             isEditing.toggle()
@@ -214,8 +212,6 @@ struct VideoFrameSelectorView: View {
         }
     }
 }
-
-
 
 #Preview {
     VideoFrameSelectorView(videoURL: URL(string: "https://sample-videos.com/video123/mp4/720/big_buck_bunny_720p_1mb.mp4")!, elapsedTime: 10)

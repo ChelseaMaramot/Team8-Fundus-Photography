@@ -11,6 +11,7 @@ import FirebaseFirestore
 class ScanListViewModel: ObservableObject {
     @Published var scanList: [Scan] = []
     @Published var isShowingAddScanSheet = false
+    @Published var searchQuery: String = ""
     
  
     private var patientID: String
@@ -93,4 +94,17 @@ class ScanListViewModel: ObservableObject {
             }
         }
     }
+    
+    func searchScans(query: String) {
+            self.searchQuery = query
+            
+            if query.isEmpty {
+                self.fetchScans()
+            } else {
+                self.scanList = self.scanList.filter { scan in
+                    scan.name.lowercased().contains(query.lowercased())
+                }
+            }
+        }
+    
 }

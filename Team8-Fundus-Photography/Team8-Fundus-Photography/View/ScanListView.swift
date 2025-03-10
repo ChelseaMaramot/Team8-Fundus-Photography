@@ -9,8 +9,12 @@ struct ScanListView: View {
     @State private var showConfirmationModal = false
     @State private var scanIDsToDelete: [String] = []
     @State private var isEditing = false
+    @State private var sortAscending = true
+    @State private var showSearchField = false
+    @State private var searchQuery = ""
+    
+    var colors = cardColors()
 
-    // Initializer
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
         self.patientID = patientID
@@ -34,26 +38,80 @@ struct ScanListView: View {
             deleteConfirmationDialog
         }
     }
+        
 }
 
 // MARK: - UI Components
 extension ScanListView {
 
     private var scanListView: some View {
-        Group {
+        VStack {
+            searchField
             if !viewModel.scanList.isEmpty {
+                Spacer()
+                filters
                 List {
-                    ForEach(viewModel.scanList) { scan in
+                    ForEach(sortedScans) { scan in
                         scanRow(for: scan)
                     }
                     .onDelete(perform: swipeToDelete)
                 }
+                .frame(maxWidth: .infinity)
+                .listStyle(PlainListStyle()) 
             } else {
+                Spacer()
                 Text("No Scans found.")
+                Spacer()
             }
         }
+        .padding(.top)
     }
-
+    
+    
+    private var searchField: some View {
+        VStack{
+            TextField("Search Scans", text: $searchQuery)
+                .padding(.horizontal)
+                .padding(.vertical, 10)
+                .background(Color.white)
+                .cornerRadius(13)
+                .padding(.horizontal)
+                .onChange(of: searchQuery) { _ in
+                      viewModel.searchScans(query: searchQuery)
+                }
+        }
+        .padding(15)
+        .background(Color.blue)
+    }
+    
+    private var filters: some View {
+        HStack{
+            Text("Sort By")
+                .fontWeight(.light)
+                .font(.system(size: 12))
+            
+            Button(action: {
+                sortAscending.toggle()
+            }) {
+                Text(sortAscending ? "A->Z" : "Z->A")
+                    .fontWeight(.medium)
+                    .font(.system(size: 12))
+                    .padding(5)
+                    .background(colors.cardBackground)
+                    .foregroundColor(colors.cardMainText)
+                    .cornerRadius(13)
+            }
+        }
+        .padding(.leading, 30)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var sortedScans: [Scan] {
+        sortAscending
+        ? viewModel.scanList.sorted { $0.name.lowercased() < $1.name.lowercased() }
+        : viewModel.scanList.sorted { $0.name.lowercased() > $1.name.lowercased() }
+    }
+    
     private func scanRow(for scan: Scan) -> some View {
         HStack {
             if isEditing {
@@ -77,8 +135,10 @@ extension ScanListView {
             if !isEditing {
                 NavigationLink(destination: CameraView()) {
                     Text("Add New Scan")
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.large)
+                        .foregroundColor(.white)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(10)
                         .simultaneousGesture(
                             TapGesture().onEnded {
                                 addNewScan()
@@ -107,9 +167,21 @@ extension ScanListView {
 
     private func toolbarContent() -> some ToolbarContent {
         Group {
+            ToolbarItemGroup(placement: .navigationBarLeading) {
+                Spacer()
+            }
+            ToolbarItemGroup(placement: .principal) {
+                Text("Scans")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color.blue)
+            
+            }
+            
             ToolbarItemGroup(placement: .navigationBarTrailing) {
                 editButton
             }
+            
 
             if isEditing && !scanIDsToDelete.isEmpty {
                 ToolbarItem(placement: .bottomBar) {
@@ -118,6 +190,7 @@ extension ScanListView {
             }
         }
     }
+    
 
     private var editButton: some View {
         Button(isEditing ? "Done" : "Edit") {
@@ -169,7 +242,7 @@ extension ScanListView {
 
     private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
-            let scan = viewModel.scanList[index]
+            let scan = sortedScans[index]
             scanIDsToDelete.append(scan.id)
             showConfirmationModal = true
         }

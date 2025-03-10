@@ -37,6 +37,7 @@ struct VideoFrameSelectorView: View {
 
     var body: some View {
         VStack {
+            // Video Player
             if isVideoReady, let player = videoManager.player {
                 VideoPlayer(player: player)
                     .onAppear {
@@ -46,7 +47,7 @@ struct VideoFrameSelectorView: View {
                 ProgressView("Loading video...")
                     .frame(height: 300)
             }
-            
+
             Slider(value: $sliderValue, in: 0...elapsedTime, step: 0.001)
                 .onChange(of: sliderValue) { newValue in
                     let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
@@ -55,6 +56,7 @@ struct VideoFrameSelectorView: View {
                 }
                 .padding()
             
+            // Scroll view for captured frames
             VStack {
                 if let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], !images.isEmpty {
                     ScrollView {
@@ -76,7 +78,8 @@ struct VideoFrameSelectorView: View {
                         .foregroundColor(.gray)
                 }
             }
-            
+
+            // Editing and Frame Capture Controls
             if isEditing {
                 Button(action: {
                     showDeleteConfirmation = true

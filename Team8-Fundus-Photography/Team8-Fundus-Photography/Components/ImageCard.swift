@@ -69,8 +69,10 @@ struct ImageCard: View {
                                 .overlay(
                                     Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
                                 )
+                            
                                 .padding(.horizontal, 4)
                         }
+    
                     }
                 }
                 // Add Image Button

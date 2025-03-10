@@ -220,7 +220,64 @@ class FirebaseManager: ObservableObject {
     }
 
     
-    
+
+
+    func fetchPrimaryImages(patientID: String, scanID: String, completion: @escaping ([String: UIImage]) -> Void) {
+        let db = Firestore.firestore()
+        let imagesRef = db.collection("images")
+        var primaryImages: [String: UIImage] = [
+            "Central": UIImage(),
+            "Superior": UIImage(),
+            "Nasal": UIImage(),
+            "Temporal": UIImage(),
+            "Inferior": UIImage()
+        ]
+        
+        let storageRef = Storage.storage().reference()
+        let dispatchGroup = DispatchGroup()
+        
+        imagesRef.whereField("patientID", isEqualTo: patientID)
+            .whereField("scanID", isEqualTo: scanID)
+            .whereField("isPrimary", isEqualTo: true) // Only fetch primary images
+            .getDocuments { (snapshot, error) in
+                if let error = error {
+                    print("Error fetching primary images: \(error.localizedDescription)")
+                    completion(primaryImages)
+                    return
+                }
+                
+                guard let snapshot = snapshot, !snapshot.isEmpty else {
+                    print("No primary images found for this scan.")
+                    completion(primaryImages)
+                    return
+                }
+                
+                for document in snapshot.documents {
+                    let data = document.data()
+                    
+                    if let imageURLString = data["url"] as? String,
+                       let position = data["position"] as? String {
+                        
+                        dispatchGroup.enter()
+                        
+                        let imageRef = storageRef.child(imageURLString)
+                        imageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                            if let error = error {
+                                print("Error downloading image for \(position): \(error.localizedDescription)")
+                            } else if let data = data, let image = UIImage(data: data) {
+                                primaryImages[position] = image
+                            }
+                            dispatchGroup.leave()
+                        }
+                    }
+                }
+                
+                dispatchGroup.notify(queue: .main) {
+                    completion(primaryImages)
+                }
+            }
+    }
+
     
     func updateImagePrimaryStatus(patientID: String, scanID: String, imageID: String, isPrimary: Bool, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()

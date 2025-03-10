@@ -117,7 +117,7 @@ extension ScanListView {
             if isEditing {
                 selectionIndicator(for: scan)
             }
-            NavigationLink(destination: ScanSummary(scanID: scan.id, viewModel: storageManager, isFromScanList: true)) {
+            NavigationLink(destination: ScanSummary(scanID: scan.id, isFromScanList: true)) {
                 Card(name: scan.name, isStitched: scan.isStitched)
             }
         }

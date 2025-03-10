@@ -28,12 +28,14 @@ struct Team8_Fundus_PhotographyApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @StateObject var authService = AuthService()
     @StateObject var selectedDataManager = SelectedDataManager()
+    @StateObject var firebaseManager = FirebaseManager()
 
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(authService)
                 .environmentObject(selectedDataManager)
+                .environmentObject(firebaseManager)
         }
     }
 }

@@ -15,5 +15,6 @@ struct ContentView: View {
 #Preview {
     StartView().environmentObject(AuthService())
         .environmentObject(SelectedDataManager())
+        .environmentObject(FirebaseManager())
     
 }

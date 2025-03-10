@@ -12,6 +12,7 @@ import FirebaseFirestore
 
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
+    
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     

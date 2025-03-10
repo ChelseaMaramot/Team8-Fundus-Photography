@@ -11,6 +11,7 @@ import FirebaseAuth
 struct StartView: View {
     @EnvironmentObject var authService: AuthService
     @EnvironmentObject var selectedDataManager: SelectedDataManager
+    @EnvironmentObject var firebaseManager: FirebaseManager
     
     var body: some View {
         if authService.signedIn {

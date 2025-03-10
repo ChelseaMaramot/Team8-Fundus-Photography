@@ -10,7 +10,7 @@ import SwiftUI
 
 struct ScanSummary: View {
     var scanID: String
-    @ObservedObject var viewModel: FirebaseManager
+    @EnvironmentObject var firebaseManager: FirebaseManager
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()  // Add a refreshID to force view updates
@@ -33,11 +33,11 @@ struct ScanSummary: View {
                     .foregroundColor(.blue)
                     .padding(.top, 16)  // Adjusted padding to provide more space
                 
-                if !viewModel.imagesByPosition.isEmpty {
+                if !firebaseManager.imagesByPosition.isEmpty {
                     ScrollView {
-                        ForEach(viewModel.imagesByPosition.keys.sorted(), id: \.self) { position in
+                        ForEach(firebaseManager.imagesByPosition.keys.sorted(), id: \.self) { position in
                             ImageCard(
-                                viewModel: viewModel,
+                                viewModel: firebaseManager,
                                 isFromScanList: isFromScanList,
                                 position: position,
                                 onAddImage: {
@@ -48,11 +48,11 @@ struct ScanSummary: View {
                                     navigateToCameraView = true
                                     print("Add image for \(position)")
                                     
-                                    let imageCount = viewModel.imagesByPosition[position]?.count ?? 0
+                                    let imageCount = firebaseManager.imagesByPosition[position]?.count ?? 0
                                     print("Position: \(position), Total Images: \(imageCount)")
                                 },
                                 onSelectImage: { selectedImage in
-                                    viewModel.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
+                                    firebaseManager.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                                     refreshID = UUID()  // Force a view update
                                 },
                                 isEditing: $isEditing,
@@ -119,7 +119,7 @@ struct ScanSummary: View {
         .onAppear {
             selectedDataManager.setScanID(scanID)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
+                firebaseManager.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false
                 refreshID = UUID()  // Force a view update
             }
@@ -129,7 +129,7 @@ struct ScanSummary: View {
         }
         .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
-                viewModel.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                firebaseManager.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
                 selectedEditImages.removeAll()
             }
             Button("Cancel", role: .cancel) {

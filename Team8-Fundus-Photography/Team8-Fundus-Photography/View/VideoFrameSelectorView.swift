@@ -9,59 +9,11 @@
 import SwiftUI
 import AVKit
 
-class VideoPlayerManager: ObservableObject {
-    @Published var player: AVPlayer? = nil
-    private var patientID: String
-    private var scanID: String
-    private var quadrant: String
-    
-    init(patientID: String, scanID: String, quadrant: String) {
-        self.patientID = patientID
-        self.scanID = scanID
-        self.quadrant = quadrant
-    }
-
-    func loadVideo(from videoURL: URL, completion: @escaping () -> Void) {
-        print("in load video...")
-        
-        if FileManager.default.fileExists(atPath: videoURL.path) {
-            print("URL exists: \(videoURL)")
-            DispatchQueue.main.async {
-                self.player = AVPlayer(url: videoURL)
-                completion()
-            }
-        } else {
-            print("url does not exist")
-            DispatchQueue.global(qos: .background).async {
-                while !FileManager.default.fileExists(atPath: videoURL.path) {
-                    print("waiting for video to save")
-                    usleep(100_000)
-                }
-                DispatchQueue.main.async {
-                    self.player = AVPlayer(url: videoURL)
-                    completion()
-                }
-            }
-        }
-    }
-    
-    func addVideoImageToSelected(image: UIImage, position: String, firebaseManager: FirebaseManager){
-        let labeledImage = LabeledImage(id: UUID().uuidString, isPrimary: false, position: position, image: image)
-           
-        if firebaseManager.imagesByPosition[position] == nil {
-            firebaseManager.imagesByPosition[position] = []
-           }
-  
-        firebaseManager.imagesByPosition[position]?.append(labeledImage)
-        firebaseManager.saveToFirebase(image: image, patientID: patientID, scanName: scanID, region: quadrant) {}
-    }
-}
-
 
 struct VideoFrameSelectorView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-    @StateObject private var videoManager =  VideoPlayerManager
     @EnvironmentObject var firebaseManager: FirebaseManager
+    @State private var videoManager = VideoPlayerManager()
     @State private var currentTime: CMTime = .zero
     @State private var extractedImages: [UIImage] = []
     @State private var isVideoReady: Bool = false
@@ -74,20 +26,16 @@ struct VideoFrameSelectorView: View {
     @State private var showAlert = false
 
     @State private var navigateToScanSummary = false
-    
+    @State private var isCapturingFrame = false
+
+
     let videoURL: URL
     let elapsedTime: TimeInterval
 
-    // Initialize videoManager here instead of in the init method
+
     init(videoURL: URL, elapsedTime: TimeInterval) {
         self.videoURL = videoURL
         self.elapsedTime = elapsedTime
-        
-        _videoManager = StateObject(wrappedValue: VideoPlayerManager(
-            patientID: selectedDataManager.getPatientID(),
-            scanID: selectedDataManager.getScanID(),
-            quadrant: selectedDataManager.getQuadrant().rawValue
-        ))
     }
 
     var body: some View {
@@ -119,10 +67,10 @@ struct VideoFrameSelectorView: View {
                             viewModel: firebaseManager,
                             isFromScanList: true,
                             position: selectedDataManager.getQuadrant().rawValue,
-                            onAddImage: {
-                                
-                            }, onSelectImage: { selectedImage in
+                            onAddImage: {},
+                            onSelectImage: { selectedImage in
                                 firebaseManager.setPrimaryImage(for: selectedDataManager.getQuadrant().rawValue, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
+                                refreshID = UUID()
                             },
                             isEditing: $isEditing,
                             selectedEditImages: $selectedEditImages
@@ -142,7 +90,7 @@ struct VideoFrameSelectorView: View {
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding()
-                        .frame(maxWidth: .infinity)
+                        .frame(maxWidth: 200)
                         .background(isEditing && selectedEditImages.isEmpty ? Color.gray : Color.red)
                         .cornerRadius(10)
                         .padding(.horizontal)
@@ -151,19 +99,24 @@ struct VideoFrameSelectorView: View {
                 .padding(.bottom, 20)
             } else {
                 Button(action: {
+                    guard !isCapturingFrame else { return }
+                    isCapturingFrame = true
+                    
                     let currentPosition = selectedDataManager.getQuadrant().rawValue
                     if let images = firebaseManager.imagesByPosition[currentPosition], images.count >= 4 {
                         showAlert = true
-                        print("too many pics")
                     } else {
                         extractFrame(from: videoURL, at: currentTime) { image in
                             if let image = image {
                                 videoManager.addVideoImageToSelected(
                                     image: image,
                                     position: currentPosition,
-                                    firebaseManager: firebaseManager
+                                    firebaseManager: firebaseManager,
+                                    selectedDataManager: selectedDataManager
                                 )
+                                refreshID = UUID()
                             }
+                            isCapturingFrame = false
                         }
                     }
                 }) {
@@ -176,10 +129,10 @@ struct VideoFrameSelectorView: View {
                         .cornerRadius(10)
                         .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
                 }
+                .disabled(isCapturingFrame)
                 .padding()
             }
             
-
             Button(action: {
                 navigateToScanSummary = true
             }) {
@@ -216,12 +169,16 @@ struct VideoFrameSelectorView: View {
             Text(isEditing ? "Done" : "Edit")
                 .font(.system(size: 16, weight: .bold))
         }
-            .disabled(firebaseManager.imagesByPosition.isEmpty)
+            .disabled(!isEditing && (firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue]?.isEmpty ?? true))
         )
         .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
                 firebaseManager.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
                 selectedEditImages.removeAll()
+                
+                if let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], images.isEmpty {
+                    isEditing = false
+                }
             }
             Button("Cancel", role: .cancel) {
                 selectedEditImages.removeAll()
@@ -257,6 +214,7 @@ struct VideoFrameSelectorView: View {
         }
     }
 }
+
 
 
 #Preview {

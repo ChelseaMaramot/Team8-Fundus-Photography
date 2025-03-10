@@ -19,6 +19,7 @@ struct ScanSummary: View {
     @State private var refreshID = UUID()  // Add a refreshID to force view updates
     @State private var isLoading = true
     var isFromScanList: Bool
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         
@@ -68,22 +69,37 @@ struct ScanSummary: View {
                 else {
                     Text("No data available")
                 }
-
-//                NavigationLink(destination: NewScanView())
-                NavigationLink(destination: isFromScanList
-                                ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
-                               : AnyView(NewScanView(patientID: selectedDataManager.getPatientID())))
-{
-                    Text((isFromScanList) ? "Return to Scan List" : "Add Scan Details")
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                // Conditional Back Button
+                if isFromScanList {
+                    // If coming from Scan List, just go back
+                    Button(action: {
+                        presentationMode.wrappedValue.dismiss() // 👈 Goes back to Scan List
+                    }) {
+                        Text("Return to Scan Details")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)
+                } else {
+                    // If coming from New Scan View, navigate there
+                    NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
+                        Text("Add Scan Details")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)
                 }
-                .padding(.bottom, 20)
+
             }
  
             .padding(.top)

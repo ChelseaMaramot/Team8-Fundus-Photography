@@ -141,7 +141,8 @@ struct ScanDetailsView: View {
     @State private var scanDetails: String = "Loading..."
     @State private var scanDate: Date?
     @State private var isLoading = true
-
+    @State private var navToScanList = false
+    @State private var navToImageSelection = false
     var body: some View {
         ZStack {
             Color(UIColor.systemGray6).edgesIgnoringSafeArea(.all)
@@ -203,20 +204,41 @@ struct ScanDetailsView: View {
                 
                 Spacer()
                 
-                // Return Button
-                Button(action: {
-                    selectedDataManager.setScanID("")
-                }) {
-                    Text("Return to Scan List")
+                NavigationLink(
+                    destination: ScanSummary(scanID: scanID, scanName: scanName, viewModel: storageManager, isFromScanList: true)
+                ) {
+                    Text("View All Images / Change Primary")
                         .fontWeight(.bold)
                         .foregroundColor(.white)
                         .padding()
                         .frame(maxWidth: .infinity)
-                        .background(Color.blue)
+                        .background(Color.orange)
                         .cornerRadius(10)
                         .padding(.horizontal)
                 }
-                .padding(.bottom, 20)
+                .padding(.bottom, 10)
+
+                
+                NavigationLink(
+                    destination: ScanListView(patientID: selectedDataManager.getPatientID()),
+                    isActive: $navToScanList
+                ) {
+                    // Return Button
+                    Button(action: {
+                        selectedDataManager.setScanID("")
+                        navToScanList = true
+                    }) {
+                        Text("Return to Scan List")
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
+                    .padding(.bottom, 20)
+                }
             }
             .padding(.top)
         }

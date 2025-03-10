@@ -60,11 +60,8 @@ struct ImageCard: View {
                 Button(action: {
                     if !isMaxImagesReached && !isFromScanList {
                         onAddImage()
-                        
                     }
                 }) {
-                    
-                    
                     Image(systemName: "plus")
                         .font(.system(size: 24))
                         .foregroundColor((isMaxImagesReached || isFromScanList) ? .black : .white)

@@ -43,6 +43,7 @@ struct ScanSummary: View {
                                 onAddImage: {
                                     if let newQuadrant = RegionTypes(rawValue: position) {
                                         selectedDataManager.setQuadrant(newQuadrant)
+                                        print("new quadrant: \(selectedDataManager.getQuadrant())")
                                     }
 //                                    selectedDataManager.setQuadrant(newQuadrant)
                                     navigateToCameraView = true

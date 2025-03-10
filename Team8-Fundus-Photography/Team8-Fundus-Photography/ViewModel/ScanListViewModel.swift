@@ -77,5 +77,20 @@ class ScanListViewModel: ObservableObject {
             }
         }
     }
-
+    
+    func deleteScan(scanID: String) {
+        let db = Firestore.firestore()
+        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+        
+        scanRef.delete { error in
+            if let error = error {
+                print("Error deleting scan: \(error.localizedDescription)")
+            } else {
+                print("Scan deleted successfully")
+                self.scanList.removeAll { scan in
+                    scan.id == scanID
+                }
+            }
+        }
+    }
 }

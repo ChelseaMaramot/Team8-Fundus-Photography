@@ -58,9 +58,12 @@ struct VideoFrameSelectorView: View {
     @State private var currentTime: CMTime = .zero
     @State private var extractedImages: [UIImage] = []
     @State private var isVideoReady: Bool = false
+    @State private var isEditing = false
+    @State private var selectedEditImages: [LabeledImage] = []
 
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()
+    @State private var showDeleteConfirmation = false
 
     init(videoURL: URL, elapsedTime: TimeInterval) {
         self.videoURL = videoURL
@@ -103,8 +106,8 @@ struct VideoFrameSelectorView: View {
                                 }, onSelectImage: { selectedImage in
                                     viewModel.setPrimaryImage(for: position, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                                 },
-                                isEditing: .constant(false),
-                                selectedEditImages: .constant([])
+                                isEditing: $isEditing,
+                                selectedEditImages: $selectedEditImages
                             )
                         }
                     }
@@ -122,28 +125,66 @@ struct VideoFrameSelectorView: View {
                 }
             }
         }
-        
-        Button(action: {
-            extractFrame(from: videoURL, at: currentTime) { image in
-                if let image = image {
-                    videoManager.addVideoImageToSelected(image: image, position: selectedDataManager.getQuadrant().rawValue, viewModel: viewModel)
-                    print(viewModel.imagesByPosition)
-                }
-
-            }
-            
+        .navigationTitle("Select Frames from Video")
+        .navigationBarItems(trailing: Button(action: {
+            isEditing.toggle()
         }) {
-            Text("Capture Frame")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.blue)
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+            Text(isEditing ? "Done" : "Edit")
+                .font(.system(size: 16, weight: .bold))
         }
-        .padding()
+            .disabled(viewModel.imagesByPosition.isEmpty)
+        )
+        .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("Delete", role: .destructive) {
+                viewModel.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                selectedEditImages.removeAll()
+            }
+            Button("Cancel", role: .cancel) {
+                selectedEditImages.removeAll()
+            }
+        }
+    
+        if isEditing {
+            Button(action: {
+                showDeleteConfirmation = true
+            }) {
+                Text("Delete Images")
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.red)
+                    .cornerRadius(10)
+                    .padding(.horizontal)
+            }
+            .padding(.bottom, 20)
+        } else {
+            Button(action: {
+                extractFrame(from: videoURL, at: currentTime) { image in
+                    if let image = image {
+                        videoManager.addVideoImageToSelected(
+                            image: image,
+                            position: selectedDataManager.getQuadrant().rawValue,
+                            viewModel: viewModel
+                        )
+                        print(viewModel.imagesByPosition)
+                    }
+                }
+            }) {
+                Text("Capture Frame")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 10)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                    .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+            }
+            .padding()
+        }
     }
+
+    
     
     private func extractFrame(from url: URL, at time: CMTime, completion: @escaping (UIImage?) -> Void) {
         let asset = AVAsset(url: url)

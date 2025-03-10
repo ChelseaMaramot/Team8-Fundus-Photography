@@ -18,9 +18,92 @@ class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     
-    
-    // saving to images collection
     func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
+        print("Saving to Firebase images collection...")
+        let storageRef = Storage.storage().reference()
+        let db = Firestore.firestore()
+        let dispatchGroup = DispatchGroup()
+
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("Failed to convert image to JPEG data.")
+            return
+        }
+
+        let imageID = UUID().uuidString
+        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
+        print("This is the image URL: \(url)")
+
+        let fileRef = storageRef.child(url)
+
+        // Upload image to Firebase Storage
+        fileRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Failed to upload image: \(error.localizedDescription)")
+                return
+            }
+
+            dispatchGroup.enter()
+
+            // Check if there's already a primary image in this region
+            let imagesRef = db.collection("images")
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .whereField("position", isEqualTo: region)
+                .whereField("isPrimary", isEqualTo: true)
+                .getDocuments { (snapshot, error) in
+
+                    var isPrimary = false
+
+                    if let error = error {
+                        print("Error checking for existing primary image: \(error.localizedDescription)")
+                    } else if snapshot?.documents.isEmpty == true {
+                        print("No existing primary image found, setting this as primary.")
+                        isPrimary = true
+                    } else {
+                        print("Primary image already exists, not setting this one as primary.")
+                    }
+
+                    // Save the image metadata to Firestore
+                    let imageRef = db.collection("images").document(imageID)
+                    let docData: [String: Any] = [
+                        "isPrimary": isPrimary,  // Set the first image as primary if needed
+                        "patientID": patientID,
+                        "position": region,
+                        "scanID": scanID,
+                        "url": url
+                    ]
+
+                    imageRef.setData(docData) { error in
+                        if let error = error {
+                            print("Failed to save image path to Firestore: \(error.localizedDescription)")
+                        } else {
+                            print("Successfully saved image path to Firestore.")
+                        }
+
+                        dispatchGroup.leave()
+                    }
+
+                    // Update local storage
+                    let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: region, image: image)
+                    if self.imagesByPosition[region] != nil {
+                        self.imagesByPosition[region]?.append(labeledImage)
+                    } else {
+                        self.imagesByPosition[region] = [labeledImage]
+                    }
+                }
+        }
+
+        // Fetch latest images from Firestore
+        self.retrievePhotos(patientID: patientID, scanID: scanID)
+
+        dispatchGroup.notify(queue: .main) {
+            print("Done saving image to Firebase!")
+            completion()
+        }
+    }
+
+    // saving to images collection
+    func saveToFirebaseold(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
         print("saving to firebase images collection...")
         let storageRef = Storage.storage().reference()
         let db = Firestore.firestore()

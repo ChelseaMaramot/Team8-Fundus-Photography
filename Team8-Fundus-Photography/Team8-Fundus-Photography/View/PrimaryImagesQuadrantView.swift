@@ -31,7 +31,7 @@ struct PrimaryImagesQuadrantView: View {
                     // Placeholder if no image exists for this quadrant
                     Circle()
                         .fill(Color.gray.opacity(0.5))
-                        .frame(width: 70, height: 70)
+                        .frame(width: 90, height: 90)
                         .overlay(
                             Text(quadrant.prefix(2)) // Show initials (e.g., "Su" for Superior)
                                 .foregroundColor(.black)

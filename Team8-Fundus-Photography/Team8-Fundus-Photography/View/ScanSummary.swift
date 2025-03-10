@@ -72,7 +72,7 @@ struct ScanSummary: View {
 //                NavigationLink(destination: NewScanView())
                 NavigationLink(destination: isFromScanList
                                 ? AnyView(ScanListView(patientID: selectedDataManager.getPatientID()))
-                               : AnyView(NewScanView()))
+                               : AnyView(NewScanView(patientID: selectedDataManager.getPatientID())))
 {
                     Text((isFromScanList) ? "Return to Scan List" : "Add Scan Details")
                         .fontWeight(.bold)

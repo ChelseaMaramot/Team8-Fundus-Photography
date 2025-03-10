@@ -20,7 +20,29 @@ class ScanListViewModel: ObservableObject {
         self.patientID = patientID
         fetchScans()
     }
-    
+    func fetchScanDetails(scanID: String, completion: @escaping (String, String, Date?) -> Void) {
+        let db = Firestore.firestore()
+        let patientID = self.patientID // Ensure correct patient ID is used
+
+        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+
+        scanRef.getDocument { document, error in
+            if let error = error {
+                print("Error fetching scan details: \(error.localizedDescription)")
+                completion("", "", nil)
+            } else if let document = document, document.exists {
+                let scanName = document.get("name") as? String ?? "Unknown"
+                let scanDetails = document.get("details") as? String ?? "No details available."
+                let scanDate = (document.get("date") as? Timestamp)?.dateValue()
+
+                completion(scanName, scanDetails, scanDate)
+            } else {
+                print("Scan document does not exist")
+                completion("", "", nil)
+            }
+        }
+    }
+
     func fetchScans() {
        
         var fetchedScans: [Scan] = []
@@ -59,21 +81,7 @@ class ScanListViewModel: ObservableObject {
         }
     }
     
-    func addScanName(patientID: String, scanName: String, scanID: String ) {
-        let db = Firestore.firestore()
-        let newPatientRef = db.collection("patients").document(UUID().uuidString)
-        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
-        
-        newScanRef.setData([
-            "name": scanName
-        ]){ error in
-            if let error = error {
-                print("Error adding scan: \(error.localizedDescription)")
-            } else {
-                print("Scan added successfully")
-            }
-        }
-    }
+    
     func addScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
         
@@ -122,31 +130,5 @@ class ScanListViewModel: ObservableObject {
         }
     }
     
-
-    func getScanName(scanID: String, completion: @escaping (String, Date?) -> Void) {
-        let db = Firestore.firestore()
-        
-        // Assume that the patientID and scanID are used to navigate to the scan document
-        let patientID = selectedDataManager.getPatientID() // Replace with actual patient ID
-        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
-        
-        scanRef.getDocument { document, error in
-            if let error = error {
-                print("Error fetching scan: \(error.localizedDescription)")
-                completion("", nil)
-            } else if let document = document, document.exists {
-                // Extract scanName and scanDate from Firestore document
-                let scanName = document.get("name") as? String ?? "Unknown"
-                let scanDate = document.get("date") as? Timestamp
-                let date = scanDate?.dateValue()
-            
-                // Return the values through the completion handler
-                completion(scanName, date)
-            } else {
-                print("Document does not exist")
-                completion("", nil)
-            }
-        }
-    }
 
 }

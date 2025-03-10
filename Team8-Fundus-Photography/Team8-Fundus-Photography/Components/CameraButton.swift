@@ -8,24 +8,117 @@
 import SwiftUI
 
 struct CameraButton: View {
-    var action: () -> Void
+    @Binding var isRecording: Bool
+    @Binding var mode: String
+
+    var captureAction: () -> Void
+    var startRecordingAction: () -> Void
+    var stopRecordingAction: () -> Void
+    
+    @State private var selectionOffset: CGFloat = 0
+    @State private var showToast = false
     
     var body: some View {
-        Button(action: action, label: {
-            Circle()
-                .foregroundColor(.blue)
-                .frame(width:80, height: 80, alignment: .center)
-                .overlay(
+        ZStack {
+            VStack {
+                Button(action: {
+                    if mode == "photo" {
+                        captureAction()
+                    } else {
+                        isRecording ? stopRecordingAction() : startRecordingAction()
+                    }
+                }, label: {
                     Circle()
-                        .stroke(Color.black.opacity(0.8), lineWidth: 2)
-                        .frame(width: 65, height: 65, alignment: .center)
-                )
-        })
+                        .fill(Color.blue)
+                        .frame(width: 80, height: 80)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.white.opacity(1), lineWidth: isRecording ? 10 : 5)
+                                .fill(mode == "video" ? (isRecording ? Color.red : Color.blue) : Color.blue)
+                                .frame(width: isRecording ? 45 : 55, height: isRecording ? 45 : 55)
+                        )
+                        .animation(.spring(), value: isRecording)
+                })
+                .padding(.bottom, 10)
+
+                ZStack(alignment: .leading) {
+                    HStack {
+                        Text("Photo")
+                            .frame(width: 150)
+                            .foregroundColor(mode == "photo" ? .white : .black)
+                            .onTapGesture {
+                                if isRecording {
+                                    showToastMessage()
+                                } else {
+                                    withAnimation(.spring()) {
+                                        mode = "photo"
+                                        selectionOffset = 0
+                                    }
+                                }
+                            }
+
+                        Text("Video")
+                            .frame(width: 150)
+                            .foregroundColor(mode == "video" ? .white : .black)
+                            .onTapGesture {
+                                if isRecording {
+                                    showToastMessage()
+                                } else {
+                                    withAnimation(.spring()) {
+                                        mode = "video"
+                                        selectionOffset = 150
+                                    }
+                                }
+                            }
+                    }
+                    .padding(10)
+                    .background(Color.blue.opacity(1))
+                    .clipShape(Capsule())
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(Color.white.opacity(0.5), lineWidth: 1)
+                    )
+
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white)
+                        .frame(width: 150, height: 3)
+                        .offset(x: selectionOffset)
+                        .animation(.spring(), value: selectionOffset)
+                        .padding(.top, 40)
+                        .shadow(radius: 5)
+                }
+            }
+
+            if showToast {
+                VStack {
+                    Spacer()
+                    Text("Cannot switch modes while recording")
+                        .padding()
+                        .background(Color.black.opacity(0.8))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                        .padding(.bottom, 50)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                }
+                .animation(.easeInOut, value: showToast)
+            }
+        }
+    }
+
+    private func showToastMessage() {
+        showToast = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+            showToast = false
+        }
     }
 }
 
 #Preview {
-    CameraButton(action: {
-        print("Camera button tapped!")
-    })
+    CameraButton(
+        isRecording: .constant(false),
+        mode: .constant("photo"),
+        captureAction: { print("Photo captured!") },
+        startRecordingAction: { print("Video recording started!") },
+        stopRecordingAction: { print("Video recording stopped!") }
+    )
 }

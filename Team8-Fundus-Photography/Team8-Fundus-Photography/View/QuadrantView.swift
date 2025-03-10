@@ -33,12 +33,12 @@ struct QuadrantView: View {
                             isInteractive: false,
                             size: 20
                         )
-                        .frame(width: 120, height: 120)
-                        .offset(x: -10)
+                        .frame(width: 100, height: 100)
+                        .offset(x: -10, y: 0)
                         .overlay(
                             Rectangle()
                                 .stroke(Color.clear)
-                                .frame(width: 120, height: 120)
+                                .frame(width: 100, height: 100)
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     withAnimation(.spring()) {

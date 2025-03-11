@@ -2,10 +2,13 @@ import SwiftUI
 
 struct ScanListView: View {
     var patientID: String
+    @State private var isShowingAddScanSheet = false
+    @State private var newScanName = ""
+    @State private var navigateToCamera = false
     @StateObject private var viewModel: ScanListViewModel
     @StateObject var storageManager = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-
+    
     @State private var showConfirmationModal = false
     @State private var scanIDsToDelete: [String] = []
     @State private var isEditing = false
@@ -14,16 +17,25 @@ struct ScanListView: View {
     @State private var searchQuery = ""
     
     var colors = cardColors()
-
+    
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
         self.patientID = patientID
     }
-
+    
     var body: some View {
         VStack {
             scanListView
-            addScanButton
+            //            addScanButton
+            Button(action: {
+                isShowingAddScanSheet = true
+            }) {
+                Text("Add New Scan")
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
+            NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
+        
         }
         .onAppear {
             selectedDataManager.setPatientID(patientID)
@@ -37,130 +49,131 @@ struct ScanListView: View {
         ) {
             deleteConfirmationDialog
         }
+        .sheet(isPresented: $isShowingAddScanSheet) {
+            BottomSheet(
+                title: "Add New Scan",
+                placeholder: "Enter Scan Name"
+            ) { newName in
+                saveAndNavigate(scanName: newName)
+                
+            }
+        }
     }
-        
 }
+
 
 // MARK: - UI Components
-extension ScanListView {
-
-    private var scanListView: some View {
-        VStack {
-            searchField
-            if !viewModel.scanList.isEmpty {
-                Spacer()
-                filters
-                List {
-                    ForEach(sortedScans) { scan in
-                        scanRow(for: scan)
+    extension ScanListView {
+        
+        private var scanListView: some View {
+            VStack {
+                searchField
+                if !viewModel.scanList.isEmpty {
+                    Spacer()
+                    filters
+                    List {
+                        ForEach(sortedScans) { scan in
+                            scanRow(for: scan)
+                        }
+                        .onDelete(perform: swipeToDelete)
                     }
-                    .onDelete(perform: swipeToDelete)
+                    .frame(maxWidth: .infinity)
+                    .listStyle(PlainListStyle())
+                } else {
+                    Spacer()
+                    Text("No Scans found.")
+                    Spacer()
                 }
-                .frame(maxWidth: .infinity)
-                .listStyle(PlainListStyle()) 
-            } else {
-                Spacer()
-                Text("No Scans found.")
-                Spacer()
             }
+            .padding(.top)
         }
-        .padding(.top)
-    }
-    
-    
-    private var searchField: some View {
-        VStack{
-            TextField("Search Scans", text: $searchQuery)
-                .padding(.horizontal)
-                .padding(.vertical, 10)
-                .background(Color.white)
-                .cornerRadius(13)
-                .padding(.horizontal)
-                .onChange(of: searchQuery) { _ in
-                      viewModel.searchScans(query: searchQuery)
-                }
-        }
-        .padding(15)
-        .background(Color.blue)
-    }
-    
-    private var filters: some View {
-        HStack{
-            Text("Sort By")
-                .fontWeight(.light)
-                .font(.system(size: 12))
-            
-            Button(action: {
-                sortAscending.toggle()
-            }) {
-                Text(sortAscending ? "A->Z" : "Z->A")
-                    .fontWeight(.medium)
-                    .font(.system(size: 12))
-                    .padding(5)
-                    .background(colors.cardBackground)
-                    .foregroundColor(colors.cardMainText)
+        
+        
+        private var searchField: some View {
+            VStack{
+                TextField("Search Scans", text: $searchQuery)
+                    .padding(.horizontal)
+                    .padding(.vertical, 10)
+                    .background(Color.white)
                     .cornerRadius(13)
+                    .padding(.horizontal)
+                    .onChange(of: searchQuery) { _ in
+                        viewModel.searchScans(query: searchQuery)
+                    }
             }
+            .padding(15)
+            .background(Color.blue)
         }
-        .padding(.leading, 30)
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-    private var sortedScans: [Scan] {
-        sortAscending
-        ? viewModel.scanList.sorted { $0.name.lowercased() < $1.name.lowercased() }
-        : viewModel.scanList.sorted { $0.name.lowercased() > $1.name.lowercased() }
-    }
-    
-    private func scanRow(for scan: Scan) -> some View {
-        HStack {
-            if isEditing {
-                selectionIndicator(for: scan)
+        
+        private var filters: some View {
+            HStack{
+                Text("Sort By")
+                    .fontWeight(.light)
+                    .font(.system(size: 12))
+                
+                Button(action: {
+                    sortAscending.toggle()
+                }) {
+                    Text(sortAscending ? "A->Z" : "Z->A")
+                        .fontWeight(.medium)
+                        .font(.system(size: 12))
+                        .padding(5)
+                        .background(colors.cardBackground)
+                        .foregroundColor(colors.cardMainText)
+                        .cornerRadius(13)
+                }
             }
-            NavigationLink(destination: ScanSummary(scanID: scan.id, isFromScanList: true)) {
-                Card(name: scan.name, isStitched: scan.isStitched)
-            }
+            .padding(.leading, 30)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-
-    private func selectionIndicator(for scan: Scan) -> some View {
-        Image(systemName: scanIDsToDelete.contains(scan.id) ? "checkmark.circle.fill" : "circle")
-            .onTapGesture {
-                toggleSelection(for: scan)
-            }
-    }
-
-    private var addScanButton: some View {
-        Group {
-            if !isEditing {
-                NavigationLink(destination: CameraView()) {
-                    Text("Add New Scan")
-                        .foregroundColor(.white)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .simultaneousGesture(
-                            TapGesture().onEnded {
-                                addNewScan()
-                            }
-                        )
+        
+        private var sortedScans: [Scan] {
+            sortAscending
+            ? viewModel.scanList.sorted { $0.name.lowercased() < $1.name.lowercased() }
+            : viewModel.scanList.sorted { $0.name.lowercased() > $1.name.lowercased() }
+        }
+        
+        private func scanRow(for scan: Scan) -> some View {
+            HStack {
+                if isEditing {
+                    selectionIndicator(for: scan)
+                }
+                NavigationLink(destination:
+                                ScanDetailsView(scanID: scan.id, scanName: scan.name, viewModel: viewModel)/*ScanSummary(scanID: scan.id, scanName: scan.name, viewModel: storageManager, isFromScanList: true)*/) {
+                    Card(name: scan.name, isStitched: scan.isStitched)
                 }
             }
         }
-    }
-
-    private func addNewScan() {
-        print("scan name: \(selectedDataManager.getScanID())")
-        if selectedDataManager.getScanID().isEmpty {
-            viewModel.addScan(patientID: selectedDataManager.getPatientID(), scanName: "New Scan") { scanUUID in
-                if let uuid = scanUUID {
-                    selectedDataManager.setScanID(uuid)
+        
+        private func selectionIndicator(for scan: Scan) -> some View {
+            Image(systemName: scanIDsToDelete.contains(scan.id) ? "checkmark.circle.fill" : "circle")
+                .onTapGesture {
+                    toggleSelection(for: scan)
+                }
+        }
+        
+        private var addScanButton: some View {
+            Group {
+                if !isEditing {
+                    NavigationLink(destination: CameraView(), isActive: $navigateToCamera) {
+                        Text("Add New Scan")
+                            .foregroundColor(.white)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .simultaneousGesture(
+                                TapGesture().onEnded {
+                                    isShowingAddScanSheet = true
+                                    //addNewScan()
+                                }
+                            )
+                    }
                 }
             }
-            print("added new scan name: \(selectedDataManager.getScanID())")
         }
+        
+      
     }
-}
 
 // MARK: - Toolbar
 extension ScanListView {
@@ -245,6 +258,20 @@ extension ScanListView {
             let scan = sortedScans[index]
             scanIDsToDelete.append(scan.id)
             showConfirmationModal = true
+        }
+    }
+       
+
+    private func saveAndNavigate(scanName: String) {
+        let newscanID = UUID().uuidString
+        selectedDataManager.setScanID(newscanID)
+        viewModel.addScan(patientID: patientID, scanID : newscanID, scanName: newScanName, scanDetails: "Default scan details", scanDate: Date()) { error in
+            if let error = error {
+                print("Error adding scan: \(error.localizedDescription)")
+            } else {
+                selectedDataManager.setScanName(scanName)
+                navigateToCamera = true
+            }
         }
     }
 }

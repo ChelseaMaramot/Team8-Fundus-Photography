@@ -14,6 +14,7 @@ class SelectedDataManager: ObservableObject {
     
     @Published private var selectedPatientID: String = ""
     @Published private var selectedScanID: String = ""
+    @Published private var selectedScanName: String = ""
     @Published private var selectedQuadrant: RegionTypes = .central
     @Published private var previousSelectedQuadrant: RegionTypes = .central
     
@@ -28,6 +29,10 @@ class SelectedDataManager: ObservableObject {
         self.selectedPatientID = ID
     }
     
+    func setScanName(_ Name: String) {
+        self.selectedScanName = Name
+    }
+    
     func setScanID(_ ID: String) {
         self.selectedScanID = ID
     }
@@ -38,6 +43,10 @@ class SelectedDataManager: ObservableObject {
     
     func getScanID() -> String{
         return self.selectedScanID
+    }
+    
+    func getScanName() -> String{
+        return self.selectedScanName
     }
     
     func setQuadrant(_ quadrant: RegionTypes) {

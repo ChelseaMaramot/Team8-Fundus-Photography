@@ -179,7 +179,7 @@ struct VideoFrameSelectorView: View {
         }
         .padding(.bottom, 20)
         .background(
-            NavigationLink(destination: ScanSummary(scanID: selectedDataManager.getScanID(), isFromScanList: false), isActive: $navigateToScanSummary) {
+            NavigationLink(destination: ScanSummary(scanID: selectedDataManager.getScanID(), scanName: selectedDataManager.getScanName(), viewModel: firebaseManager, isFromScanList: false), isActive: $navigateToScanSummary) {
                 EmptyView()
             }
         )

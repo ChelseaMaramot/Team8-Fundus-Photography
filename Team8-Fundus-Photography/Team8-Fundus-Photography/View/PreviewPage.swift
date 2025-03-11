@@ -78,7 +78,7 @@ struct PreviewPage: View {
                 HStack(spacing: 10) {
                     Button(action: {
                         if let image = image {
-                            storageManager.saveToFirebase(image: image, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID(), region: selectedDataManager.getQuadrant().rawValue) {
+                            storageManager.saveToFirebase(image: image, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID(), region: selectedDataManager.getQuadrant().rawValue) {
                                 
                                 navigateToSummary = true
                             }
@@ -114,7 +114,7 @@ struct PreviewPage: View {
                 .padding(.bottom, 10)
 
                 NavigationLink(
-                    destination: ScanSummary(scanID: selectedDataManager.getScanID(), isFromScanList: false),
+                    destination: ScanSummary(scanID: selectedDataManager.getScanID(), scanName: selectedDataManager.getScanName(),viewModel: storageManager, isFromScanList: false),
                     isActive: $navigateToSummary,
                     label: { EmptyView() }
                 )

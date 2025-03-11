@@ -5,119 +5,124 @@
 //  Created by Anjola Adewale on 2025-02-21.
 //
 
-
 import SwiftUI
+import UIKit
+
+extension Color {
+    static let lightBlue = Color(red: 236/255, green: 241/255, blue: 255/255)
+}
 
 struct NewScanView: View {
-    @Environment(\.presentationMode) var presentationMode
     @State private var scanName: String = ""
     @State private var scanDetails: String = ""
     @State private var scanDate: Date = Date()
     @State private var isSaving: Bool = false
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
+    @State private var navToScanList: Bool = false
+    @State private var images: [String: UIImage] = [:]
+    
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    @StateObject var viewModel: ScanListViewModel
+    @StateObject var storageManager = FirebaseManager()
+    
+    init(patientID: String) {
+        _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+    }
 
     var body: some View {
-        NavigationView { // Embed in NavigationView for toolbar
-            VStack { // Use VStack for main layout
-                Text("Scan Summary") // Title at the top
+        NavigationView {
+            VStack {
+                Text("Scan Summary")
                     .font(.title)
                     .fontWeight(.bold)
                     .padding(.top)
-
-                // Eye Diagram View (replace with your actual implementation)
-                EyeDiagramView()
-                    .frame(height: 200) // Adjust height as needed
+                
+                // Display primary images in quadrants
+                PrimaryImagesQuadrantView(images: images)
+                    .frame(width: 350, height: 300)
                     .padding(.vertical)
+                    .background(Color.lightBlue) // Apply background
+                    .cornerRadius(16) // Add rounded corners
 
                 // Form Inputs
-                VStack(alignment: .leading) { // Align labels to the left
-                    Text("Scan Name")
-                        .padding(.bottom, 5)
-                    TextField("scan name", text: $scanName)
+                VStack(alignment: .leading) {
+                    Text("Scan Name").fontWeight(.bold)
+                    TextField("Scan name", text: $scanName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .background(Color.lightBlue)
                         .padding(.bottom)
 
-                    Text("Session Comments")
-                        .padding(.bottom, 5)
+                    Text("Session Comments").fontWeight(.bold)
                     TextField("Session Comments", text: $scanDetails)
                         .frame(height: 100)
+                        .background(Color.lightBlue)
                         .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray))
-                            
                 }
-                .padding(.horizontal) // Add horizontal padding to the form fields
+                .padding(.horizontal)
 
-                Spacer() // Push button to the bottom
+                Spacer()
 
-                // Scan List Button
-                Button(action: {
-                    // Action for Scan List button
-                }) {
-                    Text("Scan List")
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .padding(.horizontal)
+                // Navigation to Scan List after saving
+                NavigationLink("", destination: ScanListView(patientID: selectedDataManager.getPatientID()), isActive: $navToScanList)
+
+                // Save Button
+                Button(action: saveScan) {
+                    HStack {
+                        if isSaving {
+                            ProgressView()
+                        }
+                        Text("Done")
+                            .bold()
+                            .foregroundColor(.white)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(Color.blue)
+                            .cornerRadius(10)
+                            .padding(.horizontal)
+                    }
                 }
-                .padding(.bottom) // Add padding at the bottom
+                .padding(.bottom)
+                .alert(isPresented: $showAlert) {
+                    Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
+                }
             }
-            .navigationBarBackButtonHidden(true) // Hide default back button
-            .toolbar { // Add custom back button to the toolbar
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button(action: {
-                        presentationMode.wrappedValue.dismiss()
-                    }) {
-                        Image(systemName: "chevron.left") // Use a chevron or custom image
-                        Text("Save Scan") // Match the design
+            .onAppear {
+                storageManager.fetchPrimaryImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
+                    self.images = fetchedImages}
+                scanName = selectedDataManager.getScanName()
+            }
+        }
+    }
+
+    private func saveScan() {
+        isSaving = true
+        let patientID = selectedDataManager.getPatientID()
+        let scanID = selectedDataManager.getScanID()
+
+        // Step 1: Add the scan
+        viewModel.addScan(patientID: patientID, scanID: scanID, scanName: scanName, scanDetails: "", scanDate: scanDate) { error in
+            if let error = error {
+                alertMessage = "Failed to add scan: \(error.localizedDescription)"
+                showAlert = true
+                isSaving = false
+            } else {
+                print("Scan added successfully, now updating details...")
+
+                // Step 2: Update the scan with actual details
+                viewModel.updateScan(patientID: patientID, scanID: scanID, scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { updateError in
+                    isSaving = false
+
+                    if let updateError = updateError {
+                        alertMessage = "Failed to update scan details: \(updateError.localizedDescription)"
+                        showAlert = true
+                    } else {
+                        print("Scan successfully updated!")
+                        navToScanList = true // Navigate back to scan list
                     }
                 }
             }
         }
     }
-
-    // ... (saveScan function remains the same)
 }
 
-// Placeholder for Eye Diagram View (replace with your actual view)
-struct EyeDiagramView: View {
-    var body: some View {
-        // Replace with your custom eye diagram drawing code
-        // This example uses a ZStack with circles for the points
-        ZStack {
-            Circle()
-                .fill(Color.gray.opacity(0.2))
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(x: -50, y: -50) // Example position
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(x: 50, y: -50) // Example position
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(x: -50, y: 50) // Example position
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(x: 50, y: 50) // Example position
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(y: -70) // Example position
-            Circle()
-                .fill(Color.black)
-                .frame(width: 20, height: 20)
-                .offset(y: 70) // Example position
-        }
-    }
-}
-
-
-#Preview {
-    NewScanView()
-}

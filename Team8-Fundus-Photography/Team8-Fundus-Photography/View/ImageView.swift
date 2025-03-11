@@ -10,7 +10,7 @@ import SwiftUI
 struct ImageView: View {
     @State var image: UIImage?
     
-    // Removed onRetake since we no longer need the retake option
+
     
     @State private var scale = 1.0
     @State private var lastScale = 0.0
@@ -78,38 +78,6 @@ struct ImageView: View {
                         }
                     }
                     
-                    // Crop button
-//                    Button("Crop") {
-//                        print("Image size before cropping: \(image?.size.width ?? 0)x\(image?.size.height ?? 0)")
-//                        showCropView = true // Present the cropping view
-//                    }
-//                    .frame(width: 120, height: 44)
-//                    .background(Color.blue)
-//                    .foregroundColor(.white)
-//                    .cornerRadius(10)
-//                    .padding(.bottom, 10)
-//
-//                    // Save button (navigates to summary page)
-//                    Button(action: {
-//                        if let image = image {
-//                            storageManager.saveToFirebase(image: image)
-//                        }
-//                        navigateToSummary = true
-//                    }) {
-//                        Text("Save")
-//                            .frame(width: 120, height: 44)
-//                            .background(Color.blue)
-//                            .foregroundColor(.white)
-//                            .cornerRadius(10)
-//                    }
-//                    .padding(.bottom, 10)
-//                    
-                    // NavigationLink to summary page
-//                    NavigationLink(
-//                        destination: ScanSummary(firebaseManager: FirebaseManager()),
-//                        isActive: $navigateToSummary,
-//                        label: { EmptyView() }
-//                    )
                 }
                 .padding(.top)
             }

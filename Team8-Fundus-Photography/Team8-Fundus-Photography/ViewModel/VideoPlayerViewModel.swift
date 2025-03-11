@@ -48,7 +48,7 @@ class VideoPlayerManager: ObservableObject {
         let quadrant = selectedDataManager.getQuadrant().rawValue
   
         //firebaseManager.imagesByPosition[position]?.append(labeledImage)
-        firebaseManager.saveToFirebase(image: image, patientID: patientID, scanName: scanID, region: quadrant) {
+        firebaseManager.saveToFirebase(image: image, patientID: patientID, scanID: scanID, region: quadrant) {
             print("new list: \(firebaseManager.imagesByPosition[position]?.count)")
             completion()
         }

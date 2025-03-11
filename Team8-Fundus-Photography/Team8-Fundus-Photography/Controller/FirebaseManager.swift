@@ -16,8 +16,95 @@ class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     
-    // Saving to images collection
-    func saveToFirebase(image: UIImage, patientID: String, scanName: String, region: String, completion: @escaping () -> Void) {
+    func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
+        print("Saving to Firebase images collection...")
+        let storageRef = Storage.storage().reference()
+        let db = Firestore.firestore()
+        let dispatchGroup = DispatchGroup()
+
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("Failed to convert image to JPEG data.")
+            return
+        }
+
+        let imageID = UUID().uuidString
+        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
+        print("This is the image URL: \(url)")
+
+        let fileRef = storageRef.child(url)
+
+        // Upload image to Firebase Storage
+        fileRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Failed to upload image: \(error.localizedDescription)")
+                return
+            }
+
+            dispatchGroup.enter()
+
+            // Check if there's already a primary image in this region
+            let imagesRef = db.collection("images")
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .whereField("position", isEqualTo: region)
+                .whereField("isPrimary", isEqualTo: true)
+                .getDocuments { (snapshot, error) in
+
+                    var isPrimary = false
+
+                    if let error = error {
+                        print("Error checking for existing primary image: \(error.localizedDescription)")
+                    } else if snapshot?.documents.isEmpty == true {
+                        print("No existing primary image found, setting this as primary.")
+                        isPrimary = true
+                    } else {
+                        print("Primary image already exists, not setting this one as primary.")
+                    }
+
+                    // Save the image metadata to Firestore
+                    let imageRef = db.collection("images").document(imageID)
+                    let docData: [String: Any] = [
+                        "isPrimary": isPrimary,  // Set the first image as primary if needed
+                        "patientID": patientID,
+                        "position": region,
+                        "scanID": scanID,
+                        "url": url
+                    ]
+
+                    imageRef.setData(docData) { error in
+                        if let error = error {
+                            print("Failed to save image path to Firestore: \(error.localizedDescription)")
+                        } else {
+                            print("Successfully saved image path to Firestore.")
+                        }
+
+                        dispatchGroup.leave()
+                    }
+
+                    // Update local storage
+                    let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: region, image: image)
+                    if self.imagesByPosition[region] != nil {
+                        self.imagesByPosition[region]?.append(labeledImage)
+                    } else {
+                        self.imagesByPosition[region] = [labeledImage]
+                    }
+                }
+        }
+
+        // Fetch latest images from Firestore
+        // self.retrievePhotos(patientID: patientID, scanID: scanID)
+//        let labeledImage = LabeledImage(id: imageID,
+//                                isPrimary: false, position: region, image: image)
+//        self.imagesByPosition[region]?.append(labeledImage)
+
+        dispatchGroup.notify(queue: .main) {
+            print("Done saving image to Firebase!")
+            completion()
+        }
+    }
+
+    // saving to images collection
+    func saveToFirebaseold(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
         print("saving to firebase images collection...")
         let storageRef = Storage.storage().reference()
         let db = Firestore.firestore()
@@ -29,7 +116,7 @@ class FirebaseManager: ObservableObject {
         }
         
         let imageID = UUID().uuidString
-        let url = "patients/\(patientID)/scans/\(scanName)/\(region)/\(imageID).jpg"
+        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
         print("This is the image url: \(url)")
         
         let fileRef = storageRef.child(url)
@@ -52,7 +139,7 @@ class FirebaseManager: ObservableObject {
                 "isPrimary": false,
                 "patientID": patientID,
                 "position": region,
-                "scanID": scanName,
+                "scanID": scanID,
                 "url": url
             ]
             
@@ -197,6 +284,66 @@ class FirebaseManager: ObservableObject {
         }
     }
 
+    
+
+
+    func fetchPrimaryImages(patientID: String, scanID: String, completion: @escaping ([String: UIImage]) -> Void) {
+        let db = Firestore.firestore()
+        let imagesRef = db.collection("images")
+        var primaryImages: [String: UIImage] = [
+            "Central": UIImage(),
+            "Superior": UIImage(),
+            "Nasal": UIImage(),
+            "Temporal": UIImage(),
+            "Inferior": UIImage()
+        ]
+        
+        let storageRef = Storage.storage().reference()
+        let dispatchGroup = DispatchGroup()
+        
+        imagesRef.whereField("patientID", isEqualTo: patientID)
+            .whereField("scanID", isEqualTo: scanID)
+            .whereField("isPrimary", isEqualTo: true) // Only fetch primary images
+            .getDocuments { (snapshot, error) in
+                if let error = error {
+                    print("Error fetching primary images: \(error.localizedDescription)")
+                    completion(primaryImages)
+                    return
+                }
+                
+                guard let snapshot = snapshot, !snapshot.isEmpty else {
+                    print("No primary images found for this scan.")
+                    completion(primaryImages)
+                    return
+                }
+                
+                for document in snapshot.documents {
+                    let data = document.data()
+                    
+                    if let imageURLString = data["url"] as? String,
+                       let position = data["position"] as? String {
+                        
+                        dispatchGroup.enter()
+                        
+                        let imageRef = storageRef.child(imageURLString)
+                        imageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                            if let error = error {
+                                print("Error downloading image for \(position): \(error.localizedDescription)")
+                            } else if let data = data, let image = UIImage(data: data) {
+                                primaryImages[position] = image
+                            }
+                            dispatchGroup.leave()
+                        }
+                    }
+                }
+                
+                dispatchGroup.notify(queue: .main) {
+                    completion(primaryImages)
+                }
+            }
+    }
+
+    
     func updateImagePrimaryStatus(patientID: String, scanID: String, imageID: String, isPrimary: Bool, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         print("Updating isPrimary for image ID: \(imageID)")

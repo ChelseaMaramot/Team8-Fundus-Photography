@@ -118,11 +118,11 @@ struct ScanSummary: View {
         
         .onAppear {
             selectedDataManager.setScanID(scanID)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        
                 firebaseManager.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false
                 refreshID = UUID()  // Force a view update
-            }
+            
         }
         .navigationDestination(isPresented: $navigateToCameraView) {
             CameraView()

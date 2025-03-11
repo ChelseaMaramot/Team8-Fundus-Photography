@@ -75,6 +75,11 @@ struct ImageCard: View {
     
                     }
                 }
+//                
+//                Text("Debug: \(images.count)")
+//                          .foregroundColor(.red)
+//                          .padding()
+                
                 // Add Image Button
                 Button(action: {
                     if !isMaxImagesReached && !isFromScanList {

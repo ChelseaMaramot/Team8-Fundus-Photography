@@ -11,6 +11,7 @@ import AVKit
 struct VideoFrameSelectorView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @EnvironmentObject var firebaseManager: FirebaseManager
+    
     @State private var videoManager = VideoPlayerManager()
     @State private var currentTime: CMTime = .zero
     @State private var isVideoReady: Bool = false
@@ -37,10 +38,8 @@ struct VideoFrameSelectorView: View {
             
             sliderSection
             
-            // Image Display Section
             imageDisplaySection
             
-            // Capture/Save Buttons Section
             actionButtonsSection
         }
         .onAppear { loadVideo() }
@@ -95,7 +94,7 @@ struct VideoFrameSelectorView: View {
     private var imageDisplaySection: some View {
         VStack {
             if let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], !images.isEmpty {
-                ScrollView {
+                VStack{
                     ImageCard(
                         viewModel: firebaseManager,
                         isFromScanList: true,
@@ -103,7 +102,6 @@ struct VideoFrameSelectorView: View {
                         onAddImage: {},
                         onSelectImage: { selectedImage in
                             firebaseManager.setPrimaryImage(for: selectedDataManager.getQuadrant().rawValue, image: selectedImage, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
-                            refreshID = UUID()
                         },
                         isEditing: $isEditing,
                         selectedEditImages: $selectedEditImages
@@ -113,7 +111,13 @@ struct VideoFrameSelectorView: View {
                 Text("No frames captured yet")
                     .foregroundColor(.gray)
             }
+            
+//            Text("Debug: \(firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue]?.count)")
+//                      .foregroundColor(.red)
+//                      .padding()
+//    
         }
+
     }
     
     // Capture/Save Buttons Section
@@ -211,19 +215,20 @@ struct VideoFrameSelectorView: View {
     
     // Capture Frame
     private func captureFrame() {
-        guard !isCapturingFrame else { return }
-        isCapturingFrame = true
-        
+        print("CAPTURING FRAME")
         let currentPosition = selectedDataManager.getQuadrant().rawValue
         if let images = firebaseManager.imagesByPosition[currentPosition], images.count >= 4 {
             showAlert = true
         } else {
             extractFrame(from: videoURL, at: currentTime) { image in
                 if let image = image {
-                    videoManager.addVideoImageToSelected(image: image, position: currentPosition, firebaseManager: firebaseManager, selectedDataManager: selectedDataManager)
-                    refreshID = UUID()
+                    videoManager.addVideoImageToSelected(image: image, position: currentPosition, firebaseManager: firebaseManager, selectedDataManager: selectedDataManager){
+                        refreshID = UUID()
+                        print("images by pos after capturing frame: \(firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue]?.count)")
+                      
+                    }
+    
                 }
-                isCapturingFrame = false
             }
         }
     }

@@ -67,8 +67,8 @@ class FirebaseManager: ObservableObject {
             }
         }
         
-        // Fetch latest images from Firestore
-        self.retrievePhotos(patientID: patientID, scanID: scanName)
+//        // Fetch latest images from Firestore
+//        self.retrievePhotos(patientID: patientID, scanID: scanName)
         let labeledImage = LabeledImage(id: imageID,
                                         isPrimary: false, position: region, image: image)
         self.imagesByPosition[region]?.append(labeledImage)

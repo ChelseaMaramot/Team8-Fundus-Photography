@@ -36,7 +36,7 @@ class VideoPlayerManager: ObservableObject {
         }
     }
     
-    func addVideoImageToSelected(image: UIImage, position: String, firebaseManager: FirebaseManager, selectedDataManager: SelectedDataManager){
+    func addVideoImageToSelected(image: UIImage, position: String, firebaseManager: FirebaseManager, selectedDataManager: SelectedDataManager, completion: @escaping () -> Void){
         let labeledImage = LabeledImage(id: UUID().uuidString, isPrimary: false, position: position, image: image)
            
         if firebaseManager.imagesByPosition[position] == nil {
@@ -48,9 +48,9 @@ class VideoPlayerManager: ObservableObject {
         let quadrant = selectedDataManager.getQuadrant().rawValue
   
         //firebaseManager.imagesByPosition[position]?.append(labeledImage)
-        firebaseManager.saveToFirebase(image: image, patientID: patientID, scanName: scanID, region: quadrant) {}
-        
-        print("new list: \(String(describing: firebaseManager.imagesByPosition[position]))")
-        
+        firebaseManager.saveToFirebase(image: image, patientID: patientID, scanName: scanID, region: quadrant) {
+            print("new list: \(firebaseManager.imagesByPosition[position]?.count)")
+            completion()
+        }
     }
 }

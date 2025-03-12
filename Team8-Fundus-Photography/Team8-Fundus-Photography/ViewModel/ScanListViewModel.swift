@@ -11,7 +11,9 @@ import FirebaseFirestore
 class ScanListViewModel: ObservableObject {
     @Published var scanList: [Scan] = []
     @Published var isShowingAddScanSheet = false
+    @Published var searchQuery: String = ""
     
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
  
     private var patientID: String
     private var storageManager = FirebaseManager()
@@ -20,7 +22,29 @@ class ScanListViewModel: ObservableObject {
         self.patientID = patientID
         fetchScans()
     }
-    
+    func fetchScanDetails(scanID: String, completion: @escaping (String, String, Date?) -> Void) {
+        let db = Firestore.firestore()
+        let patientID = self.patientID // Ensure correct patient ID is used
+
+        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+
+        scanRef.getDocument { document, error in
+            if let error = error {
+                print("Error fetching scan details: \(error.localizedDescription)")
+                completion("", "", nil)
+            } else if let document = document, document.exists {
+                let scanName = document.get("name") as? String ?? "Unknown"
+                let scanDetails = document.get("details") as? String ?? "No details available."
+                let scanDate = (document.get("date") as? Timestamp)?.dateValue()
+
+                completion(scanName, scanDetails, scanDate)
+            } else {
+                print("Scan document does not exist")
+                completion("", "", nil)
+            }
+        }
+    }
+
     func fetchScans() {
        
         var fetchedScans: [Scan] = []
@@ -42,11 +66,14 @@ class ScanListViewModel: ObservableObject {
                 let data = document.data()
                 _ = document.documentID
                 let name = data["name"]
+                let createdDate = data["date"] as? String ?? " "
                 let isStitched = data["isStitched"]
+                let details = data["details"] as? String ?? ""
                 let id = document.documentID
+                // add scan data and get scan details
                 let scan = Scan(id: id, name: name as! String,
-                                regions: ScanRegions(),
-                                isStitched: (isStitched != nil))
+                                isStitched: (isStitched != nil), details: details)
+            
                 
                 fetchedScans.append(scan)
                 
@@ -56,26 +83,81 @@ class ScanListViewModel: ObservableObject {
         }
     }
     
-    // Function to add a new scan to the patient and return the UUID
-    func addScan(patientID: String, scanName: String, completion: @escaping (String?) -> Void) {
+    
+    func addScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
-        let newScanUUID = UUID().uuidString
-        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(newScanUUID)
         
-        newScanRef.setData([
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+
+        let data: [String: Any] = [ // Use a dictionary of type [String: Any]
             "name": scanName,
             "isStitched": false,
-//            "regions": ScanRegions() // this is broken / unneeded
-        ]) { error in
+            "date": scanDate, // Consider storing as Timestamp for better Firestore compatibility
+            "details": scanDetails
+        ]
+       
+        newScanRef.setData(data) { error in // Use the completion handler provided by setData
             if let error = error {
-                print("Error adding scan: \(error.localizedDescription)")
-                completion(nil)
+                completion(error)
             } else {
-                print("Scan added successfully with UUID: \(newScanUUID)")
-                self.fetchScans()
-                completion(newScanUUID)
+                DispatchQueue.main.async {
+                    self.fetchScans()
+                }
+                completion(nil)
             }
         }
     }
+    
+    func deleteScan(scanID: String) {
+        let db = Firestore.firestore()
+        let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
+        
+        scanRef.delete { error in
+            if let error = error {
+                print("Error deleting scan: \(error.localizedDescription)")
+            } else {
+                print("Scan deleted successfully")
+                self.scanList.removeAll { scan in
+                    scan.id == scanID
+                }
+            }
+        }
+    }
+    
+    func updateScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
+        let db = Firestore.firestore()
+        
+        let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
 
+        let data: [String: Any] = [ // Use a dictionary of type [String: Any]
+            "name": scanName,
+            "isStitched": false,
+            "date": scanDate, // Consider storing as Timestamp for better Firestore compatibility
+            "details": scanDetails
+        ]
+       
+        newScanRef.updateData(data) { error in // Use the completion handler provided by setData
+            if let error = error {
+                completion(error)
+            } else {
+                DispatchQueue.main.async {
+                    self.fetchScans()
+                }
+                completion(nil)
+            }
+        }
+    }
+    
+    func searchScans(query: String) {
+            self.searchQuery = query
+            
+            if query.isEmpty {
+                self.fetchScans()
+            } else {
+                self.scanList = self.scanList.filter { scan in
+                    scan.name.lowercased().contains(query.lowercased())
+                }
+            }
+        }
+    
 }

@@ -72,4 +72,19 @@ class PatientListViewModel: ObservableObject {
             }
         }
     }
+    
+    
+    func deletePatient(patientID: String){
+        let db = Firestore.firestore()
+        let patientRef = db.collection("patients").document(patientID)
+        
+        patientRef.delete { error in
+            if let error = error {
+                print("Error deleting patient: \(error.localizedDescription)")
+            } else {
+                print("Patient deleted successfully")
+                self.patientList.removeAll { $0.id == patientID }
+            }
+        }
+    }
 }

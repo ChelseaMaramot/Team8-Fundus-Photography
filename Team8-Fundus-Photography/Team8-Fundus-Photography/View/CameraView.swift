@@ -9,11 +9,11 @@ import SwiftUI
 import UIKit
 
 struct CameraView: View {
-    
+    @State private var isRecording = false
+    @State private var mode = "photo"
     @StateObject private var cameraManager = CameraManager()
     @StateObject private var lightManager = LightManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-
     
     @State private var capturedImage: UIImage?
     @State private var showCapturedPhoto = false
@@ -30,63 +30,84 @@ struct CameraView: View {
     @State private var focusValue: Float = 0.5
     @State private var isScaled = false
     
+    @State private var elapsedTime: TimeInterval = 0
+    @State private var timer: Timer? = nil
+    
+    @State private var navigateToFrameSelector = false
     
     
     var body: some View {
-    
-            GeometryReader { geometry in
-                ZStack {
-                    Color.white.edgesIgnoringSafeArea(.all)
-                    
-                    QuadrantView(cameraManager: cameraManager)
-                        .zIndex(2)
-           
-                    
-                    VStack {
+        
+        GeometryReader { geometry in
+            ZStack {
+                Color.white.edgesIgnoringSafeArea(.all)
+                
+                QuadrantView(cameraManager: cameraManager, selectedDataManager: selectedDataManager)
+                    .zIndex(2)
+            
+                VStack(spacing: 0) {
+                        Text("\(selectedDataManager.getQuadrant().rawValue ?? "None")")
+                            .font(.title3)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 5)
+                                .background(Color.blue.opacity(0.8))
+                                .cornerRadius(12)
+                                .shadow(radius: 5)
                         
-                        ZoomIndicator(currentZoomFactor: cameraManager.zoomFactor, isAdjusting: isAdjustingZoom)
+                        recordingTimeIndicator
                          
+
                         CameraFeed
                             .onAppear { cameraManager.startSession{
                                 print("Camera session started successfully.") }
-                            }
-                            .onDisappear {
-                                cameraManager.stopSession()
-                                print("Camera session stopped.")
-                            }
-                            .gesture(zoomGesture)
-                        
-                        FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
-                        
-                        ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
-                   
-                        
-                        LightControlView(
-                            sliderValue: $sliderValue,
-                            lightManager: lightManager
-                        )
-                        
-                        CameraButton(action: capturePhoto)
-                    }
-                    .padding(.top, 1)
-                    .padding(.bottom, 150)
+                        }
+                        .onDisappear {
+                            cameraManager.stopSession()
+                            print("Camera session stopped.")
+                        }
+                        .gesture(zoomGesture)
+                        .edgesIgnoringSafeArea(.all)
+                    
+                    FocusControlView(focusValue: $focusValue, isAdjustingFocus: $isAdjustingFocus, cameraManager: cameraManager)
+                    
+                    ZoomControlView(currentZoomFactor: $currentZoomFactor, isAdjustingZoom: $isAdjustingZoom, cameraManager: cameraManager)
+                            
+                    LightControlView(
+                        sliderValue: $sliderValue,
+                        lightManager: lightManager
+                    )
+                    
+                    CameraButton(
+                        isRecording: $isRecording,
+                        mode: $mode,
+                        captureAction: capturePhoto,
+                        startRecordingAction: startRecording,
+                        stopRecordingAction: stopRecording
+                    )
                 }
             }
-            .navigationDestination(isPresented: $showCapturedPhoto) {
-//                if let image = capturedImage {
-                    PreviewPage(
-                        image: $capturedImage,
-                        onSave: { print("Saving image to cloud") },
-                        onRetake: {
-                            print("retaking image")
-                            capturedImage = nil
-                            showCapturedPhoto = false
-                            
-                        }
-                    )
-//                }
+        }
+        .navigationDestination(isPresented: $showCapturedPhoto) {
+            PreviewPage(
+                image: $capturedImage,
+                onSave: { print("Saving image to cloud") },
+                onRetake: {
+                    print("retaking image")
+                    capturedImage = nil
+                    showCapturedPhoto = false
+                    
+                }
+            )
+        }
+        .navigationDestination(isPresented: $navigateToFrameSelector) {
+            if let videoURL = cameraManager.recordedVideoURL {
+                VideoFrameSelectorView(videoURL: videoURL, elapsedTime: elapsedTime)
+            } else {
+                Text("Video not available")
             }
-        
+        }
     }
 }
 
@@ -177,7 +198,7 @@ extension CameraView {
         
         var body: some View {
             Text("Current Zoom: \(String(format: "%.2f", currentZoomFactor))")
-                .padding()
+                .padding(.bottom, 5)
                 .foregroundColor(isAdjusting ? .red : .blue)
         }
     }
@@ -188,10 +209,11 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10){
+            VStack(spacing: 3){
                 Text("Zoom: \(String(format: "%.2f", currentZoomFactor))")
                     .foregroundColor(isAdjustingZoom ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top, 5)
                
                 Slider(
                     value: $currentZoomFactor,
@@ -215,7 +237,7 @@ extension CameraView {
         let lightManager: LightManager
 
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 3) {
                 Text("Intensity: \(lightManager.lightIntensity, specifier: "%.0f")")
                     .foregroundColor(lightManager.isAdjusting ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -251,7 +273,7 @@ extension CameraView {
         let cameraManager: CameraManager
         
         var body: some View {
-            VStack(spacing: 10) {
+            VStack(spacing: 3) {
                 Text("Focus: \(String(format: "%.2f", focusValue))")
                     .foregroundColor(isAdjustingFocus ? .red : .blue)
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -286,14 +308,51 @@ extension CameraView {
                     if image != nil{
                         showCapturedPhoto = true
                     }
-//                    showCapturedPhoto = true
                 }
-                // image != nil , this image might be too big and causing delays
             }
         }
     
-
     
+    private func startRecording() {
+        isRecording = true
+        elapsedTime = 0
+        print("starting to record...")
+        cameraManager.startRecording()
+        
+        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+            elapsedTime += 0.1
+        }
+    }
+
+    private func stopRecording() {
+        isRecording = false
+        cameraManager.stopRecording {
+            DispatchQueue.main.async {
+                if cameraManager.recordedVideoURL != nil {
+                    navigateToFrameSelector = true
+                }
+            }
+        }
+        timer?.invalidate()
+        timer = nil
+    }
+    
+    private var formattedElapsedTime: String {
+        let seconds = Int(elapsedTime)
+        let milliseconds = Int((elapsedTime - Double(seconds)) * 1000)
+        let roundedMilliseconds = (milliseconds / 100) * 100 // Round to nearest 100ms
+        return String(format: "%02d.%03d", seconds, roundedMilliseconds)
+    }
+    
+    private var recordingTimeIndicator: some View {
+        Text(isRecording ? "\(formattedElapsedTime)" : " ")
+            .font(.system(size: 20))
+            .foregroundColor(.white)
+            .background(isRecording ? Color.red : Color.clear)
+            .padding(5)
+            .cornerRadius(10)
+            .opacity(isRecording ? 1 : 0)
+    }
 }
 
 #Preview {

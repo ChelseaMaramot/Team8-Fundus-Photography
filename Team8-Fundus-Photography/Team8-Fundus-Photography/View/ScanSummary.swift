@@ -62,7 +62,7 @@ struct ScanSummary: View {
                             )
                         }
                     }
-                    .padding(.horizontal)  // Add horizontal padding to scroll view
+                    .padding(.horizontal)
                 } else if isLoading {
                     ProgressView()
                         .progressViewStyle(.circular)

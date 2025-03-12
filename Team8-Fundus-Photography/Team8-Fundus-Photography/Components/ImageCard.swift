@@ -5,7 +5,6 @@
 //  Created by Anjola Adewale on 2025-02-02.
 //
 
-
 import SwiftUI
 
 struct ImageCard: View {
@@ -30,57 +29,38 @@ struct ImageCard: View {
                 .padding(.leading, 10)
                 .padding(.top, 10)
         }
-        ScrollView(.horizontal, showsIndicators: false){
-            HStack{
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack {
                 ForEach(images) { labeledImage in
-                    if isEditing {
-                        Image(uiImage: labeledImage.image ?? UIImage())
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 80, height: 80)
-                            .clipShape(Circle())
-                            .overlay(
-                                Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
-                            )
-                            .padding(.horizontal, 4)
-                            .onTapGesture {
+                    Image(uiImage: labeledImage.image ?? UIImage())
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 80, height: 80)
+                        .clipShape(Circle())
+                        .overlay(
+                            Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
+                        )
+                        .padding(.horizontal, 4)
+                        .onTapGesture {
+                            if isEditing {
                                 handleImageSelectionOnEdit(labeledImage)
                             }
-                            .onLongPressGesture {
-                                triggerHapticFeedback()
-                                onSelectImage(labeledImage)
-                            }
-                            .overlay(
-                                Image(systemName: "checkmark.circle.fill")
-                                    .resizable()
-                                    .frame(width: 20, height: 20)
-                                    .foregroundColor(.green)
-                                    .opacity(selectedEditImages.contains(where: { $0.id == labeledImage.id }) ? 1 : 0)
-                                    .padding(4)
-                                , alignment: .topTrailing
-                            )
-                    } else {
-                        NavigationLink(destination: ImageView(image: labeledImage.image)) {
-                            Image(uiImage: labeledImage.image ?? UIImage())
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 80, height: 80)
-                                .clipShape(Circle())
-                                .overlay(
-                                    Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
-                                )
-                            
-                                .padding(.horizontal, 4)
                         }
-    
-                    }
+                        .onLongPressGesture {
+                            triggerHapticFeedback()
+                            onSelectImage(labeledImage)
+                        }
+                        .overlay(
+                            Image(systemName: "checkmark.circle.fill")
+                                .resizable()
+                                .frame(width: 20, height: 20)
+                                .foregroundColor(.green)
+                                .opacity(selectedEditImages.contains(where: { $0.id == labeledImage.id }) ? 1 : 0)
+                                .padding(4),
+                            alignment: .topTrailing
+                        )
                 }
-//                
-//                Text("Debug: \(images.count)")
-//                          .foregroundColor(.red)
-//                          .padding()
                 
-                // Add Image Button
                 Button(action: {
                     if !isMaxImagesReached && !isFromScanList {
                         onAddImage()

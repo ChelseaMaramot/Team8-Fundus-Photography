@@ -15,15 +15,23 @@ import FirebaseFirestore
 class AuthService: ObservableObject {
     
     @Published var signedIn:Bool = false
+    @Published var userID: String?
     private let db = Firestore.firestore()
     
     init() {
         Auth.auth().addStateDidChangeListener() { auth, user in
             if user != nil {
                 self.signedIn = true
-                print("Auth state changed, is signed in")
+                self.userID = user?.uid
+                print("Auth state changed, is signed in: \(self.userID ?? "no user")")
+                
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                                 NotificationCenter.default.post(name: NSNotification.Name("UserLoggedIn"), object: nil)
+                             }
+
             } else {
                 self.signedIn = false
+                self.userID = nil
                 print("Auth state changed, is signed out")
             }
         }

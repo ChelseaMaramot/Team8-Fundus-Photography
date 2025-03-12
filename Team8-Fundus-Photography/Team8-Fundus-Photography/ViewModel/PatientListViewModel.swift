@@ -11,18 +11,25 @@ import Combine
 
 class PatientListViewModel: ObservableObject {
     
+  
     @Published var patientList: [Patient] = []
     @Published var isShowingAddPatientSheet = false
-    
-    let userID = "user123"
-    
+        
     private var storageManager = FirebaseManager()
+    private var authService: AuthService
     
-    func fetchPatients() {
+    init(authService: AuthService) {
+        self.authService = authService
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(fetchPatients), name: NSNotification.Name("UserLoggedIn"), object: nil)
+    }
+    
+    @objc func fetchPatients() {
+        
         print("fetching patients ...")
         var fetchedPatients: [Patient] = []
         let db = Firestore.firestore()
-        let patientRef = db.collection("patients").whereField("userIDs", arrayContains: userID)
+        let patientRef = db.collection("patients").whereField("userIDs", arrayContains: authService.userID ?? "")
         
         patientRef.getDocuments { querySnapshot, error in
             if let error = error {
@@ -62,7 +69,7 @@ class PatientListViewModel: ObservableObject {
             "firstName": patient.firstName,
             "lastName": patient.lastName,
             "scanCount": patient.scanCount,
-            "userIDs": [userID]  // chnage this when we have the authentication stuff
+            "userIDs": [authService.userID]  // chnage this when we have the authentication stuff
         ]){ error in
             if let error = error {
                 print("Error adding patient: \(error.localizedDescription)")

@@ -2,13 +2,18 @@ import SwiftUI
 
 struct PatientListView: View {
     
-    @StateObject  var viewModel = PatientListViewModel()
+    @StateObject  var viewModel: PatientListViewModel
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @EnvironmentObject var authService: AuthService
     
     @State private var showConfirmationModal = false
     @State private var patientIDsToDelete: [String] = []
     @State private var isEditing = false
+    
+    init() {
+        _viewModel = StateObject(wrappedValue: PatientListViewModel(authService: AuthService()))
+    }
+    
     
     var body: some View {
         NavigationStack {

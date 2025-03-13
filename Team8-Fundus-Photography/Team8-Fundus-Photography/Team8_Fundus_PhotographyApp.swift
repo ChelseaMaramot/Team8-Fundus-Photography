@@ -32,7 +32,7 @@ struct Team8_Fundus_PhotographyApp: App {
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            SplashScreenView()
                 .environmentObject(authService)
                 .environmentObject(selectedDataManager)
                 .environmentObject(firebaseManager)

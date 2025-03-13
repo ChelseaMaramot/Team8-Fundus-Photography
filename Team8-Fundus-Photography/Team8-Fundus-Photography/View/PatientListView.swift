@@ -35,7 +35,7 @@ struct PatientListView: View {
                 //viewModel.fetchPatients()
             }
             .sheet(isPresented: $viewModel.isShowingAddPatientSheet, content: addPatientSheet)
-//            .toolbar { toolbarContent() }
+            .toolbar { toolbarContent() }
             .confirmationDialog(
                 "Are you sure you want to delete these patients?",
                 isPresented: $showConfirmationModal,
@@ -136,8 +136,12 @@ extension PatientListView {
     
     private func selectionIndicator(for patient: Patient) -> some View {
         Image(systemName: patientIDsToDelete.contains(patient.id) ? "checkmark.circle.fill" : "circle")
+            .foregroundColor(patientIDsToDelete.contains(patient.id) ? Color.blue : Color.blue)
+            .font(.system(size: 23, weight: .bold))
+            .scaleEffect(1.2)
             .onTapGesture { toggleSelection(for: patient) }
     }
+
     
     private var addPatientButton: some View {
         Button(action: { viewModel.isShowingAddPatientSheet = true }) {
@@ -223,19 +227,19 @@ extension PatientListView {
 
 // MARK: - Toolbar
 extension PatientListView {
-//    private func toolbarContent() -> some ToolbarContent {
-//        Group {
+    private func toolbarContent() -> some ToolbarContent {
+        Group {
 //            ToolbarItemGroup(placement: .navigationBarTrailing) {
 //                editButton
 //            }
-//
-//            if isEditing && !patientIDsToDelete.isEmpty {
-//                ToolbarItem(placement: .bottomBar) {
-//                    deleteButton
-//                }
-//            }
-//        }
-//    }
+
+            if isEditing && !patientIDsToDelete.isEmpty {
+                ToolbarItem(placement: .bottomBar) {
+                    deleteButton
+                }
+            }
+        }
+    }
 
     private var editButton: some View {
         Button(isEditing ? "Done" : "Edit") {

@@ -27,14 +27,18 @@ struct ScanListView: View {
         VStack {
             scanListView
             //            addScanButton
-            Button(action: {
-                isShowingAddScanSheet = true
-            }) {
-                Text("Add New Scan")
+            
+            
+            if !isEditing {
+                Button(action: {
+                    isShowingAddScanSheet = true
+                }) {
+                    Text("Add New Scan")
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+                NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
         
         }
         .onAppear {
@@ -147,15 +151,20 @@ struct ScanListView: View {
         
         private func selectionIndicator(for scan: Scan) -> some View {
             Image(systemName: scanIDsToDelete.contains(scan.id) ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(scanIDsToDelete.contains(scan.id) ? Color.blue : Color.blue)
+                .font(.system(size: 23, weight: .bold))
+                .scaleEffect(1.2)
                 .onTapGesture {
                     toggleSelection(for: scan)
                 }
         }
         
+        
         private var addScanButton: some View {
             Group {
                 if !isEditing {
                     NavigationLink(destination: CameraView(), isActive: $navigateToCamera) {
+        
                         Text("Add New Scan")
                             .foregroundColor(.white)
                             .padding()

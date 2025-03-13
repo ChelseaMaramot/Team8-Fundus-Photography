@@ -114,7 +114,7 @@ class ScanListViewModel: ObservableObject {
         }
     }
     
-    func deleteScan(scanID: String) {
+    func deleteScan(patientID: String, scanID: String) {
         let db = Firestore.firestore()
         let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
         
@@ -126,10 +126,19 @@ class ScanListViewModel: ObservableObject {
                 self.scanList.removeAll { scan in
                     scan.id == scanID
                 }
+                
+                self.updateScanCount(patientID: patientID) { updateError in
+                    if let updateError = updateError {
+                        print("Error updating scan count: \(updateError.localizedDescription)")
+                    } else {
+                        print("Scan count updated successfully after deletion")
+                    }
+                }
             }
         }
     }
-    
+
+
     func updateScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
         

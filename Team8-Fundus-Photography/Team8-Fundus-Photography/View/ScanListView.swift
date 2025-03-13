@@ -37,8 +37,9 @@ struct ScanListView: View {
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
-                NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
             }
+                NavigationLink("", destination: CameraView(), isActive: $navigateToCamera)
+            
         
         }
         .onAppear {
@@ -239,7 +240,7 @@ extension ScanListView {
         Group {
             Button("Delete", role: .destructive) {
                 for scanID in scanIDsToDelete {
-                    viewModel.deleteScan(scanID: scanID)
+                    viewModel.deleteScan(patientID: selectedDataManager.getPatientID(), scanID: scanID)
                 }
                 scanIDsToDelete.removeAll()
                 isEditing = false

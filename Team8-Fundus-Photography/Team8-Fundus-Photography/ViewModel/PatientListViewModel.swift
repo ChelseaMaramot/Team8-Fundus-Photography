@@ -29,6 +29,9 @@ class PatientListViewModel: ObservableObject {
     @objc func fetchPatients() {
         
         self.isLoading = true
+//        
+//        guard !isLoading else { return } // Prevent redundant calls
+//         self.isLoading = true
         
         print("fetching patients ...")
         var fetchedPatients: [Patient] = []

@@ -296,7 +296,7 @@ extension PatientListView {
     
     private func swipeToDelete(at offsets: IndexSet) {
         for index in offsets {
-            let patient = viewModel.patientList[index]
+            let patient = sortedPatients[index]
             patientIDsToDelete.append(patient.id)
             showConfirmationModal = true
         }

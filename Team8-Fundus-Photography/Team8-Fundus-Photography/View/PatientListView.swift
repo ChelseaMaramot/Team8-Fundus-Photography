@@ -170,7 +170,7 @@ extension PatientListView {
 
     private var searchField: some View {
         VStack {
-            Text("ScanScope")
+            Text("SmartScope")
                 .fontWeight(.bold)
                 .foregroundColor(.white)
                 .font(.system(size: 24))

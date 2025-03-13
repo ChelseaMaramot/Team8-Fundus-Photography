@@ -3,7 +3,6 @@ import SwiftUI
 struct ScanListView: View {
     var patientID: String
     @State private var isShowingAddScanSheet = false
-    @State private var newScanName = ""
     @State private var navigateToCamera = false
     @StateObject private var viewModel: ScanListViewModel
     @StateObject var storageManager = FirebaseManager()
@@ -275,7 +274,7 @@ extension ScanListView {
     private func saveAndNavigate(scanName: String) {
         let newscanID = UUID().uuidString
         selectedDataManager.setScanID(newscanID)
-        viewModel.addScan(patientID: patientID, scanID : newscanID, scanName: newScanName, scanDetails: "Default scan details", scanDate: Date()) { error in
+        viewModel.addScan(patientID: patientID, scanID : newscanID, scanName: scanName, scanDetails: "No scan details", scanDate: Date()) { error in
             if let error = error {
                 print("Error adding scan: \(error.localizedDescription)")
             } else {

@@ -14,7 +14,7 @@ struct ScanSummary: View {
     @ObservedObject var viewModel: FirebaseManager
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false
-    @State private var refreshID = UUID()  // Add a refreshID to force view updates
+    @State private var refreshID = UUID()
     @State private var isLoading = true
     @State private var isEditing = false
     @State private var selectedEditImages: [LabeledImage] = []

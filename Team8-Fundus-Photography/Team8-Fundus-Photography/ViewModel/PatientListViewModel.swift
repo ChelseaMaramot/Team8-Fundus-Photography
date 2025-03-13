@@ -14,6 +14,8 @@ class PatientListViewModel: ObservableObject {
   
     @Published var patientList: [Patient] = []
     @Published var isShowingAddPatientSheet = false
+    @Published var searchQuery: String = ""
+    @Published var isLoading: Bool = false
         
     private var storageManager = FirebaseManager()
     private var authService: AuthService
@@ -25,6 +27,11 @@ class PatientListViewModel: ObservableObject {
     }
     
     @objc func fetchPatients() {
+        
+        self.isLoading = true
+//        
+//        guard !isLoading else { return } // Prevent redundant calls
+//         self.isLoading = true
         
         print("fetching patients ...")
         var fetchedPatients: [Patient] = []
@@ -53,6 +60,8 @@ class PatientListViewModel: ObservableObject {
             
     
             self.patientList = fetchedPatients
+            self.isLoading = false
+            print("patient list")
             print(self.patientList)
             
         }
@@ -94,4 +103,19 @@ class PatientListViewModel: ObservableObject {
             }
         }
     }
+    
+    func searchPatients(query: String) {
+        self.searchQuery = query
+        
+        if query.isEmpty {
+            print("Query is empty... fetching patients")
+            self.fetchPatients()
+        } else {
+            self.patientList = self.patientList.filter { patient in
+                patient.firstName.lowercased().contains(query.lowercased()) ||
+                patient.lastName.lowercased().contains(query.lowercased())
+            }
+        }
+    }
+
 }

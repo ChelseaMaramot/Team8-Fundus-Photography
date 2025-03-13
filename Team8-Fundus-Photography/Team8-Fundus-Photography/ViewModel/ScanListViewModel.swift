@@ -100,15 +100,21 @@ class ScanListViewModel: ObservableObject {
             if let error = error {
                 completion(error)
             } else {
-                DispatchQueue.main.async {
-                    self.fetchScans()
+                self.updateScanCount(patientID: patientID){ error in
+                    if let error = error {
+                        completion(error)
+                    }  else{
+                        DispatchQueue.main.async {
+                            self.fetchScans()
+                        }
+                        completion(nil)
+                    }
                 }
-                completion(nil)
             }
         }
     }
     
-    func deleteScan(scanID: String) {
+    func deleteScan(patientID: String, scanID: String) {
         let db = Firestore.firestore()
         let scanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
         
@@ -120,23 +126,33 @@ class ScanListViewModel: ObservableObject {
                 self.scanList.removeAll { scan in
                     scan.id == scanID
                 }
+                
+                self.updateScanCount(patientID: patientID) { updateError in
+                    if let updateError = updateError {
+                        print("Error updating scan count: \(updateError.localizedDescription)")
+                    } else {
+                        print("Scan count updated successfully after deletion")
+                    }
+                }
             }
         }
     }
-    
+
+
     func updateScan(patientID: String, scanID: String, scanName: String, scanDetails: String, scanDate: Date, completion: @escaping (Error?) -> Void) {
         let db = Firestore.firestore()
         
+        
         let newScanRef = db.collection("patients").document(patientID).collection("scans").document(scanID)
 
-        let data: [String: Any] = [ // Use a dictionary of type [String: Any]
+        let data: [String: Any] = [
             "name": scanName,
             "isStitched": false,
-            "date": scanDate, // Consider storing as Timestamp for better Firestore compatibility
+            "date": scanDate,
             "details": scanDetails
         ]
        
-        newScanRef.updateData(data) { error in // Use the completion handler provided by setData
+        newScanRef.updateData(data) { error in
             if let error = error {
                 completion(error)
             } else {
@@ -147,6 +163,29 @@ class ScanListViewModel: ObservableObject {
             }
         }
     }
+    
+    func updateScanCount(patientID: String, completion: @escaping (Error?) -> Void) {
+        let db = Firestore.firestore()
+        let patientRef = db.collection("patients").document(patientID)
+        
+        print("updating scan count")
+
+        patientRef.collection("scans").getDocuments { snapshot, error in
+            if let error = error {
+                completion(error)
+            } else {
+                let scanCount = snapshot?.documents.count ?? 0
+                patientRef.updateData(["scanCount": scanCount]) { error in
+                    if let error = error {
+                        completion(error)
+                    } else {
+                        completion(nil)
+                    }
+                }
+            }
+        }
+    }
+
     
     func searchScans(query: String) {
             self.searchQuery = query

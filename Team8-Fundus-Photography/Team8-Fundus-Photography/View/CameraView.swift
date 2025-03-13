@@ -119,46 +119,47 @@ extension CameraView {
     
 
     private var CameraFeed: some View {
-        ZStack{
-            CameraPreview(session: cameraManager.getSession()){ tapPoint in
-                isFocused = true
-                focusLocation = tapPoint
-                cameraManager.setFocusOnTap(devicePoint: focusLocation)
+        GeometryReader { geometry in
+            ZStack {
+                CameraPreview(session: cameraManager.getSession()) { tapPoint in
+                    isFocused = true
+                    focusLocation = tapPoint
+                    cameraManager.setFocusOnTap(devicePoint: focusLocation)
+                    
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                }
+                .edgesIgnoringSafeArea(.all)
                 
-                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            } .edgesIgnoringSafeArea(.all)
-            
-            
-            if isFocused {
-                FocusView(position: $focusLocation)
-                    .scaleEffect(isScaled ? 0.8 : 1)
-                    .onAppear {
-                        // springy animation effect for visual appeal.
-                        withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
-                            self.isScaled = true
-                            // Return to the default state after 0.6 seconds for an elegant user experience.
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                                self.isFocused = false
-                                self.isScaled = false
+                if isFocused {
+                    FocusView(position: $focusLocation)
+                        .scaleEffect(isScaled ? 0.8 : 1)
+                        .onAppear {
+                            // Springy animation effect for visual appeal.
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.6, blendDuration: 0)) {
+                                self.isScaled = true
+                                // Return to the default state after 0.6 seconds for an elegant user experience.
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                                    self.isFocused = false
+                                    self.isScaled = false
+                                }
                             }
                         }
-                    }
+                }
             }
-            
-            
+            .aspectRatio(1, contentMode: .fit)
+            .frame(
+                width: geometry.size.width * 0.9,
+                height: geometry.size.width * 0.9
+            )
+            .clipShape(Circle())
+            .overlay(
+                Group {
+                    if isFlashing { FlashView(isFlashing: $isFlashing).zIndex(1) }
+                }
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
         }
-        .aspectRatio(contentMode: .fill)
-        .frame(width: UIScreen.main.bounds.width * 0.9, height: UIScreen.main.bounds.width)
-        .ignoresSafeArea()
-        .clipShape(Circle())
-        .overlay(
-            Group {
-                if isFlashing { FlashView(isFlashing: $isFlashing).zIndex(1) }
-            }
-        )
-        
-       }
-       
+    }
     
     private var focusOverlay: some View {
         Group {

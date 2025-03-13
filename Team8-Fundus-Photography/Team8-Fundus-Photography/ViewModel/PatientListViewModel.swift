@@ -58,6 +58,7 @@ class PatientListViewModel: ObservableObject {
     
             self.patientList = fetchedPatients
             self.isLoading = false
+            print("patient list")
             print(self.patientList)
             
         }

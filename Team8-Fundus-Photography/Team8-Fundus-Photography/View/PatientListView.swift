@@ -32,7 +32,7 @@ struct PatientListView: View {
                 }
             }
             .onAppear {
-                viewModel.fetchPatients()
+                //viewModel.fetchPatients()
             }
             .sheet(isPresented: $viewModel.isShowingAddPatientSheet, content: addPatientSheet)
 //            .toolbar { toolbarContent() }

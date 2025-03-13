@@ -13,59 +13,74 @@ struct registerView: View {
     let colors = cardColors()
     
     var body: some View {
-        NavigationView{
-            VStack{
+        NavigationView {
+            GeometryReader { geometry in
+                let screenWidth = geometry.size.width
+                let screenHeight = geometry.size.height
                 
-                Rectangle()
-                    .frame(width: 138, height:138)
-                    .cornerRadius(32)
-                    .foregroundStyle(.blue)
+                VStack {
+                    ZStack {
+                        Rectangle()
+                            .frame(width: screenWidth * 0.35, height: screenWidth * 0.35)
+                            .cornerRadius(screenWidth * 0.08)
+                            .foregroundStyle(.blue)
+                        
+                        Image(.logo)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: screenWidth * 0.25, height: screenWidth * 0.25)
+                            .cornerRadius(screenWidth * 0.08)
+                    }
+                    
+                    Text("Smart")
+                        .foregroundStyle(.blue)
+                        .font(.system(size: screenWidth * 0.12))
+                        .fontWeight(.thin)
+                    
+                    Text("Scope")
+                        .foregroundStyle(.blue)
+                        .font(.system(size: screenWidth * 0.12))
+                        .fontWeight(.thin)
+                        .padding(.bottom, screenHeight * 0.05)
+                    
+                    Text("Step into the future of eye care with Smart Scope. Combining advanced technology and accessibility, for clearer vision and better health outcomes.")
+                        .font(.system(size: screenWidth * 0.03))
+                        .fontWeight(.light)
+                        .multilineTextAlignment(.center)
+                        .frame(width: screenWidth * 0.8)
+                        .padding()
+                    
+                    NavigationLink(destination: LoginView()) {
+                        Text("Login")
+                            .font(.system(size: screenWidth * 0.06))
+                            .fontWeight(.medium)
+                            .padding()
+                            .frame(width: screenWidth * 0.8, height: screenHeight * 0.08)
+                            .background(.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(30)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+               
+                    
+                    NavigationLink(destination: signUpView()) {
+                        Text("Sign Up")
+                            .font(.system(size: screenWidth * 0.06))
+                            .fontWeight(.medium)
+                            .padding()
+                            .frame(width: screenWidth * 0.8, height: screenHeight * 0.08)
+                            .background(colors.cardBackground)
+                            .foregroundColor(.blue)
+                            .cornerRadius(30)
+                    }
+                    .buttonStyle(PlainButtonStyle())
                 
-                Text("Smart")
-                    .foregroundStyle(.blue)
-                    .font(.system(size: 48))
-                    .fontWeight(.thin)
-                Text("Scope")
-                    .foregroundStyle(.blue)
-                    .font(.system(size: 48))
-                    .fontWeight(.thin)
-                    .padding(.bottom, 90)
-                
-                
-                Text("Step into the future of eye care with Smart Scope. Combining advanced technology and accessibility, for clearer vision and better health outcomes.")
-                    .font(.system(size: 12))
-                    .fontWeight(.light)
-                    .multilineTextAlignment(.center)
-                    .frame(width: 300, height: 60)
-                    .padding()
-                
-                
-                NavigationLink(destination: loginView()){
-                    Text("Login")
-                }   .font(.system(size: 24))
-                    .fontWeight(.medium)
-                    .padding()
-                    .frame(width: 300, height: 60)
-                    .background(.blue)
-                    .foregroundColor(.white)
-                    .cornerRadius(30)
-                
-                
-                NavigationLink(destination: signUpView()){
-                    Text("Sign Up")
-                } .font(.system(size: 24))
-                    .fontWeight(.medium)
-                    .padding()
-                    .frame(width: 300, height: 60)
-                    .background(colors.cardBackground)
-                    .foregroundColor(.blue)
-                    .cornerRadius(30)
+                }
+                .frame(width: screenWidth, height: screenHeight)
             }
         }
     }
-    
 }
-
 
 #Preview {
     registerView()

@@ -22,10 +22,7 @@ struct PatientListView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 headerView
-            
-                searchField
-                
-                editButton
+        
                         
                 patientListView
                 
@@ -79,17 +76,26 @@ extension PatientListView {
     }
     
     private var headerView: some View {
+        VStack{
             HStack {
-
                 Spacer()
-                
                 logoutButton
             }
-            .padding(.top, 0)
-            .padding(.horizontal)
-            .frame(maxWidth: .infinity)
-            .background(Color.blue)
+            VStack{
+                searchField
+            }
+            
+            HStack{
+                filters
+                Spacer()
+                editButton
+            }
         }
+        .padding(.top, 0)
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+        .background(Color.blue)
+    }
         
 
     private var patientListView: some View {
@@ -98,7 +104,6 @@ extension PatientListView {
                 loadingIndicator
             } else {
                 if !viewModel.patientList.isEmpty {
-                    Spacer()
                     List {
                         ForEach(sortedPatients) { patient in
                             patientRow(for: patient)
@@ -188,8 +193,9 @@ extension PatientListView {
     private var filters: some View {
         HStack{
             Text("Sort By")
-                .fontWeight(.light)
+                .fontWeight(.semibold)
                 .font(.system(size: 12))
+                .foregroundColor(.white)
             
             Button(action: {
                 sortAscending.toggle()
@@ -238,7 +244,7 @@ extension PatientListView {
                 patientIDsToDelete.removeAll()
             }
         }
-        .foregroundColor(.white) // Set the text color to white
+        .foregroundColor(.white)
         .padding()
         .background(Color.blue)
         .cornerRadius(10)

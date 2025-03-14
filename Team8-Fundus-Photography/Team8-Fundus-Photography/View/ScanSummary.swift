@@ -9,9 +9,11 @@
 import SwiftUI
 
 struct ScanSummary: View {
-    var scanID: String
-    var scanName: String
-    @ObservedObject var viewModel: FirebaseManager
+//    var scanID: String
+//    var scanName: String
+//    @ObservedObject var viewModel: FirebaseManager
+    
+    @StateObject private var viewModel = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()
@@ -23,6 +25,13 @@ struct ScanSummary: View {
 
     var isFromScanList: Bool
     @Environment(\.presentationMode) var presentationMode
+    
+    @StateObject var scanViewModel: ScanListViewModel
+    
+    init(isFromScanList: Bool, patientID: String) {
+        self.isFromScanList = isFromScanList
+        _scanViewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+    }
     
     var body: some View {
         ZStack {
@@ -114,7 +123,7 @@ struct ScanSummary: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .padding()
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: 150)
                                 .background(Color.red)
                                 .cornerRadius(10)
                         }
@@ -125,7 +134,7 @@ struct ScanSummary: View {
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .padding()
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: 150)
                                 .background(Color.blue)
                                 .cornerRadius(10)
                         }
@@ -156,8 +165,6 @@ struct ScanSummary: View {
         )
         
         .onAppear {
-            selectedDataManager.setScanID(scanID)
-            selectedDataManager.setScanName(scanName)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false
@@ -186,6 +193,7 @@ struct ScanSummary: View {
     
     private func deleteScan() {
         print("deleting scan")
+        scanViewModel.deleteScan(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
         navToScanList = true
     }
 }

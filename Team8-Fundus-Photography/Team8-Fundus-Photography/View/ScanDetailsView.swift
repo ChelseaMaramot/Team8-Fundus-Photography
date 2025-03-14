@@ -205,7 +205,7 @@ struct ScanDetailsView: View {
                 Spacer()
                 
                 NavigationLink(
-                    destination: ScanSummary(scanID: scanID, scanName: scanName, viewModel: storageManager, isFromScanList: true)
+                    destination: ScanSummary(isFromScanList: true, patientID: selectedDataManager.getPatientID())
                 ) {
                     Text("View All Images / Change Primary")
                         .fontWeight(.bold)
@@ -244,6 +244,7 @@ struct ScanDetailsView: View {
         }
         .onAppear {
             selectedDataManager.setScanID(scanID)
+            selectedDataManager.setScanName(scanName)
             fetchScanDetails()
         }
         .navigationBarTitle("Scan Details", displayMode: .inline)

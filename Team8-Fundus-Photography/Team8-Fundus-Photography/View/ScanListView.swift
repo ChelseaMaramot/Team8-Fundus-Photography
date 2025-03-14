@@ -141,7 +141,7 @@ struct ScanListView: View {
                     selectionIndicator(for: scan)
                 }
                 NavigationLink(destination:
-                                ScanDetailsView(scanID: scan.id, scanName: scan.name, viewModel: viewModel)/*ScanSummary(scanID: scan.id, scanName: scan.name, viewModel: storageManager, isFromScanList: true)*/) {
+                                ScanDetailsView(scanID: scan.id, scanName: scan.name, viewModel: viewModel)) {
                     Card(name: scan.name, isStitched: scan.isStitched)
                 }
             }

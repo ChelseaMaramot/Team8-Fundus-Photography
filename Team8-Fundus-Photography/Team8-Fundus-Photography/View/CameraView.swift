@@ -89,6 +89,7 @@ struct CameraView: View {
                 }
             }
         }
+        .navigationBarBackButtonHidden(true)
         .navigationDestination(isPresented: $showCapturedPhoto) {
             PreviewPage(
                 image: $capturedImage,

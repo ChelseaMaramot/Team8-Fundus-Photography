@@ -43,7 +43,10 @@ struct ScanListView: View {
             selectedDataManager.setPatientID(patientID)
             viewModel.fetchScans()
         }
-        .toolbar { toolbarContent() }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            toolbarContent()
+        }.padding(.top, 10)
         .confirmationDialog(
             "Are you sure you want to delete these scans?",
             isPresented: $showConfirmationModal,
@@ -190,6 +193,20 @@ extension ScanListView {
             ToolbarItemGroup(placement: .navigationBarLeading) {
                 Spacer()
             }
+            
+            ToolbarItem(placement: .navigationBarLeading) {
+                NavigationLink(destination: PatientListView()) {
+                    HStack {
+                        Image(systemName: "person.crop.circle") // 👤 Person Icon
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20) // Adjust size
+                            .foregroundColor(.blue)
+                        Text("Patients")
+                    }
+                }
+            }
+            
             ToolbarItemGroup(placement: .principal) {
                 Text("Scans")
                     .font(.title2)

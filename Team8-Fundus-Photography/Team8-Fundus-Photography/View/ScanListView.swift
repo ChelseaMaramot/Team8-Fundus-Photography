@@ -25,9 +25,7 @@ struct ScanListView: View {
     var body: some View {
         VStack {
             scanListView
-            //            addScanButton
-            
-            
+  
             if !isEditing {
                 Button(action: {
                     isShowingAddScanSheet = true

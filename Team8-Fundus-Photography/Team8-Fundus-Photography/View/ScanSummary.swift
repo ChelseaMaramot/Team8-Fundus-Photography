@@ -19,6 +19,7 @@ struct ScanSummary: View {
     @State private var isEditing = false
     @State private var selectedEditImages: [LabeledImage] = []
     @State private var showDeleteConfirmation = false
+    @State private var navToScanList = false
 
     var isFromScanList: Bool
     @Environment(\.presentationMode) var presentationMode
@@ -103,18 +104,41 @@ struct ScanSummary: View {
                     }
                     .padding(.bottom, 20)
                 } else {
-                    // If coming from New Scan View, navigate there
-                    NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
-                        Text("Add Scan Details")
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
+                    
+                    HStack(spacing: 20) { // Side by side layout
+                        // "Cancel & Delete Scan" Button
+                        Button(action: {
+                            deleteScan()
+                        }) {
+                            Text("Cancel")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }
+
+                        // "Add Scan Details" Button
+                        NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
+                            Text("Add Details")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: .infinity)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
                     }
-                    .padding(.bottom, 20)
+
+                    // Hidden NavigationLink that activates after deletion
+                    NavigationLink(destination: ScanListView(patientID: selectedDataManager.getPatientID()), isActive: $navToScanList) {
+                        EmptyView()
+                    }
+                    .padding(.horizontal)
+
+                
+                
                 }
             }
             .padding(.top)  // Adjust top padding
@@ -158,5 +182,10 @@ struct ScanSummary: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd @h:mma"
         return formatter.string(from: Date())
+    }
+    
+    private func deleteScan() {
+        print("deleting scan")
+        navToScanList = true
     }
 }

@@ -10,6 +10,7 @@ import SwiftUI
 struct ImageCard: View {
     @ObservedObject var viewModel: FirebaseManager
     var isFromScanList: Bool
+    var isFromVideoCapture: Bool = false
     var position: String
     var onAddImage: () -> Void
     var onSelectImage: (LabeledImage) -> Void
@@ -53,7 +54,7 @@ struct ImageCard: View {
             if isEditing {
                 editableImageView(for: labeledImage, image: image)
             } else {
-                NavigationLink(destination: ImageView(image: image)) {
+                NavigationLink(destination: ImageView(image: image, isFromVideoCapture: isFromVideoCapture)) {
                     standardImageView(labeledImage: labeledImage)
                 }
             }

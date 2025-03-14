@@ -98,6 +98,7 @@ struct VideoFrameSelectorView: View {
                     ImageCard(
                         viewModel: firebaseManager,
                         isFromScanList: true,
+                        isFromVideoCapture: true,
                         position: selectedDataManager.getQuadrant().rawValue,
                         onAddImage: {},
                         onSelectImage: { selectedImage in

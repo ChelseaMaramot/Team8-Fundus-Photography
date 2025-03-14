@@ -25,6 +25,11 @@ struct PreviewPage: View {
     var body: some View {
         
             VStack {
+                Text("Preview Image")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .foregroundColor(Color.blue)
+                
                 ZStack {
                     if let image = image {
                         Image(uiImage: image)
@@ -128,7 +133,7 @@ struct PreviewPage: View {
                 
             }
             .colorScheme(.light)
-            .navigationTitle("Preview (manually cropped) Image")
+            .navigationBarBackButtonHidden(true)
         
         .background(Color.white.edgesIgnoringSafeArea(.all))
     }

@@ -87,6 +87,7 @@ struct NewScanView: View {
                     Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
                 }
             }
+            .navigationBarBackButtonHidden(true) 
             .onAppear {
                 storageManager.fetchPrimaryImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
                     self.images = fetchedImages}

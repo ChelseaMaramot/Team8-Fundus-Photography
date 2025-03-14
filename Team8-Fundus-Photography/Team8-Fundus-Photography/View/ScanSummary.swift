@@ -9,9 +9,11 @@
 import SwiftUI
 
 struct ScanSummary: View {
-    var scanID: String
-    var scanName: String
-    @ObservedObject var viewModel: FirebaseManager
+//    var scanID: String
+//    var scanName: String
+//    @ObservedObject var viewModel: FirebaseManager
+    
+    @StateObject private var viewModel = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var navigateToCameraView = false
     @State private var refreshID = UUID()
@@ -19,9 +21,17 @@ struct ScanSummary: View {
     @State private var isEditing = false
     @State private var selectedEditImages: [LabeledImage] = []
     @State private var showDeleteConfirmation = false
+    @State private var navToScanList = false
 
     var isFromScanList: Bool
     @Environment(\.presentationMode) var presentationMode
+    
+    @StateObject var scanViewModel: ScanListViewModel
+    
+    init(isFromScanList: Bool, patientID: String) {
+        self.isFromScanList = isFromScanList
+        _scanViewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))
+    }
     
     var body: some View {
         ZStack {
@@ -103,18 +113,41 @@ struct ScanSummary: View {
                     }
                     .padding(.bottom, 20)
                 } else {
-                    // If coming from New Scan View, navigate there
-                    NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
-                        Text("Add Scan Details")
-                            .fontWeight(.bold)
-                            .foregroundColor(.white)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                            .padding(.horizontal)
+                    
+                    HStack(spacing: 20) { // Side by side layout
+                        // "Cancel & Delete Scan" Button
+                        Button(action: {
+                            deleteScan()
+                        }) {
+                            Text("Cancel")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: 150)
+                                .background(Color.red)
+                                .cornerRadius(10)
+                        }
+
+                        // "Add Scan Details" Button
+                        NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
+                            Text("Add Details")
+                                .fontWeight(.bold)
+                                .foregroundColor(.white)
+                                .padding()
+                                .frame(maxWidth: 150)
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        }
                     }
-                    .padding(.bottom, 20)
+
+                    // Hidden NavigationLink that activates after deletion
+                    NavigationLink(destination: ScanListView(patientID: selectedDataManager.getPatientID()), isActive: $navToScanList) {
+                        EmptyView()
+                    }
+                    .padding(.horizontal)
+
+                
+                
                 }
             }
             .padding(.top)  // Adjust top padding
@@ -132,8 +165,6 @@ struct ScanSummary: View {
         )
         
         .onAppear {
-            selectedDataManager.setScanID(scanID)
-            selectedDataManager.setScanName(scanName)
             DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                 viewModel.retrievePhotos(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 isLoading = false
@@ -158,5 +189,11 @@ struct ScanSummary: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd @h:mma"
         return formatter.string(from: Date())
+    }
+    
+    private func deleteScan() {
+        print("deleting scan")
+        scanViewModel.deleteScan(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
+        navToScanList = true
     }
 }

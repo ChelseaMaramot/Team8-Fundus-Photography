@@ -57,6 +57,11 @@ struct QuadrantView: View {
                                    .blur(radius: 5)
                                    .transition(.opacity)
                                    .animation(.easeInOut, value: showQuadrantSelector)
+                                   .onTapGesture {
+                                       withAnimation(.spring()) {
+                                           showQuadrantSelector = false
+                                       }
+                                   }
 
                 QuadrantSelectorView(
                     selectedQuadrant: $selectedQuadrant,
@@ -79,7 +84,6 @@ struct QuadrantView: View {
                 .onDisappear {
                     // Start camera session when the quadrant selector is smaller
                     cameraManager.startSession {
-                        // Optionally handle anything after the session starts
                     }
                 }
             }

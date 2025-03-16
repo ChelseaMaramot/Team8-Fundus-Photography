@@ -81,13 +81,19 @@ struct VideoFrameSelectorView: View {
     
     // Slider Section
     private var sliderSection: some View {
-        Slider(value: $sliderValue, in: 0...elapsedTime, step: 0.001)
-            .onChange(of: sliderValue) { newValue in
-                let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
-                videoManager.player?.seek(to: newTime)
-                currentTime = newTime
-            }
-            .padding()
+        VStack{
+            Text("Select Frame with Slider ")
+                .font(.subheadline)
+                .foregroundColor(.gray)
+                .padding(.top, 5)
+            Slider(value: $sliderValue, in: 0...elapsedTime, step: 0.001)
+                .onChange(of: sliderValue) { newValue in
+                    let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
+                    videoManager.player?.seek(to: newTime)
+                    currentTime = newTime
+                }
+                .padding()
+        }
     }
     
     // Image Display Section

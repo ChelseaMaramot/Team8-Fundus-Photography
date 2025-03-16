@@ -9,15 +9,20 @@ struct CircleButton: View {
     var body: some View {
         Button(action: action) {
             Circle()
-                .fill(isSelected ? Color.blue : Color.gray.opacity(5))
+                .fill(isSelected ? Color.blue : Color.white.opacity(5))
                 .frame(width: size, height: size)
+                .overlay(
+                             Circle()
+                                .stroke(isSelected ? Color.blue: Color.gray, lineWidth: 3)
+                         )
                 .overlay(
                     
                     Group{
                         if size > 50 {
                             Text(quadrant)
                                 .foregroundColor(isSelected ? Color.white : Color.black)
-                                .font(.caption)
+                                .fontWeight(.bold)
+                                .font(.system(size: 16))
                             
                         }
                     }
@@ -66,5 +71,5 @@ struct QuadrantSelectorView: View {
 }
 
 #Preview {
-    QuadrantSelectorView(selectedQuadrant: .constant(RegionTypes(rawValue: "Central") ?? .central), isInteractive: false, size: 90)
+    QuadrantSelectorView(selectedQuadrant: .constant(RegionTypes(rawValue: "Temporal") ?? .central), isInteractive: false, size: 90)
 }

@@ -15,6 +15,9 @@ struct ImageCard: View {
     var onSelectImage: (LabeledImage) -> Void
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     
+    @State private var navigateToImageView = true
+    @State private var selectedImageId: String?
+    
     @Binding var isEditing: Bool
     @Binding var selectedEditImages: [LabeledImage]
     
@@ -46,20 +49,52 @@ struct ImageCard: View {
         .padding(.horizontal)
     }
     
+    
     private func imageView(for labeledImage: LabeledImage) -> some View {
         let image = labeledImage.image ?? UIImage()
-        
-        return Group {
-            if isEditing {
-                editableImageView(for: labeledImage, image: image)
-            } else {
-                NavigationLink(destination: ImageView(image: image)) {
-                    standardImageView(labeledImage: labeledImage)
+
+        if isEditing {
+            return AnyView(editableImageView(for: labeledImage, image: image))
+        } else {
+            return AnyView(
+                ZStack {
+                    Button(action: {
+                        selectedImageId = labeledImage.id
+                        navigateToImageView = true
+                    }) {
+                        standardImageView(labeledImage: labeledImage)
+                    }
+                    .simultaneousGesture(
+                        LongPressGesture().onEnded { _ in
+                            navigateToImageView = false
+                            triggerHapticFeedback()
+                            onSelectImage(labeledImage)
+                        }
+                    )
+                    
+                    if navigateToImageView {
+                        NavigationLink(
+                            destination: ImageView(image: image),
+                            isActive: Binding(
+                                get: {
+                                    selectedImageId == labeledImage.id
+                                },
+                                set: { isActive in
+                                    if !isActive {
+                                        selectedImageId = nil
+                                    }
+                                }
+                            )
+                        ) {
+                            EmptyView()
+                        }
+                    }
                 }
-            }
+            )
         }
     }
-    
+
+
     private func editableImageView(for labeledImage: LabeledImage, image: UIImage) -> some View {
         return Image(uiImage: image)
             .resizable()

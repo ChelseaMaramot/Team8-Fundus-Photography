@@ -45,10 +45,10 @@ struct PatientListView: View {
             ) {
                 deleteConfirmationDialog
             }
-            .padding(.top, 0)
+            .padding(.top,0)
         }
         .navigationBarHidden(true)
-        .edgesIgnoringSafeArea(.top)
+        .navigationBarBackButtonHidden(true)
     }
 }
 
@@ -83,6 +83,7 @@ extension PatientListView {
                 Spacer()
                 logoutButton
             }
+            
             VStack{
                 searchField
             }

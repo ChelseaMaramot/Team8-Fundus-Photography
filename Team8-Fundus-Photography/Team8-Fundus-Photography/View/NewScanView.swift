@@ -12,6 +12,8 @@ extension Color {
     static let lightBlue = Color(red: 236/255, green: 241/255, blue: 255/255)
 }
 
+import SwiftUI
+
 struct NewScanView: View {
     @State private var scanName: String = ""
     @State private var scanDetails: String = ""
@@ -21,6 +23,8 @@ struct NewScanView: View {
     @State private var alertMessage: String = ""
     @State private var navToScanList: Bool = false
     @State private var images: [String: UIImage] = [:]
+    @State private var keyboardHeight: CGFloat = 0
+    @State private var commentHeight: CGFloat = 50  // Start with default height
     
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @StateObject var viewModel: ScanListViewModel
@@ -42,11 +46,11 @@ struct NewScanView: View {
                 PrimaryImagesQuadrantView(images: images)
                     .frame(width: 350, height: 300)
                     .padding(.vertical)
-                    .background(Color.lightBlue) // Apply background
-                    .cornerRadius(16) // Add rounded corners
+                    .background(Color.lightBlue)
+                    .cornerRadius(16)
 
                 // Form Inputs
-                VStack(alignment: .leading) {
+                VStack(alignment: .leading, spacing: 8) {
                     Text("Scan Name").fontWeight(.bold)
                     TextField("Scan name", text: $scanName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
@@ -54,19 +58,19 @@ struct NewScanView: View {
                         .padding(.bottom)
 
                     Text("Session Comments").fontWeight(.bold)
-                    TextField("Session Comments", text: $scanDetails)
-                        .frame(height: 100)
+                        .padding(.bottom, 4)
+
+                    ResizableTextField(text: $scanDetails)
+                        .frame(minHeight: 50, maxHeight: 150)
                         .background(Color.lightBlue)
-                        .overlay(RoundedRectangle(cornerRadius: 16).stroke(Color.gray))
+                        
                 }
                 .padding(.horizontal)
 
                 Spacer()
 
-                // Navigation to Scan List after saving
                 NavigationLink("", destination: ScanListView(patientID: selectedDataManager.getPatientID()), isActive: $navToScanList)
 
-                // Save Button
                 Button(action: saveScan) {
                     HStack {
                         if isSaving {
@@ -87,12 +91,22 @@ struct NewScanView: View {
                     Alert(title: Text("Error"), message: Text(alertMessage), dismissButton: .default(Text("OK")))
                 }
             }
-            .navigationBarBackButtonHidden(true) 
+            .padding(.bottom, keyboardHeight)
             .onAppear {
+                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillShowNotification, object: nil, queue: .main) { notification in
+                    if let keyboardFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect {
+                        keyboardHeight = keyboardFrame.height - 100
+                    }
+                }
+                NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
+                    keyboardHeight = 0
+                }
                 storageManager.fetchPrimaryImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
-                    self.images = fetchedImages}
+                    self.images = fetchedImages
+                }
                 scanName = selectedDataManager.getScanName()
             }
+            .animation(.easeOut(duration: 0.3))
         }
     }
 
@@ -101,7 +115,6 @@ struct NewScanView: View {
         let patientID = selectedDataManager.getPatientID()
         let scanID = selectedDataManager.getScanID()
 
-        // Step 1: Add the scan
         viewModel.addScan(patientID: patientID, scanID: scanID, scanName: scanName, scanDetails: "", scanDate: scanDate) { error in
             if let error = error {
                 alertMessage = "Failed to add scan: \(error.localizedDescription)"
@@ -109,8 +122,6 @@ struct NewScanView: View {
                 isSaving = false
             } else {
                 print("Scan added successfully, now updating details...")
-
-                // Step 2: Update the scan with actual details
                 viewModel.updateScan(patientID: patientID, scanID: scanID, scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { updateError in
                     isSaving = false
 
@@ -119,11 +130,10 @@ struct NewScanView: View {
                         showAlert = true
                     } else {
                         print("Scan successfully updated!")
-                        navToScanList = true // Navigate back to scan list
+                        navToScanList = true
                     }
                 }
             }
         }
     }
 }
-

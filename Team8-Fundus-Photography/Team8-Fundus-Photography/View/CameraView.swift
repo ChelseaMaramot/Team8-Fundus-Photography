@@ -323,6 +323,10 @@ extension CameraView {
         
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             elapsedTime += 0.1
+            
+            if elapsedTime >= 300 {
+                stopRecording()
+            }
         }
     }
 

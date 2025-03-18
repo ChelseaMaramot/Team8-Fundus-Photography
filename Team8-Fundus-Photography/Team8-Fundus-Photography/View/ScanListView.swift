@@ -5,7 +5,6 @@ struct ScanListView: View {
     @State private var isShowingAddScanSheet = false
     @State private var navigateToCamera = false
     @StateObject private var viewModel: ScanListViewModel
-    @StateObject var storageManager = FirebaseManager()
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     
     @State private var showConfirmationModal = false
@@ -16,6 +15,7 @@ struct ScanListView: View {
     @State private var searchQuery = ""
     
     var colors = cardColors()
+    
     
     init(patientID: String) {
         _viewModel = StateObject(wrappedValue: ScanListViewModel(patientID: patientID))

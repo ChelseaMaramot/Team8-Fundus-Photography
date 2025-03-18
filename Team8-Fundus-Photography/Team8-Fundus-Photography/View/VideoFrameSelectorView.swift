@@ -50,7 +50,7 @@ struct VideoFrameSelectorView: View {
         .navigationBarItems(trailing: editButton)
         .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
-                firebaseManager.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                firebaseManager.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 selectedEditImages.removeAll()
                 if let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], images.isEmpty {
                     isEditing = false

@@ -10,7 +10,7 @@ import SwiftUI
 struct LabeledImage: Identifiable {
     let id: String  // Ensures each image is uniquely identifiable
 //    let url = String()
-    let image: UIImage?
+    var image: UIImage?
     var isPrimary: Bool // should i add postion here too?
     let position: String
     

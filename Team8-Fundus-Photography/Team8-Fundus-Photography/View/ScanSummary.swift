@@ -176,7 +176,7 @@ struct ScanSummary: View {
         }
         .confirmationDialog("Are you sure you want to delete these images?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
-                viewModel.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanName: selectedDataManager.getScanID())
+                viewModel.deleteSelectedImages(selectedImages: selectedEditImages, patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID())
                 selectedEditImages.removeAll()
             }
             Button("Cancel", role: .cancel) {

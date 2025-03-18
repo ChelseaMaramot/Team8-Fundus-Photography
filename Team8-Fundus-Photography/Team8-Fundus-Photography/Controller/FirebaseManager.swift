@@ -26,13 +26,13 @@ class FirebaseManager: ObservableObject {
         let db = Firestore.firestore()
 
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("❌ Failed to convert image to JPEG data.")
+            print("  Failed to convert image to JPEG data.")
             return
         }
 
         // 🔐 Fetch encryption key from Keychain
         guard let key = getKeyFromKeychain() else {
-            print("❌ Failed to retrieve encryption key")
+            print("  Failed to retrieve encryption key")
             return
         }
 
@@ -48,7 +48,7 @@ class FirebaseManager: ObservableObject {
             // Upload encrypted data to Firebase Storage
             fileRef.putData(encryptedData, metadata: nil) { metadata, error in
                 if let error = error {
-                    print("❌ Failed to upload encrypted image: \(error.localizedDescription)")
+                    print("  Failed to upload encrypted image: \(error.localizedDescription)")
                     return
                 }
 
@@ -64,7 +64,7 @@ class FirebaseManager: ObservableObject {
 
                 imageRef.setData(docData) { error in
                     if let error = error {
-                        print("❌ Failed to save encrypted image metadata to Firestore: \(error.localizedDescription)")
+                        print("  Failed to save encrypted image metadata to Firestore: \(error.localizedDescription)")
                     } else {
                         print("✅ Successfully saved encrypted image to Firebase Storage.")
                     }
@@ -72,7 +72,7 @@ class FirebaseManager: ObservableObject {
                 }
             }
         } catch {
-            print("❌ Encryption failed: \(error.localizedDescription)")
+            print("  Encryption failed: \(error.localizedDescription)")
         }
     }
 
@@ -166,20 +166,20 @@ class FirebaseManager: ObservableObject {
 
         storageRef.getData(maxSize: 10 * 1024 * 1024) { (encryptedData, error) in
             if let error = error {
-                print("❌ Error downloading encrypted image: \(error.localizedDescription)")
+                print("  Error downloading encrypted image: \(error.localizedDescription)")
                 completion(nil)
                 return
             }
 
             guard let encryptedData = encryptedData else {
-                print("❌ No encrypted image data found")
+                print("  No encrypted image data found")
                 completion(nil)
                 return
             }
 
             // 🔐 Fetch encryption key from Keychain
             guard let key = self.getKeyFromKeychain() else {
-                print("❌ Failed to retrieve encryption key")
+                print("  Failed to retrieve encryption key")
                 completion(nil)
                 return
             }
@@ -192,11 +192,11 @@ class FirebaseManager: ObservableObject {
                 if let image = UIImage(data: decryptedData) {
                     completion(image)
                 } else {
-                    print("❌ Failed to decode decrypted image")
+                    print("  Failed to decode decrypted image")
                     completion(nil)
                 }
             } catch {
-                print("❌ Decryption failed: \(error.localizedDescription)")
+                print("  Decryption failed: \(error.localizedDescription)")
                 completion(nil)
             }
         }
@@ -205,7 +205,7 @@ class FirebaseManager: ObservableObject {
         if let key = getKeyFromKeychain() {
             print("🔑 Retrieved Key: \(key.withUnsafeBytes { Data($0).base64EncodedString() })")
         } else {
-            print("❌ No key found in Keychain.")
+            print("  No key found in Keychain.")
         }
     }
 
@@ -291,7 +291,7 @@ class FirebaseManager: ObservableObject {
         print("Setting new primary image for \(image)")
 
         guard let key = getKeyFromKeychain() else {
-            print("❌ Failed to retrieve encryption key")
+            print("  Failed to retrieve encryption key")
             return
         }
 
@@ -324,7 +324,7 @@ class FirebaseManager: ObservableObject {
 
             dispatchGroup.notify(queue: .main) {
                 self.imagesByPosition[position] = images
-                print("✅ Done setting new primary image")
+                print("Done setting new primary image")
             }
         }
     }
@@ -336,7 +336,7 @@ class FirebaseManager: ObservableObject {
         let dispatchGroup = DispatchGroup()
 
         guard let key = getKeyFromKeychain() else {
-            print("❌ Failed to retrieve encryption key")
+            print(" Failed to retrieve encryption key")
             completion(primaryImages)
             return
         }
@@ -374,7 +374,7 @@ class FirebaseManager: ObservableObject {
                 }
 
                 dispatchGroup.notify(queue: .main) {
-                    print("✅ Finished fetching primary images")
+                    
                     completion(primaryImages)
                 }
             }
@@ -388,14 +388,14 @@ class FirebaseManager: ObservableObject {
 
         imageRef.getDocument { (document, error) in
             guard document?.exists == true else {
-                print("❌ Image document does not exist for ID \(imageID)")
+                print("  Image document does not exist for ID \(imageID)")
                 completion(false)
                 return
             }
 
             imageRef.updateData(["isPrimary": isPrimary]) { error in
                 if let error = error {
-                    print("❌ Error updating isPrimary field: \(error.localizedDescription)")
+                    print("  Error updating isPrimary field: \(error.localizedDescription)")
                     completion(false)
                 } else {
                     print("✅ Primary status updated successfully for image ID: \(imageID)")
@@ -421,7 +421,7 @@ class FirebaseManager: ObservableObject {
             dispatchGroup.enter()
             imageRef.delete { error in
                 if let error = error {
-                    print("❌ Error deleting image from Firebase Storage: \(error.localizedDescription)")
+                    print("  Error deleting image from Firebase Storage: \(error.localizedDescription)")
                 } else {
                     print("✅ Successfully deleted from Firebase Storage.")
                 }
@@ -433,7 +433,7 @@ class FirebaseManager: ObservableObject {
             let imageDocRef = db.collection("images").document(image.id)
             imageDocRef.delete { error in
                 if let error = error {
-                    print("❌ Error deleting image document from Firestore: \(error.localizedDescription)")
+                    print("  Error deleting image document from Firestore: \(error.localizedDescription)")
                 } else {
                     print("✅ Successfully deleted from Firestore.")
                 }
@@ -464,7 +464,7 @@ class FirebaseManager: ObservableObject {
         let imagesRef = db.collection("images")
 
         guard let key = getKeyFromKeychain() else {
-            print("❌ Failed to retrieve encryption key")
+            print("  Failed to retrieve encryption key")
             completion()
             return
         }
@@ -477,13 +477,13 @@ class FirebaseManager: ObservableObject {
             .limit(to: 1)
             .getDocuments { (snapshot, error) in
                 if let error = error {
-                    print("❌ Error fetching new primary image: \(error.localizedDescription)")
+                    print("  Error fetching new primary image: \(error.localizedDescription)")
                     completion()
                     return
                 }
 
                 guard let newPrimaryDoc = snapshot?.documents.first else {
-                    print("❌ No remaining images for this position, no new primary assigned.")
+                    print("  No remaining images for this position, no new primary assigned.")
                     completion()
                     return
                 }
@@ -520,7 +520,7 @@ class FirebaseManager: ObservableObject {
                         }
                     }
                 } else {
-                    print("❌ Image URL not found in Firestore")
+                    print("  Image URL not found in Firestore")
                     completion()
                 }
             }
@@ -547,7 +547,7 @@ extension FirebaseManager {
         if status == errSecSuccess {
             print("✅ Encryption key stored in Keychain")
         } else {
-            print("❌ Failed to store encryption key in Keychain")
+            print("  Failed to store encryption key in Keychain")
         }
     }
 
@@ -564,10 +564,10 @@ extension FirebaseManager {
         let status = SecItemCopyMatching(query as CFDictionary, &dataTypeRef)
 
         if status == errSecSuccess, let retrievedData = dataTypeRef as? Data {
-            print("🔐 Successfully retrieved encryption key from Keychain.")
+            
             return SymmetricKey(data: retrievedData)
         } else {
-            print("❌ Failed to retrieve encryption key from Keychain.")
+            print("  Failed to retrieve encryption key from Keychain.")
             return nil
         }
     }

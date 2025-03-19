@@ -18,9 +18,9 @@ class FirebaseManager: ObservableObject {
     
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
-    
+
     func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
-        print("🔐 Saving encrypted image to Firebase...")
+        print("Saving encrypted image to Firebase...")
 
         let storageRef = Storage.storage().reference()
         let db = Firestore.firestore()
@@ -30,14 +30,92 @@ class FirebaseManager: ObservableObject {
             return
         }
 
-        // 🔐 Fetch encryption key from Keychain
+        // Fetch encryption key from Keychain
         guard let key = getKeyFromKeychain() else {
             print("  Failed to retrieve encryption key")
             return
         }
 
         do {
-            // 🔐 Encrypt image using ChaChaPoly
+            // Encrypt image using ChaChaPoly
+            let sealedBox = try ChaChaPoly.seal(imageData, using: key)
+            let encryptedData = sealedBox.combined
+
+            let imageID = UUID().uuidString
+            let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
+            let fileRef = storageRef.child(url)
+
+            // Check if there's already a primary image in this region
+            let imagesRef = db.collection("images")
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .whereField("position", isEqualTo: region)
+                .whereField("isPrimary", isEqualTo: true)
+                .getDocuments { (snapshot, error) in
+                    
+                    var isPrimary = false
+                    
+                    if let error = error {
+                        print("Error checking for existing primary image: \(error.localizedDescription)")
+                    } else if snapshot?.documents.isEmpty == true {
+                        print("No existing primary image found, setting this as primary.")
+                        isPrimary = true
+                    } else {
+                        print("Primary image already exists, not setting this one as primary.")
+                    }
+
+                    // Upload encrypted image data to Firebase Storage
+                    fileRef.putData(encryptedData, metadata: nil) { metadata, error in
+                        if let error = error {
+                            print("  Failed to upload encrypted image: \(error.localizedDescription)")
+                            return
+                        }
+
+                        // Save metadata to Firestore
+                        let imageRef = db.collection("images").document(imageID)
+                        let docData: [String: Any] = [
+                            "isPrimary": isPrimary,
+                            "patientID": patientID,
+                            "position": region,
+                            "scanID": scanID,
+                            "url": url
+                        ]
+
+                        imageRef.setData(docData) { error in
+                            if let error = error {
+                                print("Failed to save encrypted image metadata to Firestore: \(error.localizedDescription)")
+                            } else {
+                                print("Successfully saved encrypted image to Firebase Storage.")
+                            }
+                            completion()
+                        }
+                    }
+                }
+        } catch {
+            print("  Encryption failed: \(error.localizedDescription)")
+        }
+    }
+
+    
+    func saveToFirebaseoldd(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
+        print("Saving encrypted image to Firebase...")
+
+        let storageRef = Storage.storage().reference()
+        let db = Firestore.firestore()
+
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("  Failed to convert image to JPEG data.")
+            return
+        }
+
+        //  Fetch encryption key from Keychain
+        guard let key = getKeyFromKeychain() else {
+            print("  Failed to retrieve encryption key")
+            return
+        }
+
+        do {
+            //  Encrypt image using ChaChaPoly
             let sealedBox = try ChaChaPoly.seal(imageData, using: key)
             let encryptedData = sealedBox.combined
 
@@ -64,9 +142,9 @@ class FirebaseManager: ObservableObject {
 
                 imageRef.setData(docData) { error in
                     if let error = error {
-                        print("  Failed to save encrypted image metadata to Firestore: \(error.localizedDescription)")
+                        print("Failed to save encrypted image metadata to Firestore: \(error.localizedDescription)")
                     } else {
-                        print("✅ Successfully saved encrypted image to Firebase Storage.")
+                        print("Successfully saved encrypted image to Firebase Storage.")
                     }
                     completion()
                 }
@@ -76,90 +154,6 @@ class FirebaseManager: ObservableObject {
         }
     }
 
-    
-    
-    func saveToFirebaseold(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
-        print("Saving to Firebase images collection...")
-        let storageRef = Storage.storage().reference()
-        let db = Firestore.firestore()
-        let dispatchGroup = DispatchGroup()
-        
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("Failed to convert image to JPEG data.")
-            return
-        }
-        
-        let imageID = UUID().uuidString
-        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
-        print("This is the image URL: \(url)")
-        
-        let fileRef = storageRef.child(url)
-        
-        // Upload image to Firebase Storage
-        fileRef.putData(imageData, metadata: nil) { metadata, error in
-            if let error = error {
-                print("Failed to upload image: \(error.localizedDescription)")
-                return
-            }
-            
-            dispatchGroup.enter()
-            
-            // Check if there's already a primary image in this region
-            let imagesRef = db.collection("images")
-            imagesRef.whereField("patientID", isEqualTo: patientID)
-                .whereField("scanID", isEqualTo: scanID)
-                .whereField("position", isEqualTo: region)
-                .whereField("isPrimary", isEqualTo: true)
-                .getDocuments { (snapshot, error) in
-                    
-                    var isPrimary = false
-                    
-                    if let error = error {
-                        print("Error checking for existing primary image: \(error.localizedDescription)")
-                    } else if snapshot?.documents.isEmpty == true {
-                        print("No existing primary image found, setting this as primary.")
-                        isPrimary = true
-                    } else {
-                        print("Primary image already exists, not setting this one as primary.")
-                    }
-                    
-                    // Save the image metadata to Firestore
-                    let imageRef = db.collection("images").document(imageID)
-                    let docData: [String: Any] = [
-                        "isPrimary": isPrimary,  // Set the first image as primary if needed
-                        "patientID": patientID,
-                        "position": region,
-                        "scanID": scanID,
-                        "url": url
-                    ]
-                    
-                    imageRef.setData(docData) { error in
-                        if let error = error {
-                            print("Failed to save image path to Firestore: \(error.localizedDescription)")
-                        } else {
-                            print("Successfully saved image path to Firestore.")
-                        }
-                        
-                        dispatchGroup.leave()
-                    }
-                    
-                    // Update local storage
-                    let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: region, image: image)
-                    if self.imagesByPosition[region] != nil {
-                        self.imagesByPosition[region]?.append(labeledImage)
-                    } else {
-                        self.imagesByPosition[region] = [labeledImage]
-                    }
-                }
-        }
-        
-        
-        
-        dispatchGroup.notify(queue: .main) {
-            print("Done saving image to Firebase!")
-            completion()
-        }
-    }
     
     func downloadImage(from path: String, position: String, completion: @escaping (UIImage?) -> Void) {
         let storageRef = Storage.storage().reference(withPath: path)
@@ -177,7 +171,7 @@ class FirebaseManager: ObservableObject {
                 return
             }
 
-            // 🔐 Fetch encryption key from Keychain
+            // Fetch encryption key from Keychain
             guard let key = self.getKeyFromKeychain() else {
                 print("  Failed to retrieve encryption key")
                 completion(nil)

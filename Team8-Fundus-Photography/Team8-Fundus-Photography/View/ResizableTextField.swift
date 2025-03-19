@@ -9,23 +9,27 @@ import SwiftUI
 
 struct ResizableTextField: View {
     @Binding var text: String
-    @State private var dynamicHeight: CGFloat = 50
+    let characterLimit = 100
 
     var body: some View {
         TextEditor(text: $text)
-            .frame(minHeight: dynamicHeight, maxHeight: 150)
+            .frame(height: 50)  // Approx 2 lines height
             .padding(8)
             .background(Color.white)
             .cornerRadius(8)
             .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray))
-            .onChange(of: text) { _ in
-                updateHeight()
+            .onChange(of: text) { newText in
+                enforceCharacterLimit(newText)
+            }
+            .onReceive(text.publisher.collect()) { _ in
+                // Prevent line breaks by removing newlines
+                text = text.replacingOccurrences(of: "\n", with: " ")
             }
     }
 
-    private func updateHeight() {
-        let size = CGSize(width: UIScreen.main.bounds.width - 40, height: .infinity)
-        let estimatedSize = text.boundingRect(with: size, options: .usesLineFragmentOrigin, attributes: [.font: UIFont.systemFont(ofSize: 16)], context: nil)
-        self.dynamicHeight = min(max(50, estimatedSize.height + 20), 150)
+    private func enforceCharacterLimit(_ newText: String) {
+        if newText.count > characterLimit {
+            text = String(newText.prefix(characterLimit))
+        }
     }
 }

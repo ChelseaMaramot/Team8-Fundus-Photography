@@ -12,8 +12,6 @@ extension Color {
     static let lightBlue = Color(red: 236/255, green: 241/255, blue: 255/255)
 }
 
-import SwiftUI
-
 struct NewScanView: View {
     @State private var scanName: String = ""
     @State private var scanDetails: String = ""
@@ -24,7 +22,6 @@ struct NewScanView: View {
     @State private var navToScanList: Bool = false
     @State private var images: [String: UIImage] = [:]
     @State private var keyboardHeight: CGFloat = 0
-    @State private var commentHeight: CGFloat = 50  // Start with default height
     
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @StateObject var viewModel: ScanListViewModel
@@ -41,29 +38,26 @@ struct NewScanView: View {
                     .font(.title)
                     .fontWeight(.bold)
                     .padding(.top)
-                
-                // Display primary images in quadrants
+
                 PrimaryImagesQuadrantView(images: images)
                     .frame(width: 350, height: 300)
                     .padding(.vertical)
                     .background(Color.lightBlue)
                     .cornerRadius(16)
 
-                // Form Inputs
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Scan Name").fontWeight(.bold)
                     TextField("Scan name", text: $scanName)
                         .textFieldStyle(RoundedBorderTextFieldStyle())
                         .background(Color.lightBlue)
                         .padding(.bottom)
+ 
+                    Text("Session Comments (max 100 char)").fontWeight(.bold)
 
-                    Text("Session Comments").fontWeight(.bold)
-                        .padding(.bottom, 4)
-
-                    ResizableTextField(text: $scanDetails)
-                        .frame(minHeight: 50, maxHeight: 150)
+                    ResizableTextField(text: $scanDetails)  // New Limited Text Field
+                        .frame(height: 50)
                         .background(Color.lightBlue)
-                        
+    
                 }
                 .padding(.horizontal)
 
@@ -109,7 +103,7 @@ struct NewScanView: View {
             .animation(.easeOut(duration: 0.3))
         }
     }
-
+    
     private func saveScan() {
         isSaving = true
         let patientID = selectedDataManager.getPatientID()
@@ -124,7 +118,6 @@ struct NewScanView: View {
                 print("Scan added successfully, now updating details...")
                 viewModel.updateScan(patientID: patientID, scanID: scanID, scanName: scanName, scanDetails: scanDetails, scanDate: scanDate) { updateError in
                     isSaving = false
-
                     if let updateError = updateError {
                         alertMessage = "Failed to update scan details: \(updateError.localizedDescription)"
                         showAlert = true
@@ -136,4 +129,6 @@ struct NewScanView: View {
             }
         }
     }
+
+    
 }

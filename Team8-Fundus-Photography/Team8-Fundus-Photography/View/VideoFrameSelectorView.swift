@@ -162,17 +162,21 @@ struct VideoFrameSelectorView: View {
     // Capture Frame Button
     private var captureFrameButton: some View {
         Button(action: captureFrame) {
-            Text("Capture Frame")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.blue)
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+            HStack {
+                Image(systemName: "camera")
+                    .foregroundColor(.white)
+                Text("Capture Frame")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color.blue)
+            .cornerRadius(10)
+            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
         }
         .disabled(isCapturingFrame)
-        .padding()
+        .padding(.top)
     }
     
     // Save Button
@@ -180,14 +184,17 @@ struct VideoFrameSelectorView: View {
         if !isEditing, let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], !images.isEmpty {
             return AnyView(
                 Button(action: { navigateToScanSummary = true }) {
-                    Text("Save")
-                        .font(.system(size: 18, weight: .bold))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 10)
-                        .background(Color.green)
-                        .cornerRadius(10)
-                        .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                            .foregroundColor(.black)
+                        Text("Save")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.3))
+                    .cornerRadius(10)
+                    .shadow(radius: 3)
                 }
                 .padding(.bottom, 20)
                 .background(
@@ -200,7 +207,6 @@ struct VideoFrameSelectorView: View {
             return AnyView(EmptyView())
         }
     }
-
 
     // Edit Button
     private var editButton: some View {

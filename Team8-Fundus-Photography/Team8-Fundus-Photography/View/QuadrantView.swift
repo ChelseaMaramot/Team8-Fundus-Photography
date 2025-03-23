@@ -10,15 +10,15 @@ import SwiftUI
 struct QuadrantView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @State private var selectedQuadrant: RegionTypes
-    @State private var showQuadrantSelector: Bool
+    @Binding var showQuadrantSelector: Bool
     @State private var previousSelectedQuadrant: RegionTypes
-    var cameraManager: CameraManager // Pass CameraManager directly
+    var cameraManager: CameraManager
     
-    init(cameraManager: CameraManager, showQuadrantSelector: Bool = false, selectedDataManager: SelectedDataManager) {
+    init(cameraManager: CameraManager,  showQuadrantSelector: Binding<Bool>, selectedDataManager: SelectedDataManager) {
         _selectedQuadrant = State(initialValue: selectedDataManager.getQuadrant())
         _previousSelectedQuadrant = State(initialValue: selectedDataManager.getQuadrant())
-        self.showQuadrantSelector = showQuadrantSelector
-        self.cameraManager = cameraManager // Initialize CameraManager here
+        _showQuadrantSelector = showQuadrantSelector
+        self.cameraManager = cameraManager
     }
     
     var body: some View {

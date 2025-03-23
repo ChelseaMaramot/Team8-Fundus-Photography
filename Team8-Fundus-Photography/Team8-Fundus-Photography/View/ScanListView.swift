@@ -62,6 +62,7 @@ struct ScanListView: View {
                 saveAndNavigate(scanName: newName)
                 
             }
+            .presentationDetents([.fraction(0.50)])
         }
     }
 }

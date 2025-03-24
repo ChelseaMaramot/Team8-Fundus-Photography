@@ -87,12 +87,13 @@ struct VideoFrameSelectorView: View {
                 .foregroundColor(.gray)
                 .padding(.top, 5)
             Slider(value: $sliderValue, in: 0...elapsedTime, step: 0.001)
+                .accentColor(.blue)
                 .onChange(of: sliderValue) { newValue in
                     let newTime = CMTime(seconds: newValue, preferredTimescale: 600)
                     videoManager.player?.seek(to: newTime)
                     currentTime = newTime
                 }
-                .padding()
+                .padding([.leading, .trailing])
         }
     }
     
@@ -114,8 +115,10 @@ struct VideoFrameSelectorView: View {
                     )
                 }
             } else {
+                Spacer().frame(height: 50)
                 Text("No frames captured yet")
                     .foregroundColor(.gray)
+                Spacer().frame(height: 50)
             }
             
 //            Text("Debug: \(firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue]?.count)")
@@ -153,44 +156,58 @@ struct VideoFrameSelectorView: View {
         }
         .disabled(selectedEditImages.isEmpty)
         .padding(.bottom, 20)
+        .padding(.top, 20)
     }
     
     // Capture Frame Button
     private var captureFrameButton: some View {
         Button(action: captureFrame) {
-            Text("Capture Frame")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.blue)
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+            HStack {
+                Image(systemName: "camera")
+                    .foregroundColor(.white)
+                Text("Capture Frame")
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color.blue)
+            .cornerRadius(10)
+            .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
         }
         .disabled(isCapturingFrame)
-        .padding()
+        .padding(.top)
     }
     
     // Save Button
     private var saveButton: some View {
-        Button(action: { navigateToScanSummary = true }) {
-            Text("Save")
-                .font(.system(size: 18, weight: .bold))
-                .foregroundColor(.white)
-                .padding(.horizontal, 20)
-                .padding(.vertical, 10)
-                .background(Color.green)
-                .cornerRadius(10)
-                .shadow(color: .black.opacity(0.2), radius: 5, x: 0, y: 2)
+        if !isEditing, let images = firebaseManager.imagesByPosition[selectedDataManager.getQuadrant().rawValue], !images.isEmpty {
+            return AnyView(
+                Button(action: { navigateToScanSummary = true }) {
+                    HStack {
+                        Image(systemName: "square.and.arrow.down")
+                            .foregroundColor(.black)
+                        Text("Save")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                    .background(Color.green.opacity(0.3))
+                    .cornerRadius(10)
+                    .shadow(radius: 3)
+                }
+                .padding(.bottom, 20)
+                .background(
+                    NavigationLink(destination: ScanSummary(isFromScanList: false, patientID: selectedDataManager.getPatientID()), isActive: $navigateToScanSummary) {
+                        EmptyView()
+                    }
+                )
+            )
+        } else {
+            return AnyView(EmptyView())
         }
-        .padding(.bottom, 20)
-        .background(
-            NavigationLink(destination: ScanSummary(isFromScanList: false, patientID: selectedDataManager.getPatientID()), isActive: $navigateToScanSummary) {
-                EmptyView()
-            }
-        )
     }
-    
+
     // Edit Button
     private var editButton: some View {
         Button(action: { isEditing.toggle() }) {

@@ -8,8 +8,12 @@
 import SwiftUI
 
 struct CameraButton: View {
+    @EnvironmentObject var selectedDataManager: SelectedDataManager
+    var cameraManager: CameraManager
+    var colors = cardColors()
     @Binding var isRecording: Bool
     @Binding var mode: String
+    @Binding var showQuadrantView: Bool
 
     var captureAction: () -> Void
     var startRecordingAction: () -> Void
@@ -17,30 +21,34 @@ struct CameraButton: View {
     
     @State private var selectionOffset: CGFloat = 0
     @State private var showToast = false
-    
+
     var body: some View {
         ZStack {
             VStack {
-                Button(action: {
-                    if mode == "photo" {
-                        captureAction()
-                    } else {
-                        isRecording ? stopRecordingAction() : startRecordingAction()
-                    }
-                }, label: {
-                    Circle()
-                        .fill(Color.blue)
-                        .frame(width: 80, height: 80)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.white.opacity(1), lineWidth: isRecording ? 10 : 5)
-                                .fill(mode == "video" ? (isRecording ? Color.red : Color.blue) : Color.blue)
-                                .frame(width: isRecording ? 45 : 55, height: isRecording ? 45 : 55)
-                        )
-                        .animation(.spring(), value: isRecording)
-                })
+                HStack {
+                    Spacer()
+                    Button(action: {
+                        if mode == "photo" {
+                            captureAction()
+                        } else {
+                            isRecording ? stopRecordingAction() : startRecordingAction()
+                        }
+                    }, label: {
+                        Circle()
+                            .fill(Color.blue)
+                            .frame(width: 80, height: 80)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white.opacity(1), lineWidth: isRecording ? 10 : 5)
+                                    .fill(mode == "video" ? (isRecording ? Color.red : Color.blue) : Color.blue)
+                                    .frame(width: isRecording ? 45 : 55, height: isRecording ? 45 : 55)
+                            )
+                            .animation(.spring(), value: isRecording)
+                    })
+                    Spacer()
+                }
                 .padding(.bottom, 10)
-
+                
                 ZStack(alignment: .leading) {
                     HStack {
                         Text("Photo")
@@ -87,7 +95,29 @@ struct CameraButton: View {
                         .padding(.top, 40)
                         .shadow(radius: 5)
                 }
+
             }
+
+            HStack {
+                Spacer()
+                Button(action: {
+                    showQuadrantView.toggle()
+                }) {
+                    VStack {
+                        Text("Change")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.black)
+                        Text("Quadrant")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.black)
+                    }
+                    .padding()
+                    .background(colors.cardBackground)
+                    .cornerRadius(10)
+                }
+                .padding(.trailing, 20)
+            }
+            .padding(.bottom, 50)
 
             if showToast {
                 VStack {
@@ -113,12 +143,13 @@ struct CameraButton: View {
     }
 }
 
-#Preview {
-    CameraButton(
-        isRecording: .constant(false),
-        mode: .constant("photo"),
-        captureAction: { print("Photo captured!") },
-        startRecordingAction: { print("Video recording started!") },
-        stopRecordingAction: { print("Video recording stopped!") }
-    )
-}
+//
+//#Preview {
+//    CameraButton(
+//        cameraManager: <#CameraManager#>, isRecording: .constant(false),
+//        mode: .constant("photo"),
+//        captureAction: { print("Photo captured!") },
+//        startRecordingAction: { print("Video recording started!") },
+//        stopRecordingAction: { print("Video recording stopped!") }
+//    )
+//}

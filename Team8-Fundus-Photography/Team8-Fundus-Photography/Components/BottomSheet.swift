@@ -37,18 +37,22 @@ struct BottomSheet: View {
                     .padding()
                 
              
-                Button("Confirm") {
+                Button(action: {
                     print("Button tapped with input: \(inputText)")
                     onSave(inputText)
                     dismiss()
+                }) {
+                    Text("Confirm")
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(inputText.isEmpty ? Color.gray : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
                 }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(inputText.isEmpty ? Color.gray : Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(10)
+                .contentShape(Rectangle()) 
                 .padding(.horizontal)
                 .disabled(inputText.isEmpty)
+
                 Spacer()
             }
             .padding(.top, 16)

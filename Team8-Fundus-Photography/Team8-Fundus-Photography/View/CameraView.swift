@@ -34,6 +34,7 @@ struct CameraView: View {
     @State private var timer: Timer? = nil
     
     @State private var navigateToFrameSelector = false
+    @State private var showQuadrantView = false
     
     
     var body: some View {
@@ -42,7 +43,7 @@ struct CameraView: View {
             ZStack {
                 Color.white.edgesIgnoringSafeArea(.all)
                 
-                QuadrantView(cameraManager: cameraManager, selectedDataManager: selectedDataManager)
+                QuadrantView(cameraManager: cameraManager, showQuadrantSelector: $showQuadrantView, selectedDataManager: selectedDataManager)
                     .zIndex(2)
             
                 VStack(spacing: 0) {
@@ -80,8 +81,10 @@ struct CameraView: View {
                     )
                     
                     CameraButton(
+                        cameraManager: cameraManager,
                         isRecording: $isRecording,
                         mode: $mode,
+                        showQuadrantView: $showQuadrantView,
                         captureAction: capturePhoto,
                         startRecordingAction: startRecording,
                         stopRecordingAction: stopRecording

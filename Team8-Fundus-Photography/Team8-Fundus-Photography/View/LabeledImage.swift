@@ -9,9 +9,9 @@ import SwiftUI
 
 struct LabeledImage: Identifiable {
     let id: String
-    let image: UIImage?
+    var image: UIImage?
     var isPrimary: Bool
-    let position: String
+    var position: String
     var comment: String? // ✅ new field
 
     init(id: String, isPrimary: Bool, position: String, image: UIImage? = nil, comment: String? = nil) {

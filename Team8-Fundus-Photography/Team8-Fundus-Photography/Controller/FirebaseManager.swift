@@ -98,7 +98,42 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    
+    func updateCroppedImageInFirebase(image: UIImage, patientID: String, scanID: String, position: String, imageID: String, completion: @escaping (Bool) -> Void) {
+        let storageRef = Storage.storage().reference()
+        let db = Firestore.firestore()
+        
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            print("Failed to convert image to JPEG data.")
+            completion(false)
+            return
+        }
+
+        let path = "patients/\(patientID)/scans/\(scanID)/\(position)/\(imageID).jpg"
+        let fileRef = storageRef.child(path)
+
+        // Upload new cropped image
+        fileRef.putData(imageData, metadata: nil) { metadata, error in
+            if let error = error {
+                print("Failed to upload cropped image: \(error.localizedDescription)")
+                completion(false)
+                return
+            }
+
+            // Update Firestore with the new image path
+            db.collection("images").document(imageID).updateData([
+                "url": path
+            ]) { error in
+                if let error = error {
+                    print("Failed to update Firestore image path: \(error.localizedDescription)")
+                    completion(false)
+                } else {
+                    print("Successfully updated cropped image in Firebase.")
+                    completion(true)
+                }
+            }
+        }
+    }
+
     
     func downloadImage(from path: String, position: String, completion: @escaping (UIImage?) -> Void) {
         let modifiedPath = path.replacingOccurrences(of: "regions", with: position)

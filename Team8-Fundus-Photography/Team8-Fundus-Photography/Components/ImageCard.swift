@@ -14,8 +14,7 @@ struct ImageCard: View {
     var onAddImage: () -> Void
     var onSelectImage: (LabeledImage) -> Void
     @EnvironmentObject var selectedDataManager: SelectedDataManager
-    
-    @State private var navigateToImageView = true
+
     @State private var selectedImageId: String?
     
     @Binding var isEditing: Bool
@@ -30,78 +29,72 @@ struct ImageCard: View {
                 .font(.headline)
                 .foregroundColor(.blue)
                 .padding([.leading, .top], 10)
-        }
-        
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack {
-                ForEach(images) { labeledImage in
-                    imageView(for: labeledImage)
-                }
-                
-                addImageButton(isMaxImagesReached: isMaxImagesReached)
-            }
-            .padding([.top, .bottom], 10)
-            .padding(.trailing, 10)
-            .frame(maxWidth: .infinity, alignment: .trailing)
-        }
-        .padding()
-        .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 3))
-        .padding(.horizontal)
-    }
-    
-    
-    private func imageView(for labeledImage: LabeledImage) -> some View {
-        let image = labeledImage.image ?? UIImage()
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack {
+                    ForEach(images) { labeledImage in
+                        imageView(for: labeledImage)
+                    }
 
+                    addImageButton(isMaxImagesReached: isMaxImagesReached)
+                }
+                .padding([.top, .bottom], 10)
+                .padding(.trailing, 10)
+                .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+            .padding()
+            .background(RoundedRectangle(cornerRadius: 10).fill(Color.white).shadow(radius: 3))
+            .padding(.horizontal)
+        }
+    }
+
+    // MARK: - Image View (Toggles between edit and view mode)
+    private func imageView(for labeledImage: LabeledImage) -> some View {
         if isEditing {
-            return AnyView(editableImageView(for: labeledImage, image: image))
+            return AnyView(editableImageView(for: labeledImage))
         } else {
             return AnyView(
-                ZStack {
-                    Button(action: {
-                        selectedImageId = labeledImage.id
-                        navigateToImageView = true
-                    }) {
-                        standardImageView(labeledImage: labeledImage)
-                    }
-                    .simultaneousGesture(
-                        LongPressGesture().onEnded { _ in
-                            navigateToImageView = false
+                NavigationLink(
+                    destination: ImageView(labeledImage: labeledImage),
+                    tag: labeledImage.id,
+                    selection: $selectedImageId
+                ) {
+                    standardImageView(for: labeledImage)
+                        .onTapGesture {
+                            selectedImageId = labeledImage.id
+                        }
+                        .onLongPressGesture {
                             triggerHapticFeedback()
                             onSelectImage(labeledImage)
                         }
-                    )
-                    
-                    if navigateToImageView {
-                        NavigationLink(
-                            destination: ImageView(image: image),
-                            isActive: Binding(
-                                get: {
-                                    selectedImageId == labeledImage.id
-                                },
-                                set: { isActive in
-                                    if !isActive {
-                                        selectedImageId = nil
-                                    }
-                                }
-                            )
-                        ) {
-                            EmptyView()
-                        }
-                    }
                 }
             )
         }
     }
 
-
-    private func editableImageView(for labeledImage: LabeledImage, image: UIImage) -> some View {
-        return Image(uiImage: image)
+    // MARK: - Standard image display
+    private func standardImageView(for labeledImage: LabeledImage) -> some View {
+        Image(uiImage: labeledImage.image ?? UIImage())
             .resizable()
             .scaledToFit()
             .frame(width: 80, height: 80)
             .clipShape(Circle())
-            .overlay(Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3))
+            .overlay(
+                Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
+            )
+            .padding(.horizontal, 4)
+    }
+
+    // MARK: - Editable image (for multi-select delete)
+    private func editableImageView(for labeledImage: LabeledImage) -> some View {
+        Image(uiImage: labeledImage.image ?? UIImage())
+            .resizable()
+            .scaledToFit()
+            .frame(width: 80, height: 80)
+            .clipShape(Circle())
+            .overlay(
+                Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3)
+            )
             .padding(.horizontal, 4)
             .onTapGesture {
                 handleImageSelectionOnEdit(labeledImage)
@@ -120,17 +113,8 @@ struct ImageCard: View {
                 alignment: .topTrailing
             )
     }
-    
-    private func standardImageView(labeledImage: LabeledImage) -> some View {
-        return Image(uiImage: labeledImage.image ?? UIImage())
-            .resizable()
-            .scaledToFit()
-            .frame(width: 80, height: 80)
-            .clipShape(Circle())
-            .overlay(Circle().stroke(labeledImage.isPrimary ? Color.blue : Color.clear, lineWidth: 3))
-            .padding(.horizontal, 4)
-    }
-    
+
+    // MARK: - Add Image Button
     private func addImageButton(isMaxImagesReached: Bool) -> some View {
         Button(action: {
             if !isMaxImagesReached && !isFromScanList {
@@ -146,18 +130,15 @@ struct ImageCard: View {
         }
         .disabled(isEditing)
     }
-    
+
     private func handleImageSelectionOnEdit(_ labeledImage: LabeledImage) {
-        if isEditing {
-            if let index = selectedEditImages.firstIndex(where: { $0.id == labeledImage.id }) {
-                selectedEditImages.remove(at: index)
-            } else {
-                selectedEditImages.append(labeledImage)
-            }
+        if let index = selectedEditImages.firstIndex(where: { $0.id == labeledImage.id }) {
+            selectedEditImages.remove(at: index)
+        } else {
+            selectedEditImages.append(labeledImage)
         }
-        print(selectedEditImages)
     }
-    
+
     private func triggerHapticFeedback() {
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.prepare()

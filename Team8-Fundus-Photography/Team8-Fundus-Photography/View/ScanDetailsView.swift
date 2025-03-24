@@ -137,7 +137,9 @@ struct ScanDetailsView: View {
     @EnvironmentObject var selectedDataManager: SelectedDataManager
     @StateObject var storageManager = FirebaseManager()
     
-    @State private var images: [String: UIImage] = [:]
+//    @State private var images: [String: UIImage] = [:]
+    @State private var images: [LabeledImage] = []
+
     @State private var scanDetails: String = "Loading..."
     @State private var scanDate: Date?
     @State private var isLoading = true
@@ -253,19 +255,20 @@ struct ScanDetailsView: View {
     // Fetch scan details and primary images
     private func fetchScanDetails() {
         let patientID = selectedDataManager.getPatientID()
-        
+
         // Fetch scan name, details, and date
         viewModel.fetchScanDetails(scanID: scanID) { name, details, date in
             self.scanDetails = details
             self.scanDate = date
             self.isLoading = false
         }
-        
-        // Fetch primary images
-        storageManager.fetchPrimaryImages(patientID: patientID, scanID: scanID) { fetchedImages in
-            self.images = fetchedImages
+
+        // Fetch primary labeled images (with comments, position, etc.)
+        storageManager.fetchPrimaryLabeledImages(patientID: patientID, scanID: scanID) { fetchedLabeledImages in
+            self.images = fetchedLabeledImages
         }
     }
+
 
     private func formattedDate(_ date: Date) -> String {
         let formatter = DateFormatter()

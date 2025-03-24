@@ -22,7 +22,9 @@ struct NewScanView: View {
     @State private var showAlert: Bool = false
     @State private var alertMessage: String = ""
     @State private var navToScanList: Bool = false
-    @State private var images: [String: UIImage] = [:]
+//    @State private var images: [String: UIImage] = [:]
+    @State private var images: [LabeledImage] = []
+
     @State private var keyboardHeight: CGFloat = 0
     @State private var commentHeight: CGFloat = 50  // Start with default height
     
@@ -101,10 +103,15 @@ struct NewScanView: View {
                 NotificationCenter.default.addObserver(forName: UIResponder.keyboardWillHideNotification, object: nil, queue: .main) { _ in
                     keyboardHeight = 0
                 }
-                storageManager.fetchPrimaryImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
+                storageManager.fetchPrimaryLabeledImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
                     self.images = fetchedImages
                 }
                 scanName = selectedDataManager.getScanName()
+
+//                storageManager.fetchPrimaryImages(patientID: selectedDataManager.getPatientID(), scanID: selectedDataManager.getScanID()) { fetchedImages in
+//                    self.images = fetchedImages
+//                }
+//                scanName = selectedDataManager.getScanName()
             }
             .animation(.easeOut(duration: 0.3))
         }

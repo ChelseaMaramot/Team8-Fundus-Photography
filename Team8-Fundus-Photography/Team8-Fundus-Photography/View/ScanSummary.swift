@@ -130,7 +130,7 @@ struct ScanSummary: View {
 
                         // "Add Scan Details" Button
                         NavigationLink(destination: NewScanView(patientID: selectedDataManager.getPatientID())) {
-                            Text("Add Details")
+                            Text("Continue")
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
                                 .padding()
@@ -154,6 +154,23 @@ struct ScanSummary: View {
         }
         .colorScheme(.light)
         .navigationBarTitle("Image Summary", displayMode: .inline)
+        .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading:
+            Button(action: {
+                if isFromScanList {
+                    presentationMode.wrappedValue.dismiss()
+                } else {
+                    navigateToCameraView = true
+                }
+            }) {
+                HStack {
+                    Image(systemName: "chevron.left")
+                    Text("Back")
+                }
+            }
+            .foregroundColor(.blue)
+        )
+
         .navigationBarItems(trailing: Button(action: {
             isEditing.toggle()
             selectedEditImages.removeAll()

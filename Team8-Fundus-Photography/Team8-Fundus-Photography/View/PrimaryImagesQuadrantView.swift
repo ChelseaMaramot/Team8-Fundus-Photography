@@ -9,31 +9,36 @@
 import SwiftUI
 
 struct PrimaryImagesQuadrantView: View {
-    let images: [String: UIImage] // Dictionary of quadrant names to images
-    
+    let images: [LabeledImage] // ✅ Now using LabeledImage array
+
     var body: some View {
         ZStack {
-            // Position each image in its quadrant
-            ForEach(["Superior", "Inferior", "Nasal", "Temporal", "Central"], id: \.self) { quadrant in
-                if let image = images[quadrant] {
-                    NavigationLink(destination: ImageView(image: image)) {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 90, height: 90) // Adjust size as needed
-                            .clipShape(Circle()) // Circular images
-                            .overlay(
-                                Circle().stroke(Color.blue, lineWidth: 2) // Border for primary image
-                            )
+            // Define the standard order of quadrants
+            let quadrants = ["Superior", "Inferior", "Nasal", "Temporal", "Central"]
+
+            ForEach(quadrants, id: \.self) { quadrant in
+                // Try to find the image for this quadrant
+                if let labeledImage = images.first(where: { $0.position == quadrant }) {
+                    NavigationLink(destination: ImageView(labeledImage: labeledImage)) {
+                        if let uiImage = labeledImage.image {
+                            Image(uiImage: uiImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 90, height: 90)
+                                .clipShape(Circle())
+                                .overlay(
+                                    Circle().stroke(Color.blue, lineWidth: 2)
+                                )
+                        }
                     }
-                    .offset(offsetForQuadrant(quadrant)) // Position correctly
+                    .offset(offsetForQuadrant(quadrant))
                 } else {
-                    // Placeholder if no image exists for this quadrant
+                    // Placeholder for missing quadrant image
                     Circle()
                         .fill(Color.gray.opacity(0.5))
                         .frame(width: 90, height: 90)
                         .overlay(
-                            Text(quadrant.prefix(2)) // Show initials (e.g., "Su" for Superior)
+                            Text(quadrant.prefix(2))
                                 .foregroundColor(.black)
                                 .font(.caption)
                         )
@@ -42,16 +47,16 @@ struct PrimaryImagesQuadrantView: View {
             }
         }
     }
-    
+
     private func offsetForQuadrant(_ quadrant: String) -> CGSize {
-        let offset: CGFloat = 110 // Adjust distance from center
+        let offset: CGFloat = 110
 
         switch quadrant {
         case "Superior": return CGSize(width: 0, height: -offset)
         case "Inferior": return CGSize(width: 0, height: offset)
         case "Nasal": return CGSize(width: -offset, height: 0)
         case "Temporal": return CGSize(width: offset, height: 0)
-        default: return CGSize.zero
+        default: return CGSize.zero // Central or unknown
         }
     }
 }

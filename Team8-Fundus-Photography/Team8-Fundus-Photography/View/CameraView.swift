@@ -26,6 +26,7 @@ struct CameraView: View {
     @State private var lastZoomFactor: CGFloat = 3.0
     
     @State private var isFocused = false
+    @State private var navToScanList = false
     @State private var focusLocation: CGPoint = .zero
     @State private var focusValue: Float = 0.5
     @State private var isScaled = false
@@ -92,7 +93,24 @@ struct CameraView: View {
                 }
             }
         }
+        .navigationDestination(isPresented: $navToScanList) {
+            ScanListView(patientID: selectedDataManager.getPatientID() )
+        }
+
         .navigationBarBackButtonHidden(true)
+        .navigationBarItems(leading:
+            Button(action: {
+            
+            navToScanList = true
+            }) {
+                HStack {
+                    Image(systemName: "chevron.left")
+                    Text("Exit Scan")
+                }
+            }
+            .foregroundColor(.blue)
+        )
+
         .navigationDestination(isPresented: $showCapturedPhoto) {
             PreviewPage(
                 image: $capturedImage,

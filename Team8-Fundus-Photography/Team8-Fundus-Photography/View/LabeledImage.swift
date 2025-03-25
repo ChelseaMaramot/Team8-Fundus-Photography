@@ -8,18 +8,17 @@
 import SwiftUI
 
 struct LabeledImage: Identifiable {
-    let id: String  // Ensures each image is uniquely identifiable
-//    let url = String()
-    let image: UIImage?
-    var isPrimary: Bool // should i add postion here too?
-    let position: String
-    
-    
-    init(id: String, isPrimary: Bool, position: String, image: UIImage? = nil) {
+    let id: String
+    var image: UIImage?
+    var isPrimary: Bool
+    var position: String
+    var comment: String? // ✅ new field
+
+    init(id: String, isPrimary: Bool, position: String, image: UIImage? = nil, comment: String? = nil) {
         self.id = id
         self.isPrimary = isPrimary
         self.position = position
         self.image = image
+        self.comment = comment
     }
-
 }

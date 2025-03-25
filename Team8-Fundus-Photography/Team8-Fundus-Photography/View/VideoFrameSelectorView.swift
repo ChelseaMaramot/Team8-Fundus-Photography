@@ -42,7 +42,10 @@ struct VideoFrameSelectorView: View {
             
             actionButtonsSection
         }
-        .onAppear { loadVideo() }
+        .onAppear {
+            loadVideo()
+            fetchImagesByPosition()
+        }
         .onChange(of: currentTime) { newTime in
             sliderValue = CMTimeGetSeconds(newTime)
         }
@@ -66,6 +69,18 @@ struct VideoFrameSelectorView: View {
         }
     }
     
+    private func fetchImagesByPosition() {
+        let currentPosition = selectedDataManager.getQuadrant().rawValue
+        let patientID = selectedDataManager.getPatientID()
+        let scanID = selectedDataManager.getScanID()
+
+        firebaseManager.fetchImagesByPosition(patientID: patientID, scanID: scanID, position: currentPosition) {
+            DispatchQueue.main.async {
+                print("Fetched images for position: \(currentPosition)")
+            }
+        }
+    }
+
     // Video Player Section
     private var videoPlayerSection: some View {
         Group {
@@ -277,6 +292,7 @@ struct VideoFrameSelectorView: View {
             }
         }
     }
+    
 }
 
 #Preview {

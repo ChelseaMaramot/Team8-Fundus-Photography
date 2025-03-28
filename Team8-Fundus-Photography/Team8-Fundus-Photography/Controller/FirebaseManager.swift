@@ -9,6 +9,7 @@ import FirebaseStorage
 import AVFoundation
 import UIKit
 import FirebaseFirestore
+import CryptoKit
 
 // Change to an observable object class
 class FirebaseManager: ObservableObject {
@@ -16,141 +17,224 @@ class FirebaseManager: ObservableObject {
     @Published var patients: [Patient] = []
     @Published var imagesByPosition: [String: [LabeledImage]] = [:] // Store images by position
     
-    func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
-        print("Saving to Firebase images collection...")
-        let storageRef = Storage.storage().reference()
-        let db = Firestore.firestore()
-        let dispatchGroup = DispatchGroup()
-        
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("Failed to convert image to JPEG data.")
-            return
+    
+    private let keychainKey = "encryptionKey"
+
+        // MARK: - Key Management
+        func generateAndStoreKey() {
+            let key = SymmetricKey(size: .bits256)
+            let keyData = key.withUnsafeBytes { Data(Array($0)) }
+
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassKey,
+                kSecAttrApplicationTag as String: keychainKey,
+                kSecValueData as String: keyData,
+                kSecAttrAccessible as String: kSecAttrAccessibleWhenUnlocked
+            ]
+
+            SecItemDelete(query as CFDictionary) // clear old key
+            let status = SecItemAdd(query as CFDictionary, nil)
+            if status == errSecSuccess {
+                print("Encryption key saved successfully.")
+            } else {
+                print("Failed to store encryption key.")
+            }
         }
-        
-        let imageID = UUID().uuidString
-        let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
-        print("This is the image URL: \(url)")
-        
-        let fileRef = storageRef.child(url)
-        
-        // Upload image to Firebase Storage
-        fileRef.putData(imageData, metadata: nil) { metadata, error in
-            if let error = error {
-                print("Failed to upload image: \(error.localizedDescription)")
+
+        func getKeyFromKeychain() -> SymmetricKey? {
+            let query: [String: Any] = [
+                kSecClass as String: kSecClassKey,
+                kSecAttrApplicationTag as String: keychainKey,
+                kSecReturnData as String: true
+            ]
+
+            var result: AnyObject?
+            let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+            if status == errSecSuccess, let data = result as? Data {
+                return SymmetricKey(data: data)
+            }
+            return nil
+        }
+
+        func retrieveAndPrintKey() {
+            if let key = getKeyFromKeychain() {
+                print("Encryption key retrieved: \(key)")
+            } else {
+                print("Encryption key not found.")
+            }
+        }
+
+        func encrypt(data: Data) -> Data? {
+            guard let key = getKeyFromKeychain() else { return nil }
+            do {
+                let sealedBox = try AES.GCM.seal(data, using: key)
+                return sealedBox.combined
+            } catch {
+                print("Encryption failed: \(error.localizedDescription)")
+                return nil
+            }
+        }
+
+        func decrypt(data: Data) -> Data? {
+            guard let key = getKeyFromKeychain() else { return nil }
+            do {
+                let sealedBox = try AES.GCM.SealedBox(combined: data)
+                return try AES.GCM.open(sealedBox, using: key)
+            } catch {
+                print("Decryption failed: \(error.localizedDescription)")
+                return nil
+            }
+        }
+
+    
+    // MARK: - Upload with Encryption
+        func saveToFirebase(image: UIImage, patientID: String, scanID: String, region: String, completion: @escaping () -> Void) {
+            let storageRef = Storage.storage().reference()
+            let db = Firestore.firestore()
+            let dispatchGroup = DispatchGroup()
+
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+                print("Failed to convert image to JPEG data.")
                 return
             }
-            
-            dispatchGroup.enter()
-            
-            // Check if there's already a primary image in this region
-            let imagesRef = db.collection("images")
-            imagesRef.whereField("patientID", isEqualTo: patientID)
-                .whereField("scanID", isEqualTo: scanID)
-                .whereField("position", isEqualTo: region)
-                .whereField("isPrimary", isEqualTo: true)
-                .getDocuments { (snapshot, error) in
-                    
-                    var isPrimary = false
-                    
-                    if let error = error {
-                        print("Error checking for existing primary image: \(error.localizedDescription)")
-                    } else if snapshot?.documents.isEmpty == true {
-                        print("No existing primary image found, setting this as primary.")
-                        isPrimary = true
-                    } else {
-                        print("Primary image already exists, not setting this one as primary.")
-                    }
-                    
-                    // Save the image metadata to Firestore
-                    let imageRef = db.collection("images").document(imageID)
-                    let docData: [String: Any] = [
-                        "isPrimary": isPrimary,  // Set the first image as primary if needed
-                        "patientID": patientID,
-                        "position": region,
-                        "scanID": scanID,
-                        "url": url
-                    ]
-                    
-                    imageRef.setData(docData) { error in
-                        if let error = error {
-                            print("Failed to save image path to Firestore: \(error.localizedDescription)")
-                        } else {
-                            print("Successfully saved image path to Firestore.")
-                        }
-                        
-                        dispatchGroup.leave()
-                    }
-                    
-                    // Update local storage
-                    let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: region, image: image)
-                    if self.imagesByPosition[region] != nil {
-                        self.imagesByPosition[region]?.append(labeledImage)
-                    } else {
-                        self.imagesByPosition[region] = [labeledImage]
-                    }
+
+            guard let encryptedData = encrypt(data: imageData) else {
+                print("Encryption failed. Aborting upload.")
+                return
+            }
+
+            let imageID = UUID().uuidString
+            let url = "patients/\(patientID)/scans/\(scanID)/\(region)/\(imageID).jpg"
+            let fileRef = storageRef.child(url)
+
+            fileRef.putData(encryptedData, metadata: nil) { metadata, error in
+                if let error = error {
+                    print("Failed to upload image: \(error.localizedDescription)")
+                    return
                 }
+
+                dispatchGroup.enter()
+                let imagesRef = db.collection("images")
+                imagesRef.whereField("patientID", isEqualTo: patientID)
+                    .whereField("scanID", isEqualTo: scanID)
+                    .whereField("position", isEqualTo: region)
+                    .whereField("isPrimary", isEqualTo: true)
+                    .getDocuments { (snapshot, error) in
+
+                        var isPrimary = false
+                        if let error = error {
+                            print("Error checking for existing primary image: \(error.localizedDescription)")
+                        } else if snapshot?.documents.isEmpty == true {
+                            isPrimary = true
+                        }
+
+                        let imageRef = db.collection("images").document(imageID)
+                        let docData: [String: Any] = [
+                            "isPrimary": isPrimary,
+                            "patientID": patientID,
+                            "position": region,
+                            "scanID": scanID,
+                            "url": url,
+                            "encrypted": true
+                        ]
+
+                        imageRef.setData(docData) { error in
+                            if let error = error {
+                                print("Failed to save image path to Firestore: \(error.localizedDescription)")
+                            }
+                            dispatchGroup.leave()
+                        }
+
+                        let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: region, image: image)
+                        if self.imagesByPosition[region] != nil {
+                            self.imagesByPosition[region]?.append(labeledImage)
+                        } else {
+                            self.imagesByPosition[region] = [labeledImage]
+                        }
+                    }
+            }
+
+            dispatchGroup.notify(queue: .main) {
+                completion()
+            }
         }
-        
-       
-        dispatchGroup.notify(queue: .main) {
-            print("Done saving image to Firebase!")
-            completion()
-        }
-    }
     
-    func updateCroppedImageInFirebase(image: UIImage, patientID: String, scanID: String, position: String, imageID: String, completion: @escaping (Bool) -> Void) {
-        let storageRef = Storage.storage().reference()
-        let db = Firestore.firestore()
-        
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            print("Failed to convert image to JPEG data.")
-            completion(false)
-            return
-        }
+    // MARK: - Update Cropped Image with Encryption
+        func updateCroppedImageInFirebase(image: UIImage, patientID: String, scanID: String, position: String, imageID: String, completion: @escaping (Bool) -> Void) {
+            let storageRef = Storage.storage().reference()
+            let db = Firestore.firestore()
 
-        let path = "patients/\(patientID)/scans/\(scanID)/\(position)/\(imageID).jpg"
-        let fileRef = storageRef.child(path)
-
-        // Upload new cropped image
-        fileRef.putData(imageData, metadata: nil) { metadata, error in
-            if let error = error {
-                print("Failed to upload cropped image: \(error.localizedDescription)")
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+                print("Failed to convert image to JPEG data.")
                 completion(false)
                 return
             }
 
-            // Update Firestore with the new image path
-            db.collection("images").document(imageID).updateData([
-                "url": path
-            ]) { error in
+            guard let encryptedData = encrypt(data: imageData) else {
+                print("Encryption failed. Aborting upload.")
+                completion(false)
+                return
+            }
+
+            let path = "patients/\(patientID)/scans/\(scanID)/\(position)/\(imageID).jpg"
+            let fileRef = storageRef.child(path)
+
+            fileRef.putData(encryptedData, metadata: nil) { metadata, error in
                 if let error = error {
-                    print("Failed to update Firestore image path: \(error.localizedDescription)")
+                    print("Failed to upload cropped image: \(error.localizedDescription)")
                     completion(false)
-                } else {
-                    print("Successfully updated cropped image in Firebase.")
-                    completion(true)
+                    return
+                }
+
+                db.collection("images").document(imageID).updateData([
+                    "url": path,
+                    "encrypted": true
+                ]) { error in
+                    if let error = error {
+                        print("Failed to update Firestore image path: \(error.localizedDescription)")
+                        completion(false)
+                    } else {
+                        print("Successfully updated cropped image in Firebase.")
+                        completion(true)
+                    }
                 }
             }
         }
-    }
-
     
-    func downloadImage(from path: String, position: String, completion: @escaping (UIImage?) -> Void) {
-        let modifiedPath = path.replacingOccurrences(of: "regions", with: position)
-        let storageRef = Storage.storage().reference(withPath: modifiedPath)
-        
-        storageRef.getData(maxSize: 10 * 1024 * 1024) { (data, error) in
-            if let error = error {
-                print("Error downloading image: \(error.localizedDescription)")
-                completion(nil)
-            } else if let data = data, let image = UIImage(data: data) {
-                completion(image)
-            } else {
-                print("no image to download: nil")
-                completion(nil)
+    // MARK: - Download with Optional Decryption
+        func downloadImage(from path: String, position: String, completion: @escaping (UIImage?) -> Void) {
+            let storageRef = Storage.storage().reference(withPath: path)
+            let db = Firestore.firestore()
+
+            db.collection("images").whereField("url", isEqualTo: path).getDocuments { snapshot, error in
+                var shouldDecrypt = false
+                if let snapshot = snapshot, let doc = snapshot.documents.first {
+                    shouldDecrypt = doc.data()["encrypted"] as? Bool ?? false
+                }
+
+                storageRef.getData(maxSize: 10 * 1024 * 1024) { (data, error) in
+                    if let error = error {
+                        print("Error downloading image: \(error.localizedDescription)")
+                        completion(nil)
+                        return
+                    }
+
+                    guard let data = data else {
+                        print("Downloaded data is nil")
+                        completion(nil)
+                        return
+                    }
+
+                    let finalData = shouldDecrypt ? self.decrypt(data: data) : data
+                    if let finalData = finalData, let image = UIImage(data: finalData) {
+                        completion(image)
+                    } else {
+                        completion(nil)
+                    }
+                }
             }
         }
-    }
     
     func updateImageComment(imageID: String, newComment: String, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
@@ -169,67 +253,59 @@ class FirebaseManager: ObservableObject {
         }
     }
 
-    
-    // Uses Anjola's images collection
-    func retrievePhotos(patientID: String, scanID: String) {
-        print("Starting image retrieval")
-        let db = Firestore.firestore()
-        let imagesRef = db.collection("images")
-        let dispatchGroup = DispatchGroup()
-        var fetchedImagesByPosition: [String: [LabeledImage]] = [
-            "Central": [],
-            "Superior": [],
-            "Nasal": [],
-            "Temporal": [],
-            "Inferior": []
-        ]
-        print("pID: ", patientID)
-        print("sID: ", scanID)
-        
-        imagesRef.whereField("patientID", isEqualTo: patientID)
-            .whereField("scanID", isEqualTo: scanID)
-            .getDocuments { (snapshot, error) in
-                if let error = error {
-                    print("Error getting documents: \(error.localizedDescription)")
-                    return
-                }
-                
-                if let snapshot = snapshot, !snapshot.isEmpty {
-                    for document in snapshot.documents {
+    // MARK: - Enhanced retrieval methods with decryption
+        func retrievePhotos(patientID: String, scanID: String) {
+            let db = Firestore.firestore()
+            let imagesRef = db.collection("images")
+            let dispatchGroup = DispatchGroup()
+            var fetchedImagesByPosition: [String: [LabeledImage]] = [
+                        "Central": [],
+                        "Superior": [],
+                        "Nasal": [],
+                        "Temporal": [],
+                        "Inferior": []
+                    ]
+
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .getDocuments { (snapshot, error) in
+                    guard let documents = snapshot?.documents, error == nil else {
+                        print("Error fetching documents: \(error?.localizedDescription ?? "Unknown error")")
+                        return
+                    }
+
+                    for doc in documents {
                         dispatchGroup.enter()
-                        
-                        let data = document.data()
-                        
-                        if let imageURLString = data["url"] as? String,
-                           let position = data["position"] as? String,
-                           let isPrimary = data["isPrimary"] as? Bool,
-                           let imageID = document.documentID as? String,
-                           let imageURL = URL(string: imageURLString) {
-                           let comment = data["comment"] as? String ?? ""
-                            self.downloadImage(from: imageURLString, position: position) { image in
-                                let labeledImage = LabeledImage(id: imageID,
-                                                                isPrimary: isPrimary, position: position, image: image, comment: comment)
-                                
-                                if fetchedImagesByPosition[position] != nil {
-                                    fetchedImagesByPosition[position]?.append(labeledImage)
-                                } else {
-                                    fetchedImagesByPosition[position] = [labeledImage]
-                                }
-                                dispatchGroup.leave()
+                        let data = doc.data()
+                        let id = doc.documentID
+                        let position = data["position"] as? String ?? "Unknown"
+                        let isPrimary = data["isPrimary"] as? Bool ?? false
+                        let comment = data["comment"] as? String ?? ""
+                        let url = data["url"] as? String ?? ""
+                        let isEncrypted = data["encrypted"] as? Bool ?? false
+
+                        let storageRef = Storage.storage().reference(withPath: url)
+                        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                            var image: UIImage? = nil
+                            if let data = data {
+                                let finalData = isEncrypted ? self.decrypt(data: data) : data
+                                image = finalData != nil ? UIImage(data: finalData!) : nil
                             }
-                        } else {
+                            let labeled = LabeledImage(id: id, isPrimary: isPrimary, position: position, image: image, comment: comment)
+                            if fetchedImagesByPosition[position] != nil {
+                                fetchedImagesByPosition[position]?.append(labeled)
+                            } else {
+                                fetchedImagesByPosition[position] = [labeled]
+                            }
                             dispatchGroup.leave()
                         }
                     }
-                    
+
                     dispatchGroup.notify(queue: .main) {
                         self.imagesByPosition = fetchedImagesByPosition
                     }
-                } else {
-                    print("No documents found")
                 }
-            }
-    }
+        }
     
     func setPrimaryImage(for position: String, image: LabeledImage, patientID: String, scanID: String) {
         print("Setting new primary image for \(image)")
@@ -272,172 +348,107 @@ class FirebaseManager: ObservableObject {
     }
     
     func fetchImagesByPosition(patientID: String, scanID: String, position: String, completion: @escaping () -> Void) {
-        print("Fetching images for position: \(position)")
+            let db = Firestore.firestore()
+            let imagesRef = db.collection("images")
+            let dispatchGroup = DispatchGroup()
 
-        let db = Firestore.firestore()
-        let imagesRef = db.collection("images")
-        let dispatchGroup = DispatchGroup()
+            var fetchedImages: [LabeledImage] = []
 
-        var fetchedImages: [LabeledImage] = []
-
-        imagesRef.whereField("patientID", isEqualTo: patientID)
-            .whereField("scanID", isEqualTo: scanID)
-            .whereField("position", isEqualTo: position)
-            .getDocuments { (snapshot, error) in
-                if let error = error {
-                    print("Error fetching images for \(position): \(error.localizedDescription)")
-                    completion()
-                    return
-                }
-
-                guard let snapshot = snapshot, !snapshot.isEmpty else {
-                    print("No images found for \(position)")
-                    self.imagesByPosition[position] = []
-                    completion()
-                    return
-                }
-
-                for document in snapshot.documents {
-                    let data = document.data()
-
-                    guard let imageURLString = data["url"] as? String,
-                          let isPrimary = data["isPrimary"] as? Bool else {
-                        print("Skipping document \(document.documentID) due to missing fields")
-                        continue
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .whereField("position", isEqualTo: position)
+                .getDocuments { (snapshot, error) in
+                    guard let documents = snapshot?.documents, error == nil else {
+                        print("Error fetching images: \(error?.localizedDescription ?? "Unknown error")")
+                        completion()
+                        return
                     }
 
-                    let comment = data["comment"] as? String ?? ""
-                    let imageID = document.documentID
+                    for doc in documents {
+                        dispatchGroup.enter()
+                        let data = doc.data()
+                        let id = doc.documentID
+                        let isPrimary = data["isPrimary"] as? Bool ?? false
+                        let comment = data["comment"] as? String ?? ""
+                        let url = data["url"] as? String ?? ""
+                        let isEncrypted = data["encrypted"] as? Bool ?? false
 
-                    dispatchGroup.enter()
-
-                    self.downloadImage(from: imageURLString, position: position) { image in
-                        if let image = image {
-                            let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: position, image: image, comment: comment)
-                            fetchedImages.append(labeledImage)
+                        let storageRef = Storage.storage().reference(withPath: url)
+                        storageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                            var image: UIImage? = nil
+                            if let data = data {
+                                let finalData = isEncrypted ? self.decrypt(data: data) : data
+                                image = finalData != nil ? UIImage(data: finalData!) : nil
+                            }
+                            let labeled = LabeledImage(id: id, isPrimary: isPrimary, position: position, image: image, comment: comment)
+                            fetchedImages.append(labeled)
+                            dispatchGroup.leave()
                         }
-                        dispatchGroup.leave()
+                    }
+
+                    dispatchGroup.notify(queue: .main) {
+                        self.imagesByPosition[position] = fetchedImages
+                        completion()
                     }
                 }
+        }
+    // MARK: - Fetch Primary Labeled Images
+        func fetchPrimaryLabeledImages(patientID: String, scanID: String, completion: @escaping ([LabeledImage]) -> Void) {
+            let db = Firestore.firestore()
+            let imagesRef = db.collection("images")
+            let storageRef = Storage.storage().reference()
+            let dispatchGroup = DispatchGroup()
 
-                dispatchGroup.notify(queue: .main) {
-                    self.imagesByPosition[position] = fetchedImages
-                    print("Fetched \(fetchedImages.count) images for \(position)")
-                    completion()
-                }
-            }
-    }
+            var labeledImages: [LabeledImage] = []
 
+            imagesRef.whereField("patientID", isEqualTo: patientID)
+                .whereField("scanID", isEqualTo: scanID)
+                .whereField("isPrimary", isEqualTo: true)
+                .getDocuments { (snapshot, error) in
+                    guard let snapshot = snapshot, error == nil else {
+                        print("Error fetching primary images: \(error?.localizedDescription ?? "unknown error")")
+                        completion([])
+                        return
+                    }
 
-    
-    func fetchPrimaryLabeledImages(patientID: String, scanID: String, completion: @escaping ([LabeledImage]) -> Void) {
-        let db = Firestore.firestore()
-        let imagesRef = db.collection("images")
-        let storageRef = Storage.storage().reference()
-        let dispatchGroup = DispatchGroup()
-        
-        var labeledImages: [LabeledImage] = []
+                    for doc in snapshot.documents {
+                        let data = doc.data()
+                        let id = doc.documentID
+                        let position = data["position"] as? String ?? "Unknown"
+                        let isPrimary = data["isPrimary"] as? Bool ?? false
+                        let comment = data["comment"] as? String
+                        let url = data["url"] as? String
+                        let isEncrypted = data["encrypted"] as? Bool ?? false
 
-        imagesRef.whereField("patientID", isEqualTo: patientID)
-            .whereField("scanID", isEqualTo: scanID)
-            .whereField("isPrimary", isEqualTo: true)
-            .getDocuments { (snapshot, error) in
-                guard let snapshot = snapshot, error == nil else {
-                    print("Error fetching primary images: \(error?.localizedDescription ?? "unknown error")")
-                    completion([])
-                    return
-                }
+                        guard let imagePath = url else { continue }
 
-                for doc in snapshot.documents {
-                    let data = doc.data()
-                    let id = doc.documentID
-                    let position = data["position"] as? String ?? "Unknown"
-                    let isPrimary = data["isPrimary"] as? Bool ?? false
-                    let comment = data["comment"] as? String
-                    let url = data["url"] as? String
+                        dispatchGroup.enter()
+                        let imageRef = storageRef.child(imagePath)
+                        imageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
+                            var image: UIImage? = nil
+                            if let data = data {
+                                let finalData = isEncrypted ? self.decrypt(data: data) : data
+                                if let finalData = finalData {
+                                    image = UIImage(data: finalData)
+                                }
+                            } else {
+                                print("Failed to load image for \(position): \(error?.localizedDescription ?? "unknown error")")
+                            }
 
-                    guard let imagePath = url else { continue }
+                            let labeled = LabeledImage(id: id, isPrimary: isPrimary, position: position, image: image, comment: comment)
+                            labeledImages.append(labeled)
 
-                    dispatchGroup.enter()
-                    let imageRef = storageRef.child(imagePath)
-                    imageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
-                        var image: UIImage? = nil
-                        if let data = data {
-                            image = UIImage(data: data)
-                        } else {
-                            print("Failed to load image for \(position): \(error?.localizedDescription ?? "unknown error")")
+                            dispatchGroup.leave()
                         }
+                    }
 
-                        let labeled = LabeledImage(id: id, isPrimary: isPrimary, position: position, image: image, comment: comment)
-                        labeledImages.append(labeled)
-
-                        dispatchGroup.leave()
+                    dispatchGroup.notify(queue: .main) {
+                        completion(labeledImages)
                     }
                 }
+        }
 
-                dispatchGroup.notify(queue: .main) {
-                    completion(labeledImages)
-                }
-            }
-    }
 
-//    func fetchPrimaryImages(patientID: String, scanID: String, completion: @escaping ([String: UIImage]) -> Void) {
-//        let db = Firestore.firestore()
-//        let imagesRef = db.collection("images")
-//        var primaryImages: [String: UIImage] = [
-//            "Central": UIImage(),
-//            "Superior": UIImage(),
-//            "Nasal": UIImage(),
-//            "Temporal": UIImage(),
-//            "Inferior": UIImage()
-//        ]
-//        
-//        let storageRef = Storage.storage().reference()
-//        let dispatchGroup = DispatchGroup()
-//        
-//        imagesRef.whereField("patientID", isEqualTo: patientID)
-//            .whereField("scanID", isEqualTo: scanID)
-//            .whereField("isPrimary", isEqualTo: true) // Only fetch primary images
-//            .getDocuments { (snapshot, error) in
-//                if let error = error {
-//                    print("Error fetching primary images: \(error.localizedDescription)")
-//                    completion(primaryImages)
-//                    return
-//                }
-//                
-//                guard let snapshot = snapshot, !snapshot.isEmpty else {
-//                    print("No primary images found for this scan.")
-//                    completion(primaryImages)
-//                    return
-//                }
-//                
-//                for document in snapshot.documents {
-//                    let data = document.data()
-//                    
-//                    if let imageURLString = data["url"] as? String,
-//                       let position = data["position"] as? String {
-//                        
-//                        dispatchGroup.enter()
-//                        
-//                        let imageRef = storageRef.child(imageURLString)
-//                        imageRef.getData(maxSize: 10 * 1024 * 1024) { data, error in
-//                            if let error = error {
-//                                print("Error downloading image for \(position): \(error.localizedDescription)")
-//                            } else if let data = data, let image = UIImage(data: data) {
-//                                primaryImages[position] = image
-//                            }
-//                            dispatchGroup.leave()
-//                        }
-//                    }
-//                }
-//                
-//                dispatchGroup.notify(queue: .main) {
-//                    completion(primaryImages)
-//                }
-//            }
-//    }
-//    
-    
     func updateImagePrimaryStatus(patientID: String, scanID: String, imageID: String, isPrimary: Bool, completion: @escaping (Bool) -> Void) {
         let db = Firestore.firestore()
         print("Updating isPrimary for image ID: \(imageID)")

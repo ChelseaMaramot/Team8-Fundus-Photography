@@ -271,7 +271,64 @@ class FirebaseManager: ObservableObject {
         }
     }
     
-    
+    func fetchImagesByPosition(patientID: String, scanID: String, position: String, completion: @escaping () -> Void) {
+        print("Fetching images for position: \(position)")
+
+        let db = Firestore.firestore()
+        let imagesRef = db.collection("images")
+        let dispatchGroup = DispatchGroup()
+
+        var fetchedImages: [LabeledImage] = []
+
+        imagesRef.whereField("patientID", isEqualTo: patientID)
+            .whereField("scanID", isEqualTo: scanID)
+            .whereField("position", isEqualTo: position)
+            .getDocuments { (snapshot, error) in
+                if let error = error {
+                    print("Error fetching images for \(position): \(error.localizedDescription)")
+                    completion()
+                    return
+                }
+
+                guard let snapshot = snapshot, !snapshot.isEmpty else {
+                    print("No images found for \(position)")
+                    self.imagesByPosition[position] = []
+                    completion()
+                    return
+                }
+
+                for document in snapshot.documents {
+                    let data = document.data()
+
+                    guard let imageURLString = data["url"] as? String,
+                          let isPrimary = data["isPrimary"] as? Bool else {
+                        print("Skipping document \(document.documentID) due to missing fields")
+                        continue
+                    }
+
+                    let comment = data["comment"] as? String ?? ""
+                    let imageID = document.documentID
+
+                    dispatchGroup.enter()
+
+                    self.downloadImage(from: imageURLString, position: position) { image in
+                        if let image = image {
+                            let labeledImage = LabeledImage(id: imageID, isPrimary: isPrimary, position: position, image: image, comment: comment)
+                            fetchedImages.append(labeledImage)
+                        }
+                        dispatchGroup.leave()
+                    }
+                }
+
+                dispatchGroup.notify(queue: .main) {
+                    self.imagesByPosition[position] = fetchedImages
+                    print("Fetched \(fetchedImages.count) images for \(position)")
+                    completion()
+                }
+            }
+    }
+
+
     
     func fetchPrimaryLabeledImages(patientID: String, scanID: String, completion: @escaping ([LabeledImage]) -> Void) {
         let db = Firestore.firestore()

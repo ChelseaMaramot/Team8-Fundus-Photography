@@ -22,6 +22,8 @@ struct ScanSummary: View {
     @State private var selectedEditImages: [LabeledImage] = []
     @State private var showDeleteConfirmation = false
     @State private var navToScanList = false
+    @State private var showCancelConfirmation = false
+
 
     var isFromScanList: Bool
     @Environment(\.presentationMode) var presentationMode
@@ -117,7 +119,7 @@ struct ScanSummary: View {
                     HStack(spacing: 20) { // Side by side layout
                         // "Cancel & Delete Scan" Button
                         Button(action: {
-                            deleteScan()
+                            showCancelConfirmation = true
                         }) {
                             Text("Cancel")
                                 .fontWeight(.bold)
@@ -200,6 +202,13 @@ struct ScanSummary: View {
                 selectedEditImages.removeAll()
             }
         }
+        .confirmationDialog("This will delete your current scan in progress. Do you want to continue?", isPresented: $showCancelConfirmation, titleVisibility: .visible) {
+            Button("Delete Scan", role: .destructive) {
+                deleteScan()
+            }
+            Button("Cancel", role: .cancel) { }
+        }
+
     }
 
     private func formattedDate() -> String {

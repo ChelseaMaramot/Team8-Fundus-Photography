@@ -7,6 +7,7 @@
 
 import SwiftUI
 import FirebaseCore
+import CryptoKit
 
 class AppDelegate: UIResponder, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -17,6 +18,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } else {
             print("Failed to configure Firebase.")
         }
+        
+        let firebaseManager = FirebaseManager()
+        
+        // Generate and store the encryption key if not aleady stored
+        if firebaseManager.getKeyFromKeychain() == nil {
+            firebaseManager.generateAndStoreKey()
+        }
+        firebaseManager.retrieveAndPrintKey()
             
         return true
     }
